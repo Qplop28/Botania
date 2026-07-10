@@ -14,7 +14,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.boss.wither.WitherBoss;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -56,7 +56,12 @@ public class PinkinatorItem extends Item {
 						pink.setCustomName(wither.getCustomName());
 						pink.setCustomNameVisible(wither.isCustomNameVisible());
 					}
-					pink.finalizeSpawn((ServerLevelAccessor) world, world.getCurrentDifficultyAt(pink.blockPosition()), MobSpawnType.CONVERSION, null, null);
+					pink.finalizeSpawn(
+						(ServerLevelAccessor) world,
+						world.getCurrentDifficultyAt(pink.blockPosition()),
+						EntitySpawnReason.CONVERSION,
+						null
+					);
 					world.addFreshEntity(pink);
 					pink.spawnAnim();
 					pink.playSound(BotaniaSounds.pinkinator, 1F, (1F + (world.random.nextFloat() - world.random.nextFloat()) * 0.2F) * 0.7F);

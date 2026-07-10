@@ -37,7 +37,36 @@ jobs:
           ./gradlew --version
 
       - name: Resolve Fabric dependencies
-        run: ./gradlew :Fabric:dependencies --configuration compileClasspath --stacktrace
+        id: resolve
+        continue-on-error: true
+        run: |
+          ./gradlew :Fabric:dependencies \
+            --configuration compileClasspath \
+            --stacktrace \
+            --no-daemon > gradle-resolve.log 2>&1
 
       - name: Compile Fabric
-        run: ./gradlew :Fabric:compileJava --stacktrace
+        id: compile
+        if: steps.resolve.outcome == 'success'
+        continue-on-error: true
+        run: |
+          ./gradlew :Fabric:compileJava \
+            --stacktrace \
+            --no-daemon > gradle-compile.log 2>&1
+
+      - name: Upload Gradle diagnostic logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fabric-port-gradle-logs
+          path: |
+            gradle-resolve.log
+            gradle-compile.log
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Fail workflow when Gradle fails
+        if: steps.resolve.outcome == 'failure' || steps.compile.outcome == 'failure'
+        run: |
+          echo "Gradle failed. See the fabric-port-gradle-logs artifact."
+          exit 1

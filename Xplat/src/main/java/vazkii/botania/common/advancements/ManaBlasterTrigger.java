@@ -8,78 +8,20 @@
  */
 package vazkii.botania.common.advancements;
 
-import com.google.gson.JsonObject;
-
-import net.minecraft.advancements.critereon.*;
+import net.minecraft.advancements.criterion.ImpossibleTrigger;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
-import org.jetbrains.annotations.NotNull;
-
 import static vazkii.botania.common.lib.ResourceLocationHelper.prefix;
 
-public class ManaBlasterTrigger extends SimpleCriterionTrigger<ManaBlasterTrigger.Instance> {
-	private static final Identifier ID = prefix("fire_mana_blaster");
+public class ManaBlasterTrigger extends ImpossibleTrigger {
+	public static final Identifier ID = prefix("fire_mana_blaster");
 	public static final ManaBlasterTrigger INSTANCE = new ManaBlasterTrigger();
 
 	private ManaBlasterTrigger() {}
 
-	@NotNull
-	@Override
-	public Identifier getId() {
-		return ID;
-	}
-
-	@NotNull
-	@Override
-	public ManaBlasterTrigger.Instance createInstance(@NotNull JsonObject json, ContextAwarePredicate playerPred, DeserializationContext conditions) {
-		return new ManaBlasterTrigger.Instance(playerPred, ItemPredicate.fromJson(json.get("item")),
-				EntityPredicate.fromJson(json.get("user")));
-	}
-
 	public void trigger(ServerPlayer player, ItemStack stack) {
-		trigger(player, instance -> instance.test(stack, player));
-	}
-
-	public static class Instance extends AbstractCriterionTriggerInstance {
-		private final ItemPredicate item;
-		private final EntityPredicate user;
-
-		public Instance(ContextAwarePredicate entityPred, ItemPredicate count, EntityPredicate user) {
-			super(ID, entityPred);
-			this.item = count;
-			this.user = user;
-		}
-
-		@NotNull
-		@Override
-		public Identifier getCriterion() {
-			return ID;
-		}
-
-		boolean test(ItemStack stack, ServerPlayer entity) {
-			return this.item.matches(stack) && this.user.matches(entity, entity);
-		}
-
-		@Override
-		public JsonObject serializeToJson(SerializationContext context) {
-			JsonObject json = super.serializeToJson(context);
-			if (item != ItemPredicate.ANY) {
-				json.add("item", item.serializeToJson());
-			}
-			if (user != EntityPredicate.ANY) {
-				json.add("user", user.serializeToJson());
-			}
-			return json;
-		}
-
-		public ItemPredicate getItem() {
-			return this.item;
-		}
-
-		public EntityPredicate getUser() {
-			return this.user;
-		}
+		// Custom advancement criteria are disabled during the Minecraft 26.1 bootstrap.
 	}
 }

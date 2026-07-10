@@ -8,68 +8,20 @@
  */
 package vazkii.botania.common.advancements;
 
-import com.google.gson.JsonObject;
-
-import net.minecraft.advancements.critereon.*;
+import net.minecraft.advancements.criterion.ImpossibleTrigger;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
-import org.jetbrains.annotations.NotNull;
-
 import static vazkii.botania.common.lib.ResourceLocationHelper.prefix;
 
-public class RelicBindTrigger extends SimpleCriterionTrigger<RelicBindTrigger.Instance> {
+public class RelicBindTrigger extends ImpossibleTrigger {
 	public static final Identifier ID = prefix("relic_bind");
 	public static final RelicBindTrigger INSTANCE = new RelicBindTrigger();
 
 	private RelicBindTrigger() {}
 
-	@NotNull
-	@Override
-	public Identifier getId() {
-		return ID;
-	}
-
-	@NotNull
-	@Override
-	public Instance createInstance(@NotNull JsonObject json, @NotNull ContextAwarePredicate playerPred, DeserializationContext conditions) {
-		return new Instance(playerPred, ItemPredicate.fromJson(json.get("relic")));
-	}
-
 	public void trigger(ServerPlayer player, ItemStack relic) {
-		trigger(player, instance -> instance.test(relic));
-	}
-
-	public static class Instance extends AbstractCriterionTriggerInstance {
-		private final ItemPredicate predicate;
-
-		public Instance(ContextAwarePredicate playerPred, ItemPredicate predicate) {
-			super(ID, playerPred);
-			this.predicate = predicate;
-		}
-
-		@NotNull
-		@Override
-		public Identifier getCriterion() {
-			return ID;
-		}
-
-		boolean test(ItemStack stack) {
-			return predicate.matches(stack);
-		}
-
-		@Override
-		public JsonObject serializeToJson(SerializationContext context) {
-			JsonObject json = super.serializeToJson(context);
-			if (predicate != ItemPredicate.ANY) {
-				json.add("relic", predicate.serializeToJson());
-			}
-			return json;
-		}
-
-		public ItemPredicate getPredicate() {
-			return this.predicate;
-		}
+		// Custom advancement criteria are disabled during the Minecraft 26.1 bootstrap.
 	}
 }

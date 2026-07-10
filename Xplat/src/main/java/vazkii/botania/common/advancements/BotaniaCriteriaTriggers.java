@@ -12,13 +12,13 @@ import vazkii.botania.mixin.CriteriaTriggersAccessor;
 
 public class BotaniaCriteriaTriggers {
 	public static void init() {
-		CriteriaTriggersAccessor.botania_register(AlfheimPortalTrigger.INSTANCE);
-		CriteriaTriggersAccessor.botania_register(CorporeaRequestTrigger.INSTANCE);
-		CriteriaTriggersAccessor.botania_register(GaiaGuardianNoArmorTrigger.INSTANCE);
-		CriteriaTriggersAccessor.botania_register(RelicBindTrigger.INSTANCE);
-		CriteriaTriggersAccessor.botania_register(UseItemSuccessTrigger.INSTANCE);
-		CriteriaTriggersAccessor.botania_register(ManaBlasterTrigger.INSTANCE);
-		CriteriaTriggersAccessor.botania_register(LokiPlaceTrigger.INSTANCE);
-		CriteriaTriggersAccessor.botania_register(AlfheimPortalBreadTrigger.INSTANCE);
+		CriteriaTriggersAccessor.botania_register(AlfheimPortalTrigger.ID.toString(), AlfheimPortalTrigger.INSTANCE);
+		CriteriaTriggersAccessor.botania_register(CorporeaRequestTrigger.ID.toString(), CorporeaRequestTrigger.INSTANCE);
+		CriteriaTriggersAccessor.botania_register(GaiaGuardianNoArmorTrigger.ID.toString(), GaiaGuardianNoArmorTrigger.INSTANCE);
+		CriteriaTriggersAccessor.botania_register(RelicBindTrigger.ID.toString(), RelicBindTrigger.INSTANCE);
+		CriteriaTriggersAccessor.botania_register(UseItemSuccessTrigger.ID.toString(), UseItemSuccessTrigger.INSTANCE);
+		CriteriaTriggersAccessor.botania_register(ManaBlasterTrigger.ID.toString(), ManaBlasterTrigger.INSTANCE);
+		CriteriaTriggersAccessor.botania_register(LokiPlaceTrigger.ID.toString(), LokiPlaceTrigger.INSTANCE);
+		CriteriaTriggersAccessor.botania_register(AlfheimPortalBreadTrigger.ID.toString(), AlfheimPortalBreadTrigger.INSTANCE);
 	}
 }

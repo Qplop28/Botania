@@ -17,7 +17,7 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 @Mixin(CriteriaTriggers.class)
 public interface CriteriaTriggersAccessor {
 	@Invoker("register")
-	static <T extends CriterionTrigger<?>> T botania_register(T thing) {
+	static <T extends CriterionTrigger<?>> T botania_register(String name, T thing) {
 		throw new IllegalStateException();
 	}
 }

@@ -8,80 +8,22 @@
  */
 package vazkii.botania.common.advancements;
 
-import com.google.gson.JsonObject;
-
-import net.minecraft.advancements.critereon.*;
+import net.minecraft.advancements.criterion.ImpossibleTrigger;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
-import org.jetbrains.annotations.NotNull;
-
 import static vazkii.botania.common.lib.ResourceLocationHelper.prefix;
 
-// Catch-all "used an item and it succeeded" trigger for Botania items, because making a separate
-// trigger for each one is dumb.
-public class UseItemSuccessTrigger extends SimpleCriterionTrigger<UseItemSuccessTrigger.Instance> {
+public class UseItemSuccessTrigger extends ImpossibleTrigger {
 	public static final Identifier ID = prefix("use_item_success");
 	public static final UseItemSuccessTrigger INSTANCE = new UseItemSuccessTrigger();
 
 	private UseItemSuccessTrigger() {}
 
-	@NotNull
-	@Override
-	public Identifier getId() {
-		return ID;
-	}
-
-	@NotNull
-	@Override
-	public UseItemSuccessTrigger.Instance createInstance(@NotNull JsonObject json, @NotNull ContextAwarePredicate playerPred, DeserializationContext conditions) {
-		return new UseItemSuccessTrigger.Instance(playerPred, ItemPredicate.fromJson(json.get("item")), LocationPredicate.fromJson(json.get("location")));
-	}
-
-	public void trigger(ServerPlayer player, ItemStack stack, ServerLevel world, double x, double y, double z) {
-		trigger(player, instance -> instance.test(stack, world, x, y, z));
-	}
-
-	public static class Instance extends AbstractCriterionTriggerInstance {
-		private final ItemPredicate item;
-		private final LocationPredicate location;
-
-		public Instance(ContextAwarePredicate playerPred, ItemPredicate count, LocationPredicate indexPos) {
-			super(ID, playerPred);
-			this.item = count;
-			this.location = indexPos;
-		}
-
-		@NotNull
-		@Override
-		public Identifier getCriterion() {
-			return ID;
-		}
-
-		boolean test(ItemStack stack, ServerLevel world, double x, double y, double z) {
-			return this.item.matches(stack) && this.location.matches(world, x, y, z);
-		}
-
-		public ItemPredicate getItem() {
-			return this.item;
-		}
-
-		@Override
-		public JsonObject serializeToJson(SerializationContext serializationContext) {
-			JsonObject json = super.serializeToJson(serializationContext);
-			if (item != ItemPredicate.ANY) {
-				json.add("item", item.serializeToJson());
-			}
-			if (location != LocationPredicate.ANY) {
-				json.add("location", location.serializeToJson());
-			}
-			return json;
-		}
-
-		public LocationPredicate getLocation() {
-			return this.location;
-		}
+	public void trigger(ServerPlayer player, ItemStack stack, ServerLevel world,
+			double x, double y, double z) {
+		// Custom advancement criteria are disabled during the Minecraft 26.1 bootstrap.
 	}
 }

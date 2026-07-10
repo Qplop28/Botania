@@ -1,9 +1,5 @@
 package vazkii.botania.fabric.xplat;
 
-import com.jamieswhiteshirt.reachentityattributes.ReachEntityAttributes;
-
-import dev.emi.stepheightentityattribute.StepHeightEntityAttributeMain;
-
 import net.fabricmc.api.EnvType;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
@@ -52,6 +48,7 @@ import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.item.PrimedTnt;
 import net.minecraft.world.entity.monster.Creeper;
@@ -579,14 +576,13 @@ public class FabricXplatImpl implements XplatAbstractions {
 
 	@Override
 	public Attribute getReachDistanceAttribute() {
-		return ReachEntityAttributes.REACH;
+		return Attributes.BLOCK_INTERACTION_RANGE.value();
 	}
 
 	@Override
 	public Attribute getStepHeightAttribute() {
-		return StepHeightEntityAttributeMain.STEP_HEIGHT;
+		return Attributes.STEP_HEIGHT.value();
 	}
-
 	private final TagKey<Block> oreTag = TagKey.create(Registries.BLOCK, new Identifier("c", "ores"));
 
 	@Override

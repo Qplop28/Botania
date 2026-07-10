@@ -108,7 +108,6 @@ import vazkii.botania.common.lib.BotaniaTags;
 import vazkii.botania.common.lib.LibMisc;
 import vazkii.botania.fabric.block.FabricSpecialFlowerBlock;
 import vazkii.botania.fabric.block_entity.FabricRedStringContainerBlockEntity;
-import vazkii.botania.fabric.integration.tr_energy.FluxfieldTRStorage;
 import vazkii.botania.fabric.internal_caps.CCAInternalEntityComponents;
 import vazkii.botania.fabric.mixin.AbstractFurnaceBlockEntityFabricAccessor;
 import vazkii.botania.network.BotaniaPacket;
@@ -640,9 +639,7 @@ public class FabricXplatImpl implements XplatAbstractions {
 
 	@Override
 	public int transferEnergyToNeighbors(Level level, BlockPos pos, int energy) {
-		if (isModLoaded("team_reborn_energy")) {
-			return FluxfieldTRStorage.transferEnergyToNeighbors(level, pos, energy);
-		}
+		// Tech Reborn Energy integration is disabled during the Minecraft 26.1 bootstrap.
 		return energy;
 	}
 

@@ -113,7 +113,6 @@ import vazkii.botania.common.world.SkyblockChunkGenerator;
 import vazkii.botania.common.world.SkyblockWorldEvents;
 import vazkii.botania.fabric.block_entity.FabricRedStringContainerBlockEntity;
 import vazkii.botania.fabric.integration.corporea.FabricTransferCorporeaNodeDetector;
-import vazkii.botania.fabric.integration.tr_energy.FluxfieldTRStorage;
 import vazkii.botania.fabric.internal_caps.RedStringContainerStorage;
 import vazkii.botania.fabric.network.FabricPacketHandler;
 import vazkii.botania.xplat.XplatAbstractions;
@@ -375,9 +374,6 @@ public class FabricCommonInitializer implements ModInitializer {
 		ItemStorage.SIDED.registerForBlockEntity(FabricRedStringContainerBlockEntity::getStorage, BotaniaBlockEntities.RED_STRING_CONTAINER);
 		ItemStorage.SIDED.registerForBlockEntity(RedStringContainerStorage::new, BotaniaBlockEntities.RED_STRING_DISPENSER);
 
-		if (XplatAbstractions.INSTANCE.isModLoaded("team_reborn_energy")) {
-			FluxfieldTRStorage.register();
-		}
 	}
 
 	private void serverAboutToStart(MinecraftServer server) {

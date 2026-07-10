@@ -11,7 +11,6 @@ package vazkii.botania.common.item;
 import com.google.common.annotations.VisibleForTesting;
 
 import net.minecraft.ChatFormatting;
-import net.minecraft.ResourceLocationException;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
@@ -21,7 +20,6 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.monster.Creeper;
@@ -74,7 +72,9 @@ public class CacophoniumItem extends Item {
 					player.setItemInHand(hand, stack);
 				}
 
-				return InteractionResult.sidedSuccess(player.level().isClientSide);
+				return player.level().isClientSide
+					? InteractionResult.SUCCESS
+					: InteractionResult.SUCCESS_SERVER;
 			}
 		}
 
@@ -96,7 +96,9 @@ public class CacophoniumItem extends Item {
 					((CacophoniumBlockEntity) world.getBlockEntity(pos)).stack = stack.copy();
 					stack.shrink(1);
 				}
-				return InteractionResult.sidedSuccess(world.isClientSide());
+				return world.isClientSide()
+					? InteractionResult.SUCCESS
+					: InteractionResult.SUCCESS_SERVER;
 			}
 		}
 
@@ -119,12 +121,12 @@ public class CacophoniumItem extends Item {
 
 	@NotNull
 	@Override
-	public InteractionResultHolder<ItemStack> use(Level world, Player player, @NotNull InteractionHand hand) {
+	public InteractionResult use(Level world, Player player, @NotNull InteractionHand hand) {
 		ItemStack stack = player.getItemInHand(hand);
 		if (getSound(stack) != null) {
 			return ItemUtils.startUsingInstantly(world, player, hand);
 		}
-		return InteractionResultHolder.pass(stack);
+		return InteractionResult.PASS;
 	}
 
 	@Override
@@ -153,11 +155,10 @@ public class CacophoniumItem extends Item {
 		if (isDOIT(stack)) {
 			return BotaniaSounds.doit;
 		} else {
-			try {
-				return BuiltInRegistries.SOUND_EVENT.get(new Identifier(ItemNBTHelper.getString(stack, TAG_SOUND, "")));
-			} catch (ResourceLocationException ex) {
-				return null;
-			}
+			Identifier id = Identifier.tryParse(ItemNBTHelper.getString(stack, TAG_SOUND, ""));
+			return id == null
+				? null
+				: BuiltInRegistries.SOUND_EVENT.getOptional(id).orElse(null);
 		}
 	}
 

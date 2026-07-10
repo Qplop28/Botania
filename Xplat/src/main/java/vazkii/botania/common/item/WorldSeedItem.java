@@ -13,7 +13,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -34,7 +33,7 @@ public class WorldSeedItem extends Item {
 
 	@NotNull
 	@Override
-	public InteractionResultHolder<ItemStack> use(Level world, Player player, @NotNull InteractionHand hand) {
+	public InteractionResult use(Level world, Player player, @NotNull InteractionHand hand) {
 		ItemStack stack = player.getItemInHand(hand);
 
 		BlockPos coords = world.getSharedSpawnPos();
@@ -58,10 +57,10 @@ public class WorldSeedItem extends Item {
 				world.gameEvent(player, GameEvent.TELEPORT, sourcePos);
 			}
 
-			return InteractionResultHolder.sidedSuccess(stack, world.isClientSide());
+			return world.isClientSide ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
 		}
 
-		return new InteractionResultHolder<>(InteractionResult.PASS, stack);
+		return InteractionResult.PASS;
 	}
 
 }

@@ -8,8 +8,9 @@
  */
 package vazkii.botania.client.fx;
 
-import com.mojang.serialization.codecs.RecordCodecBuilder;
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleType;
@@ -20,20 +21,19 @@ import org.jetbrains.annotations.NotNull;
 
 public class WispParticleData implements ParticleOptions {
 	public static final MapCodec<WispParticleData> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-			Codec.FLOAT.fieldOf("size").forGetter(d -> d.size),
-			Codec.FLOAT.fieldOf("r").forGetter(d -> d.r),
-			Codec.FLOAT.fieldOf("g").forGetter(d -> d.g),
-			Codec.FLOAT.fieldOf("b").forGetter(d -> d.b),
-			Codec.FLOAT.fieldOf("maxAgeMul").forGetter(d -> d.maxAgeMul),
-			Codec.BOOL.fieldOf("depthTest").forGetter(d -> d.depthTest),
-			Codec.BOOL.fieldOf("noClip").forGetter(d -> d.noClip),
-			Codec.FLOAT.optionalFieldOf("gravity", 0.0f).forGetter(d -> d.gravity)
-	)
+		Codec.FLOAT.fieldOf("size").forGetter(d -> d.size),
+		Codec.FLOAT.fieldOf("r").forGetter(d -> d.r),
+		Codec.FLOAT.fieldOf("g").forGetter(d -> d.g),
+		Codec.FLOAT.fieldOf("b").forGetter(d -> d.b),
+		Codec.FLOAT.fieldOf("maxAgeMul").forGetter(d -> d.maxAgeMul),
+		Codec.BOOL.fieldOf("depthTest").forGetter(d -> d.depthTest),
+		Codec.BOOL.fieldOf("noClip").forGetter(d -> d.noClip),
+		Codec.FLOAT.optionalFieldOf("gravity", 0.0f).forGetter(d -> d.gravity)
+	).apply(instance, WispParticleData::new));
 
 	public static final StreamCodec<FriendlyByteBuf, WispParticleData> STREAM_CODEC =
-		StreamCodec.ofMember(WispParticleData::writeToNetwork, WispParticleData::fromNetwork);
-
-	.apply(instance, WispParticleData::new));
+			StreamCodec.ofMember(WispParticleData::writeToNetwork, WispParticleData::fromNetwork);
+			
 	public final float size;
 	public final float r, g, b;
 	public final float maxAgeMul;

@@ -8,8 +8,9 @@
  */
 package vazkii.botania.client.fx;
 
-import com.mojang.serialization.codecs.RecordCodecBuilder;
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleType;
@@ -20,20 +21,19 @@ import org.jetbrains.annotations.NotNull;
 
 public class SparkleParticleData implements ParticleOptions {
 	public static final MapCodec<SparkleParticleData> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-			Codec.FLOAT.fieldOf("size").forGetter(d -> d.size),
-			Codec.FLOAT.fieldOf("r").forGetter(d -> d.r),
-			Codec.FLOAT.fieldOf("g").forGetter(d -> d.g),
-			Codec.FLOAT.fieldOf("b").forGetter(d -> d.b),
-			Codec.INT.fieldOf("m").forGetter(d -> d.m),
-			Codec.BOOL.fieldOf("noClip").forGetter(d -> d.noClip),
-			Codec.BOOL.fieldOf("fake").forGetter(d -> d.fake),
-			Codec.BOOL.fieldOf("corrupt").forGetter(d -> d.corrupt)
-	)
+		Codec.FLOAT.fieldOf("size").forGetter(d -> d.size),
+		Codec.FLOAT.fieldOf("r").forGetter(d -> d.r),
+		Codec.FLOAT.fieldOf("g").forGetter(d -> d.g),
+		Codec.FLOAT.fieldOf("b").forGetter(d -> d.b),
+		Codec.INT.fieldOf("m").forGetter(d -> d.m),
+		Codec.BOOL.fieldOf("noClip").forGetter(d -> d.noClip),
+		Codec.BOOL.fieldOf("fake").forGetter(d -> d.fake),
+		Codec.BOOL.fieldOf("corrupt").forGetter(d -> d.corrupt)
+	).apply(instance, SparkleParticleData::new));
 
 	public static final StreamCodec<FriendlyByteBuf, SparkleParticleData> STREAM_CODEC =
-		StreamCodec.ofMember(SparkleParticleData::writeToNetwork, SparkleParticleData::fromNetwork);
-
-	.apply(instance, SparkleParticleData::new));
+			StreamCodec.ofMember(SparkleParticleData::writeToNetwork, SparkleParticleData::fromNetwork);
+			
 	public final float size;
 	public final float r, g, b;
 	public final int m;

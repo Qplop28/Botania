@@ -51,6 +51,11 @@ sourceSets.main.java {
     exclude 'vazkii/botania/fabric/integration/tr_energy/**'
     exclude 'vazkii/botania/fabric/integration/sodium/**'
     exclude 'vazkii/botania/fabric/data/**'
+
+    exclude 'vazkii/botania/fabric/client/FabricFloatingFlowerModel.java'
+    exclude 'vazkii/botania/fabric/client/FabricManaBlasterModel.java'
+    exclude 'vazkii/botania/fabric/client/FabricPlatformModel.java'
+    exclude 'vazkii/botania/fabric/mixin/client/BlockModelDeserializerFabricMixin.java'
 }
 repositories {
     maven {

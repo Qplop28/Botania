@@ -51,9 +51,9 @@ public class FabricClientXplatImpl implements ClientXplatAbstractions {
 
 	@Override
 	public BakedModel wrapPlatformModel(BakedModel original) {
-		return new FabricPlatformModel(original);
+		// Custom Fabric models are disabled during the Minecraft 26.1 bootstrap.
+		return original;
 	}
-
 	@Override
 	public void setFilterSave(AbstractTexture texture, boolean filter, boolean mipmap) {
 		((ExtendedTexture) texture).setFilterSave(filter, mipmap);

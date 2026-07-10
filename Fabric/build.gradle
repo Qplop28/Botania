@@ -119,6 +119,7 @@ compileJava {
 
 	exclude 'vazkii/botania/data/**'
 	exclude 'vazkii/botania/client/patchouli/**'
+	exclude 'vazkii/botania/test/**'
 
 	options.compilerArgs << "-Xlint:all,-classfile,-processing,-deprecation,-serial" << "-Werror"
 }

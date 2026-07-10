@@ -1,7 +1,6 @@
 package vazkii.botania.xplat;
 
 import vazkii.botania.api.BotaniaAPI;
-import vazkii.patchouli.api.PatchouliAPI;
 
 import java.util.List;
 
@@ -72,8 +71,6 @@ public class BotaniaConfig {
 	}
 
 	public static void resetPatchouliFlags() {
-		PatchouliAPI.get().setConfigFlag("botania:relics", common().relicsEnabled());
-		PatchouliAPI.get().setConfigFlag("botania:enchanter", common().enchanterEnabled());
-		PatchouliAPI.get().setConfigFlag("botania:ender_hand_pickpocket", common().enderPickpocketEnabled());
+		// Patchouli integration is disabled during the Minecraft 26.1 bootstrap.
 	}
 }

@@ -51,10 +51,16 @@ subprojects {
         enforceCheck = false // workaround around jenkins having wrong line endings in some files
         // we explicitly check in github actions builds
         java {
-            indentWithTabs()
-            eclipse().configFile rootProject.file('spotless/eclipseformat.xml')
-            removeUnusedImports()
-            importOrderFile rootProject.file('spotless/eclipse.importorder')
+            toolchain {
+                languageVersion = JavaLanguageVersion.of(25)
+             }
+
+            withSourcesJar()
+}
+
+        tasks.withType(JavaCompile).configureEach {
+            options.encoding = "UTF-8"
+            options.release = 25
         }
     }
 }

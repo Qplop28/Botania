@@ -5,7 +5,7 @@ import com.google.gson.JsonElement;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
@@ -32,22 +32,22 @@ public class ConfigDataManagerImpl implements ConfigDataManager {
 		XplatAbstractions.INSTANCE.registerReloadListener(PackType.SERVER_DATA, prefix("configdata"), new ConfigDataManagerImpl());
 	}
 
-	private final Map<ResourceLocation, LooniumStructureConfiguration> looniumConfigs = new HashMap<>();
+	private final Map<Identifier, LooniumStructureConfiguration> looniumConfigs = new HashMap<>();
 
 	@Override
-	public @Nullable LooniumStructureConfiguration getEffectiveLooniumStructureConfiguration(ResourceLocation id) {
+	public @Nullable LooniumStructureConfiguration getEffectiveLooniumStructureConfiguration(Identifier id) {
 		LooniumStructureConfiguration configuration = this.looniumConfigs.get(id);
 		return configuration != null ? configuration.getEffectiveConfig(looniumConfigs::get) : null;
 	}
 
-	private static void validateLooniumConfig(Map<ResourceLocation, LooniumStructureConfiguration> map) {
-		Set<ResourceLocation> errorEntries = new HashSet<>();
-		Set<ResourceLocation> visitedEntries = new LinkedHashSet<>();
+	private static void validateLooniumConfig(Map<Identifier, LooniumStructureConfiguration> map) {
+		Set<Identifier> errorEntries = new HashSet<>();
+		Set<Identifier> visitedEntries = new LinkedHashSet<>();
 		do {
 			errorEntries.clear();
-			for (Map.Entry<ResourceLocation, LooniumStructureConfiguration> entry : map.entrySet()) {
-				ResourceLocation id = entry.getKey();
-				ResourceLocation parent = entry.getValue().parent;
+			for (Map.Entry<Identifier, LooniumStructureConfiguration> entry : map.entrySet()) {
+				Identifier id = entry.getKey();
+				Identifier parent = entry.getValue().parent;
 				if (id.equals(parent)) {
 					BotaniaAPI.LOGGER.warn("Ignoring Loonium structure configuration, because it specified itself as parent: {}", id);
 					errorEntries.add(id);
@@ -68,8 +68,8 @@ public class ConfigDataManagerImpl implements ConfigDataManager {
 		}
 	}
 
-	private static boolean findTopmostParent(Map<ResourceLocation, LooniumStructureConfiguration> map,
-			ResourceLocation id, ResourceLocation parent, Set<ResourceLocation> visitedEntries) {
+	private static boolean findTopmostParent(Map<Identifier, LooniumStructureConfiguration> map,
+			Identifier id, Identifier parent, Set<Identifier> visitedEntries) {
 		if (!visitedEntries.add(id)) {
 			BotaniaAPI.LOGGER.warn("Cyclic dependency between Loonium structure configurations detected: {}", visitedEntries);
 			return false;
@@ -81,7 +81,7 @@ public class ConfigDataManagerImpl implements ConfigDataManager {
 		return parentConfig != null && findTopmostParent(map, parent, parentConfig.parent, visitedEntries);
 	}
 
-	private void applyLooniumConfig(Map<ResourceLocation, LooniumStructureConfiguration> looniumConfigs) {
+	private void applyLooniumConfig(Map<Identifier, LooniumStructureConfiguration> looniumConfigs) {
 		BotaniaAPI.LOGGER.info("Loaded {} Loonium configurations", looniumConfigs.size());
 		this.looniumConfigs.putAll(looniumConfigs);
 	}
@@ -99,9 +99,9 @@ public class ConfigDataManagerImpl implements ConfigDataManager {
 	private <T> CompletableFuture<Void> scheduleConfigParse(PreparationBarrier barrier, ResourceManager manager,
 			Executor backgroundExecutor, Executor gameExecutor, ConfigDataType<T> type) {
 		return CompletableFuture.supplyAsync(() -> {
-			Map<ResourceLocation, JsonElement> resourceMap = new HashMap<>();
+			Map<Identifier, JsonElement> resourceMap = new HashMap<>();
 			SimpleJsonResourceReloadListener.scanDirectory(manager, type.directory, new Gson(), resourceMap);
-			Map<ResourceLocation, T> configs = new HashMap<>(resourceMap.size());
+			Map<Identifier, T> configs = new HashMap<>(resourceMap.size());
 			resourceMap.forEach((id, jsonElement) -> {
 				BotaniaAPI.LOGGER.debug("Parsing {} config '{}'", type.directory, id);
 				type.codec.parse(JsonOps.INSTANCE, jsonElement).result().ifPresent(c -> configs.put(id, c));
@@ -114,8 +114,8 @@ public class ConfigDataManagerImpl implements ConfigDataManager {
 	}
 
 	private record ConfigDataType<T> (Codec<T> codec, String directory,
-			Consumer<Map<ResourceLocation, T>> validateFunction,
-			BiConsumer<ConfigDataManagerImpl, Map<ResourceLocation, T>> applyFunction) {
+			Consumer<Map<Identifier, T>> validateFunction,
+			BiConsumer<ConfigDataManagerImpl, Map<Identifier, T>> applyFunction) {
 		private static final ConfigDataType<LooniumStructureConfiguration> LOONUIM =
 				new ConfigDataType<>(LooniumStructureConfiguration.CODEC, "loonium_config",
 						ConfigDataManagerImpl::validateLooniumConfig, ConfigDataManagerImpl::applyLooniumConfig);

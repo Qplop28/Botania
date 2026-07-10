@@ -14,7 +14,7 @@ import com.blamejared.crafttweaker.api.util.StringUtil;
 import com.blamejared.crafttweaker.natives.block.ExpandBlock;
 import com.blamejared.crafttweaker_annotations.annotations.Document;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -52,13 +52,13 @@ public interface IOrechidManagerBase<T extends IOrechidRecipe> extends IRecipeMa
 	@ZenCodeType.Method
 	default void registerOreWeight(String name, CTBlockIngredient output, Block input, int weight) {
 		name = fixRecipeName(name);
-		ResourceLocation resourceLocation = CraftTweakerConstants.rl(name);
+		Identifier Identifier = CraftTweakerConstants.rl(name);
 		CraftTweakerAPI.apply(new ActionAddRecipe<>(this,
-				makeRecipe(resourceLocation,
+				makeRecipe(Identifier,
 						input, CTPlugin.blockIngredientToStateIngredient(output), weight)));
 	}
 
-	T makeRecipe(ResourceLocation name, Block input, StateIngredient output, int weight);
+	T makeRecipe(Identifier name, Block input, StateIngredient output, int weight);
 
 	/**
 	 * Removes orechid weights that output the given blockstate.
@@ -89,7 +89,7 @@ public interface IOrechidManagerBase<T extends IOrechidRecipe> extends IRecipeMa
 	}
 
 	@Override
-	default Optional<Function<ResourceLocation, T>> replaceIngredients(@SuppressWarnings("rawtypes") IRecipeManager manager, T recipe, List<IReplacementRule> rules) {
+	default Optional<Function<Identifier, T>> replaceIngredients(@SuppressWarnings("rawtypes") IRecipeManager manager, T recipe, List<IReplacementRule> rules) {
 		return Optional.empty();
 	}
 }

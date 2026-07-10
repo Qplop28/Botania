@@ -24,7 +24,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
 import net.minecraft.recipebook.ServerPlaceRecipe;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.*;
 import net.minecraft.world.Container;
@@ -70,7 +70,7 @@ import vazkii.botania.xplat.XplatAbstractions;
 
 public class AssemblyHaloItem extends Item {
 
-	private static final ResourceLocation glowTexture = new ResourceLocation(ResourcesLib.MISC_GLOW_GREEN);
+	private static final Identifier glowTexture = new Identifier(ResourcesLib.MISC_GLOW_GREEN);
 	private static final ItemStack craftingTable = new ItemStack(Blocks.CRAFTING_TABLE);
 
 	public static final int SEGMENTS = 12;
@@ -258,7 +258,7 @@ public class AssemblyHaloItem extends Item {
 	@Nullable
 	private static Recipe<CraftingContainer> getSavedRecipe(Level world, ItemStack halo, int position) {
 		String savedId = ItemNBTHelper.getString(halo, TAG_STORED_RECIPE_PREFIX + position, "");
-		ResourceLocation id = savedId.isEmpty() ? null : ResourceLocation.tryParse(savedId);
+		Identifier id = savedId.isEmpty() ? null : Identifier.tryParse(savedId);
 
 		if (position <= 0 || position >= SEGMENTS || id == null) {
 			return null;
@@ -267,7 +267,7 @@ public class AssemblyHaloItem extends Item {
 		}
 	}
 
-	private static void saveRecipe(ItemStack halo, @Nullable ResourceLocation id, int position) {
+	private static void saveRecipe(ItemStack halo, @Nullable Identifier id, int position) {
 		if (id == null) {
 			ItemNBTHelper.removeEntry(halo, TAG_STORED_RECIPE_PREFIX + position);
 		} else {
@@ -308,14 +308,14 @@ public class AssemblyHaloItem extends Item {
 		});
 	}
 
-	private static void rememberLastRecipe(ResourceLocation recipeId, ItemStack halo) {
+	private static void rememberLastRecipe(Identifier recipeId, ItemStack halo) {
 		ItemNBTHelper.setString(halo, TAG_LAST_CRAFTING, recipeId.toString());
 	}
 
 	@Nullable
 	private static Recipe<CraftingContainer> getLastRecipe(Level world, ItemStack halo) {
 		String savedId = ItemNBTHelper.getString(halo, TAG_LAST_CRAFTING, "");
-		ResourceLocation id = savedId.isEmpty() ? null : ResourceLocation.tryParse(savedId);
+		Identifier id = savedId.isEmpty() ? null : Identifier.tryParse(savedId);
 
 		return BotaniaRecipeTypes.getRecipes(world, RecipeType.CRAFTING).get(id);
 	}
@@ -336,7 +336,7 @@ public class AssemblyHaloItem extends Item {
 		ItemNBTHelper.setFloat(stack, TAG_ROTATION_BASE, rotation);
 	}
 
-	public ResourceLocation getGlowResource(ItemStack stack) {
+	public Identifier getGlowResource(ItemStack stack) {
 		return glowTexture;
 	}
 

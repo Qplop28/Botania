@@ -25,7 +25,7 @@ import net.minecraft.client.resources.model.ModelManager;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
@@ -77,9 +77,9 @@ public class TinyPotatoBlockEntityRenderer implements BlockEntityRenderer<TinyPo
 
 	private static BakedModel getModel(String name) {
 		ModelManager bmm = Minecraft.getInstance().getModelManager();
-		Map<ResourceLocation, BakedModel> mm = ((ModelManagerAccessor) bmm).getBakedRegistry();
+		Map<Identifier, BakedModel> mm = ((ModelManagerAccessor) bmm).getBakedRegistry();
 		BakedModel missing = bmm.getMissingModel();
-		ResourceLocation location = taterLocation(name);
+		Identifier location = taterLocation(name);
 		BakedModel model = mm.get(location);
 		if (model == null) {
 			if (ClientProxy.dootDoot) {
@@ -91,7 +91,7 @@ public class TinyPotatoBlockEntityRenderer implements BlockEntityRenderer<TinyPo
 		return model;
 	}
 
-	private static ResourceLocation taterLocation(String name) {
+	private static Identifier taterLocation(String name) {
 		return prefix(ResourcesLib.PREFIX_TINY_POTATO + "/" + normalizeName(name));
 	}
 

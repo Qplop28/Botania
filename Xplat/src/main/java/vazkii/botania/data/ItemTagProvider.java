@@ -15,7 +15,7 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.data.tags.ItemTagsProvider;
 import net.minecraft.data.tags.TagsProvider;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.Item;
@@ -121,10 +121,10 @@ public class ItemTagProvider extends ItemTagsProvider {
 				Items.TUFF, Items.CALCITE, Items.STONE, Items.BASALT, Items.BLACKSTONE,
 				Items.DEEPSLATE, Items.DRIPSTONE_BLOCK, Items.POINTED_DRIPSTONE, Items.MOSS_BLOCK,
 				Items.SANDSTONE, Items.RED_SANDSTONE)
-				.addOptional(new ResourceLocation("quark", "jasper"))
-				.addOptional(new ResourceLocation("quark", "limestone"))
-				.addOptional(new ResourceLocation("quark", "marble"))
-				.addOptional(new ResourceLocation("quark", "slate"));
+				.addOptional(new Identifier("quark", "jasper"))
+				.addOptional(new Identifier("quark", "limestone"))
+				.addOptional(new Identifier("quark", "marble"))
+				.addOptional(new Identifier("quark", "slate"));
 
 		this.tag(BotaniaTags.Items.RUNES).add(
 				runeWater, runeFire, runeEarth, runeAir,
@@ -233,7 +233,7 @@ public class ItemTagProvider extends ItemTagsProvider {
 
 		this.tag(BotaniaTags.Items.SEED_APOTHECARY_REAGENT)
 				.add(Items.WHEAT_SEEDS, Items.BEETROOT_SEEDS, Items.MELON_SEEDS, Items.PUMPKIN_SEEDS)
-				.addOptionalTag(new ResourceLocation("forge", "seeds"));
+				.addOptionalTag(new Identifier("forge", "seeds"));
 
 		this.tag(BotaniaTags.Items.PICKABLE_BLOCK_PROVIDER)
 				.add(dirtRod, skyDirtRod, cobbleRod, blackHoleTalisman);

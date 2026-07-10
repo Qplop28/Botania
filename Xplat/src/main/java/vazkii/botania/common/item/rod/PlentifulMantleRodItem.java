@@ -10,7 +10,7 @@ package vazkii.botania.common.item.rod;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
@@ -38,7 +38,7 @@ import java.util.Random;
 
 public class PlentifulMantleRodItem extends Item {
 
-	private static final ResourceLocation avatarOverlay = new ResourceLocation(ResourcesLib.MODEL_AVATAR_DIVINING);
+	private static final Identifier avatarOverlay = new Identifier(ResourcesLib.MODEL_AVATAR_DIVINING);
 
 	static final int COST = 3000;
 
@@ -92,7 +92,7 @@ public class PlentifulMantleRodItem extends Item {
 		}
 
 		@Override
-		public ResourceLocation getOverlayResource(Avatar tile) {
+		public Identifier getOverlayResource(Avatar tile) {
 			return avatarOverlay;
 		}
 	}

@@ -13,7 +13,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.tags.IntrinsicHolderTagsProvider;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -213,8 +213,8 @@ public class BlockTagProvider extends IntrinsicHolderTagsProvider<Block> {
 
 		tag(BotaniaTags.Blocks.HORN_OF_THE_WILD_BREAKABLE)
 				.add(Blocks.MOSS_CARPET)
-				.addOptional(new ResourceLocation("biomesoplenty:high_grass"))
-				.addOptional(new ResourceLocation("biomesoplenty:high_grass_plant"));
+				.addOptional(new Identifier("biomesoplenty:high_grass"))
+				.addOptional(new Identifier("biomesoplenty:high_grass_plant"));
 
 		tag(BlockTags.LEAVES);
 		tag(BotaniaTags.Blocks.HORN_OF_THE_CANOPY_BREAKABLE).addTag(BlockTags.LEAVES);
@@ -227,9 +227,9 @@ public class BlockTagProvider extends IntrinsicHolderTagsProvider<Block> {
 
 		tag(BotaniaTags.Blocks.PASTURE_SEED_REPLACEABLE).add(Blocks.DIRT, Blocks.GRASS_BLOCK, Blocks.MYCELIUM);
 
-		tag(BotaniaTags.Blocks.UNETHICAL_TNT_CHECK).addOptional(new ResourceLocation("ae2:tiny_tnt"));
+		tag(BotaniaTags.Blocks.UNETHICAL_TNT_CHECK).addOptional(new Identifier("ae2:tiny_tnt"));
 
-		tag(BotaniaTags.Blocks.SINGLE_ITEM_INSERT).addOptional(new ResourceLocation("quark:crafter"));
+		tag(BotaniaTags.Blocks.SINGLE_ITEM_INSERT).addOptional(new Identifier("quark:crafter"));
 
 		tag(BotaniaTags.Blocks.UNSUPPORTED_PLATFORM_DISGUISE);
 

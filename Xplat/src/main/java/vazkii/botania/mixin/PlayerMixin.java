@@ -1,6 +1,6 @@
 package vazkii.botania.mixin;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -34,7 +34,7 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccess {
 	private LivingEntity terraWillCritTarget;
 
 	@Shadow
-	public abstract void awardStat(ResourceLocation stat, int i);
+	public abstract void awardStat(Identifier stat, int i);
 
 	/**
 	 * Updates the distance by luminizer stat

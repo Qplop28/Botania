@@ -13,7 +13,7 @@ import com.google.gson.JsonSyntaxException;
 
 import net.minecraft.commands.CommandFunction;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
@@ -23,13 +23,13 @@ import org.jetbrains.annotations.NotNull;
 import vazkii.botania.api.recipe.StateIngredient;
 
 public class OrechidRecipe implements vazkii.botania.api.recipe.OrechidRecipe {
-	private final ResourceLocation id;
+	private final Identifier id;
 	private final StateIngredient input;
 	private final StateIngredient output;
 	private final int weight;
 	private final CommandFunction.CacheableFunction successFunction;
 
-	public OrechidRecipe(ResourceLocation id, StateIngredient input, StateIngredient output, int weight, CommandFunction.CacheableFunction successFunction) {
+	public OrechidRecipe(Identifier id, StateIngredient input, StateIngredient output, int weight, CommandFunction.CacheableFunction successFunction) {
 		this.id = id;
 		this.input = input;
 		this.output = output;
@@ -58,7 +58,7 @@ public class OrechidRecipe implements vazkii.botania.api.recipe.OrechidRecipe {
 	}
 
 	@Override
-	public ResourceLocation getId() {
+	public Identifier getId() {
 		return id;
 	}
 
@@ -75,7 +75,7 @@ public class OrechidRecipe implements vazkii.botania.api.recipe.OrechidRecipe {
 
 	public static class Serializer implements RecipeSerializer<OrechidRecipe> {
 		@Override
-		public OrechidRecipe fromJson(@NotNull ResourceLocation recipeId, @NotNull JsonObject json) {
+		public OrechidRecipe fromJson(@NotNull Identifier recipeId, @NotNull JsonObject json) {
 			var input = StateIngredientHelper.tryDeserialize(GsonHelper.getAsJsonObject(json, "input"));
 			if (input == null) {
 				throw new JsonSyntaxException("Unknown input: " + GsonHelper.getAsJsonObject(json, "input"));
@@ -86,7 +86,7 @@ public class OrechidRecipe implements vazkii.botania.api.recipe.OrechidRecipe {
 			}
 			var weight = GsonHelper.getAsInt(json, "weight");
 			var functionIdString = GsonHelper.getAsString(json, "success_function", null);
-			var functionId = functionIdString == null ? null : new ResourceLocation(functionIdString);
+			var functionId = functionIdString == null ? null : new Identifier(functionIdString);
 			var function = functionId == null
 					? CommandFunction.CacheableFunction.NONE
 					: new CommandFunction.CacheableFunction(functionId);
@@ -95,7 +95,7 @@ public class OrechidRecipe implements vazkii.botania.api.recipe.OrechidRecipe {
 		}
 
 		@Override
-		public OrechidRecipe fromNetwork(@NotNull ResourceLocation recipeId, @NotNull FriendlyByteBuf buffer) {
+		public OrechidRecipe fromNetwork(@NotNull Identifier recipeId, @NotNull FriendlyByteBuf buffer) {
 			var input = StateIngredientHelper.read(buffer);
 			var output = StateIngredientHelper.read(buffer);
 			var weight = buffer.readVarInt();

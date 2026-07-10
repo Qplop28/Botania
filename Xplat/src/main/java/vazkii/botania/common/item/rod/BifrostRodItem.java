@@ -9,7 +9,7 @@
 package vazkii.botania.common.item.rod;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
@@ -42,7 +42,7 @@ import java.util.List;
 
 public class BifrostRodItem extends SelfReturningItem {
 
-	private static final ResourceLocation avatarOverlay = new ResourceLocation(ResourcesLib.MODEL_AVATAR_RAINBOW);
+	private static final Identifier avatarOverlay = new Identifier(ResourcesLib.MODEL_AVATAR_RAINBOW);
 
 	private static final int MANA_COST = 750;
 	private static final int MANA_COST_AVATAR = 4;
@@ -202,7 +202,7 @@ public class BifrostRodItem extends SelfReturningItem {
 		}
 
 		@Override
-		public ResourceLocation getOverlayResource(Avatar tile) {
+		public Identifier getOverlayResource(Avatar tile) {
 			return avatarOverlay;
 		}
 	}

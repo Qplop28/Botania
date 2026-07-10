@@ -8,7 +8,7 @@
  */
 package vazkii.botania.mixin;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeManager;
@@ -22,5 +22,5 @@ import java.util.Map;
 @Mixin(RecipeManager.class)
 public interface RecipeManagerAccessor {
 	@Invoker("byType")
-	<C extends Container, T extends Recipe<C>> Map<ResourceLocation, T> botania_getAll(RecipeType<T> type);
+	<C extends Container, T extends Recipe<C>> Map<Identifier, T> botania_getAll(RecipeType<T> type);
 }

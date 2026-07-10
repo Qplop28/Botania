@@ -20,7 +20,7 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.LivingEntity;
@@ -59,7 +59,7 @@ import java.util.stream.Stream;
 import static vazkii.botania.common.lib.ResourceLocationHelper.prefix;
 
 public class WorldshaperssSextantItem extends Item {
-	public static final ResourceLocation MULTIBLOCK_ID = prefix("sextant");
+	public static final Identifier MULTIBLOCK_ID = prefix("sextant");
 	private static final int MAX_RADIUS = 256;
 	private static final String TAG_SOURCE_X = "sourceX";
 	private static final String TAG_SOURCE_Y = "sourceY";

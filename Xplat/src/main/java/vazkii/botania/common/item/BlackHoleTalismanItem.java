@@ -14,7 +14,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.Container;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -225,7 +225,7 @@ public class BlackHoleTalismanItem extends Item {
 
 	@Nullable
 	public static Block getBlock(ItemStack stack) {
-		ResourceLocation id = ResourceLocation.tryParse(getBlockName(stack));
+		Identifier id = Identifier.tryParse(getBlockName(stack));
 		if (id != null) {
 			return BuiltInRegistries.BLOCK.getOptional(id).orElse(null);
 		}

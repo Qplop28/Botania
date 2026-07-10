@@ -17,7 +17,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.*;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.*;
@@ -101,7 +101,7 @@ public class CraftingRecipeProvider extends BotaniaRecipeProvider {
 	}
 
 	/** Addons: override this to return your modid */
-	protected ResourceLocation prefix(String path) {
+	protected Identifier prefix(String path) {
 		return ResourceLocationHelper.prefix(path);
 	}
 
@@ -815,7 +815,7 @@ public class CraftingRecipeProvider extends BotaniaRecipeProvider {
 				.requires(mushrooms, 2)
 				.requires(Items.BOWL)
 				.unlockedBy("has_item", conditionsFromItem(Items.BOWL))
-				.unlockedBy("has_orig_recipe", RecipeUnlockedTrigger.unlocked(new ResourceLocation("mushroom_stew")))
+				.unlockedBy("has_orig_recipe", RecipeUnlockedTrigger.unlocked(new Identifier("mushroom_stew")))
 				.save(consumer, "botania:mushroom_stew");
 
 		ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, Items.COBWEB)
@@ -2331,8 +2331,8 @@ public class CraftingRecipeProvider extends BotaniaRecipeProvider {
 	}
 
 	protected void createFloatingFlowerRecipe(Consumer<FinishedRecipe> consumer, ItemLike input) {
-		ResourceLocation inputName = BuiltInRegistries.ITEM.getKey(input.asItem());
-		Item output = getItemOrThrow(new ResourceLocation(inputName.getNamespace(), "floating_" + inputName.getPath()));
+		Identifier inputName = BuiltInRegistries.ITEM.getKey(input.asItem());
+		Item output = getItemOrThrow(new Identifier(inputName.getNamespace(), "floating_" + inputName.getPath()));
 		ShapelessRecipeBuilder.shapeless(RecipeCategory.DECORATIONS, output)
 				.requires(BotaniaTags.Items.FLOATING_FLOWERS)
 				.requires(input)
@@ -2674,15 +2674,15 @@ public class CraftingRecipeProvider extends BotaniaRecipeProvider {
 	}
 
 	protected void specialRecipe(Consumer<FinishedRecipe> consumer, NoOpRecipeSerializer<? extends CraftingRecipe> serializer) {
-		ResourceLocation name = BuiltInRegistries.RECIPE_SERIALIZER.getKey(serializer);
+		Identifier name = BuiltInRegistries.RECIPE_SERIALIZER.getKey(serializer);
 		SpecialRecipeBuilder.special(serializer).save(consumer, prefix("dynamic/" + name.getPath()).toString());
 	}
 
-	protected Block getBlockOrThrow(ResourceLocation location) {
+	protected Block getBlockOrThrow(Identifier location) {
 		return BuiltInRegistries.BLOCK.getOrThrow(ResourceKey.create(Registries.BLOCK, location));
 	}
 
-	protected Item getItemOrThrow(ResourceLocation location) {
+	protected Item getItemOrThrow(Identifier location) {
 		return BuiltInRegistries.ITEM.getOrThrow(ResourceKey.create(Registries.ITEM, location));
 	}
 

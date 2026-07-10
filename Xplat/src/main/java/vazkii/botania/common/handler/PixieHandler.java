@@ -9,7 +9,7 @@
 package vazkii.botania.common.handler;
 
 import net.minecraft.Util;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -58,7 +58,7 @@ public final class PixieHandler {
 			() -> new MobEffectInstance(MobEffects.WEAKNESS, 40, 0)
 	);
 
-	public static void registerAttribute(BiConsumer<Attribute, ResourceLocation> r) {
+	public static void registerAttribute(BiConsumer<Attribute, Identifier> r) {
 		r.accept(PIXIE_SPAWN_CHANCE, prefix("pixie_spawn_chance"));
 	}
 

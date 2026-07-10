@@ -13,7 +13,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.DyeColor;
@@ -39,7 +39,7 @@ import static vazkii.botania.common.lib.ResourceLocationHelper.prefix;
 // as those use less network bandwidth (~14 bytes), vs 26+ bytes here
 public record BotaniaEffectPacket(EffectType type, double x, double y, double z, int... args) implements BotaniaPacket {
 
-	public static final ResourceLocation ID = prefix("eff");
+	public static final Identifier ID = prefix("eff");
 	private static final int MAX_VARIABLE_ARGS = 128;
 
 	@Override
@@ -65,7 +65,7 @@ public record BotaniaEffectPacket(EffectType type, double x, double y, double z,
 	}
 
 	@Override
-	public ResourceLocation getFabricId() {
+	public Identifier getFabricId() {
 		return ID;
 	}
 

@@ -12,7 +12,7 @@ import com.google.gson.JsonObject;
 
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
@@ -47,13 +47,13 @@ public class ShapelessManaUpgradeRecipe extends ShapelessRecipe {
 	private static class Serializer implements RecipeSerializer<ShapelessManaUpgradeRecipe> {
 		@NotNull
 		@Override
-		public ShapelessManaUpgradeRecipe fromJson(@NotNull ResourceLocation recipeId, @NotNull JsonObject json) {
+		public ShapelessManaUpgradeRecipe fromJson(@NotNull Identifier recipeId, @NotNull JsonObject json) {
 			return new ShapelessManaUpgradeRecipe(SHAPELESS_RECIPE.fromJson(recipeId, json));
 		}
 
 		@NotNull
 		@Override
-		public ShapelessManaUpgradeRecipe fromNetwork(@NotNull ResourceLocation recipeId, @NotNull FriendlyByteBuf buffer) {
+		public ShapelessManaUpgradeRecipe fromNetwork(@NotNull Identifier recipeId, @NotNull FriendlyByteBuf buffer) {
 			return new ShapelessManaUpgradeRecipe(SHAPELESS_RECIPE.fromNetwork(recipeId, buffer));
 		}
 

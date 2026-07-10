@@ -10,7 +10,7 @@ package vazkii.botania.common.crafting.recipe;
 
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
@@ -25,7 +25,7 @@ import vazkii.botania.common.item.BotaniaItems;
 public class SpellbindingClothRecipe extends CustomRecipe {
 	public static final NoOpRecipeSerializer<SpellbindingClothRecipe> SERIALIZER = new NoOpRecipeSerializer<>(SpellbindingClothRecipe::new);
 
-	public SpellbindingClothRecipe(ResourceLocation id) {
+	public SpellbindingClothRecipe(Identifier id) {
 		super(id, CraftingBookCategory.EQUIPMENT);
 	}
 

@@ -13,7 +13,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import net.minecraft.core.*;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerChunkCache;
 import net.minecraft.server.level.WorldGenRegion;
 import net.minecraft.world.level.*;
@@ -38,7 +38,7 @@ public class SkyblockChunkGenerator extends NoiseBasedChunkGenerator {
 					NoiseGeneratorSettings.CODEC.fieldOf("settings").forGetter(NoiseBasedChunkGenerator::generatorSettings))
 					.apply(instance, instance.stable(SkyblockChunkGenerator::new)));
 
-	public static void submitRegistration(BiConsumer<Codec<? extends ChunkGenerator>, ResourceLocation> consumer) {
+	public static void submitRegistration(BiConsumer<Codec<? extends ChunkGenerator>, Identifier> consumer) {
 		consumer.accept(SkyblockChunkGenerator.CODEC, prefix("skyblock"));
 	}
 

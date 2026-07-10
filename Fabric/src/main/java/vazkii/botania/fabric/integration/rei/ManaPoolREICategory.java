@@ -19,7 +19,7 @@ import me.shedaniel.rei.api.common.entry.EntryStack;
 import me.shedaniel.rei.api.common.util.EntryStacks;
 
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 import org.jetbrains.annotations.NotNull;
@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
 
 public class ManaPoolREICategory implements DisplayCategory<ManaPoolREIDisplay> {
 	private final EntryStack<ItemStack> manaPool = EntryStacks.of(new ItemStack(BotaniaBlocks.manaPool));
-	private final ResourceLocation OVERLAY = ResourceLocationHelper.prefix("textures/gui/pure_daisy_overlay.png");
+	private final Identifier OVERLAY = ResourceLocationHelper.prefix("textures/gui/pure_daisy_overlay.png");
 
 	@Override
 	public @NotNull CategoryIdentifier<ManaPoolREIDisplay> getCategoryIdentifier() {

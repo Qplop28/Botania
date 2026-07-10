@@ -16,7 +16,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataProvider;
 import net.minecraft.data.PackOutput;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.*;
@@ -77,7 +77,7 @@ public class BlockLootProvider implements DataProvider {
 		this.pathProvider = packOutput.createPathProvider(PackOutput.Target.DATA_PACK, "loot_tables/blocks");
 
 		for (Block b : BuiltInRegistries.BLOCK) {
-			ResourceLocation id = BuiltInRegistries.BLOCK.getKey(b);
+			Identifier id = BuiltInRegistries.BLOCK.getKey(b);
 			if (!LibMisc.MOD_ID.equals(id.getNamespace())) {
 				continue;
 			}
@@ -128,10 +128,10 @@ public class BlockLootProvider implements DataProvider {
 
 	@Override
 	public CompletableFuture<?> run(CachedOutput cache) {
-		Map<ResourceLocation, LootTable.Builder> tables = new HashMap<>();
+		Map<Identifier, LootTable.Builder> tables = new HashMap<>();
 
 		for (Block b : BuiltInRegistries.BLOCK) {
-			ResourceLocation id = BuiltInRegistries.BLOCK.getKey(b);
+			Identifier id = BuiltInRegistries.BLOCK.getKey(b);
 			if (!LibMisc.MOD_ID.equals(id.getNamespace())) {
 				continue;
 			}
@@ -142,7 +142,7 @@ public class BlockLootProvider implements DataProvider {
 		}
 
 		List<CompletableFuture<?>> output = new ArrayList<>();
-		for (Map.Entry<ResourceLocation, LootTable.Builder> e : tables.entrySet()) {
+		for (Map.Entry<Identifier, LootTable.Builder> e : tables.entrySet()) {
 			Path path = pathProvider.json(e.getKey());
 			output.add(DataProvider.saveStable(cache, Deserializers.createLootTableSerializer().create().toJsonTree(e.getValue().setParamSet(LootContextParamSets.BLOCK).build()), path));
 		}
@@ -202,7 +202,7 @@ public class BlockLootProvider implements DataProvider {
 	}
 
 	protected static LootTable.Builder genSolidVine(Block b) {
-		LootPoolEntryContainer.Builder<?> entry = LootTableReference.lootTableReference(new ResourceLocation("blocks/vine"));
+		LootPoolEntryContainer.Builder<?> entry = LootTableReference.lootTableReference(new Identifier("blocks/vine"));
 		return LootTable.lootTable().withPool(LootPool.lootPool().setRolls(ConstantValue.exactly(1)).add(entry));
 	}
 

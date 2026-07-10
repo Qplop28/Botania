@@ -15,7 +15,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
@@ -26,7 +26,7 @@ import vazkii.botania.common.item.FlowerPouchItem;
 
 public class FlowerPouchGui extends AbstractContainerScreen<FlowerPouchContainer> {
 
-	private static final ResourceLocation texture = new ResourceLocation(ResourcesLib.GUI_FLOWER_BAG);
+	private static final Identifier texture = new Identifier(ResourcesLib.GUI_FLOWER_BAG);
 
 	public FlowerPouchGui(FlowerPouchContainer container, Inventory playerInv, Component title) {
 		super(container, playerInv, title);

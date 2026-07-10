@@ -3,7 +3,7 @@ package vazkii.botania.fabric.data;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.PackOutput;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.block.Block;
@@ -18,15 +18,15 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public class FabricBlockTagProvider extends BlockTagProvider {
-	public static final TagKey<Block> LAPIS_BLOCKS = blockTag(new ResourceLocation("c", "lapis_blocks"));
-	public static final TagKey<Block> QUARTZ_BLOCKS = blockTag(new ResourceLocation("c", "quartz_blocks"));
-	public static final TagKey<Block> MUSHROOMS = blockTag(new ResourceLocation("c", "mushrooms"));
-	public static final TagKey<Block> GLASS = blockTag(new ResourceLocation("c", "glass"));
-	public static final TagKey<Block> GLASS_ALT = blockTag(new ResourceLocation("c", "glass_blocks"));
-	public static final TagKey<Block> GLASS_PANE = blockTag(new ResourceLocation("c", "glass_pane"));
-	public static final TagKey<Block> GLASS_PANE_ALT = blockTag(new ResourceLocation("c", "glass_panes"));
+	public static final TagKey<Block> LAPIS_BLOCKS = blockTag(new Identifier("c", "lapis_blocks"));
+	public static final TagKey<Block> QUARTZ_BLOCKS = blockTag(new Identifier("c", "quartz_blocks"));
+	public static final TagKey<Block> MUSHROOMS = blockTag(new Identifier("c", "mushrooms"));
+	public static final TagKey<Block> GLASS = blockTag(new Identifier("c", "glass"));
+	public static final TagKey<Block> GLASS_ALT = blockTag(new Identifier("c", "glass_blocks"));
+	public static final TagKey<Block> GLASS_PANE = blockTag(new Identifier("c", "glass_pane"));
+	public static final TagKey<Block> GLASS_PANE_ALT = blockTag(new Identifier("c", "glass_panes"));
 
-	private static TagKey<Block> blockTag(ResourceLocation location) {
+	private static TagKey<Block> blockTag(Identifier location) {
 		return TagKey.create(Registries.BLOCK, location);
 	}
 

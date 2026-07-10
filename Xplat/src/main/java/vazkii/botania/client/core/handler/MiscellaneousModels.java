@@ -10,7 +10,7 @@ package vazkii.botania.client.core.handler;
 
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelBakery;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.world.item.DyeColor;
 
@@ -39,39 +39,39 @@ import static vazkii.botania.common.lib.ResourceLocationHelper.modelResourceLoca
 import static vazkii.botania.common.lib.ResourceLocationHelper.prefix;
 
 public class MiscellaneousModels {
-	private static final ResourceLocation goldfishModelId = prefix("icon/goldfish");
-	private static final ResourceLocation phiFlowerModelId = prefix("icon/phiflower");
-	private static final ResourceLocation nerfBatModelId = prefix("icon/nerfbat");
-	private static final ResourceLocation bloodPendantChainId = prefix("icon/blood_pendant_chain");
-	private static final ResourceLocation bloodPendantGemId = prefix("icon/blood_pendant_gem");
-	private static final ResourceLocation[] kingKeyWeaponModelIds = IntStream.range(0, KeyOfTheKingsLawItem.WEAPON_TYPES)
-			.mapToObj(i -> prefix("icon/gate_weapon_" + i)).toArray(ResourceLocation[]::new);
-	private static final ResourceLocation terrasteelHelmWillModelId = prefix("icon/will_flame");
-	private static final ResourceLocation[] thirdEyeLayerIds = IntStream.range(0, ThirdEyeItem.Renderer.NUM_LAYERS)
-			.mapToObj(i -> prefix("icon/third_eye_" + i)).toArray(ResourceLocation[]::new);
-	private static final ResourceLocation pyroclastGemId = prefix("icon/lava_pendant_gem");
-	private static final ResourceLocation crimsonGemId = prefix("icon/super_lava_pendant_gem");
-	private static final ResourceLocation itemFinderGemId = prefix("icon/itemfinder_gem");
-	private static final ResourceLocation cirrusGemId = prefix("icon/cloud_pendant_gem");
-	private static final ResourceLocation nimbusGemId = prefix("icon/super_cloud_pendant_gem");
-	private static final ResourceLocation snowflakePendantGemId = prefix("icon/ice_pendant_gem");
-	private static final ResourceLocation[] tiaraWingIconIds = IntStream.range(0, FlugelTiaraItem.WING_TYPES)
-			.mapToObj(i -> prefix("icon/tiara_wing_" + (i + 1))).toArray(ResourceLocation[]::new);
-	private static final ResourceLocation corporeaCrystalCubeGlassId = prefix("block/corporea_crystal_cube_glass");
-	private static final ResourceLocation manaPumpHead = prefix("block/pump_head");
-	private static final ResourceLocation elvenSpreaderCoreId = prefix("block/elven_spreader_core");
-	private static final ResourceLocation gaiaSpreaderCoreId = prefix("block/gaia_spreader_core");
-	private static final ResourceLocation manaSpreaderCoreId = prefix("block/mana_spreader_core");
-	private static final ResourceLocation redstoneSpreaderCoreId = prefix("block/redstone_spreader_core");
-	private static final ResourceLocation manaSpreaderScaffoldingId = prefix("block/mana_spreader_scaffolding");
-	private static final ResourceLocation elvenSpreaderScaffoldingId = prefix("block/elven_spreader_scaffolding");
-	private static final ResourceLocation gaiaSpreaderScaffoldingId = prefix("block/gaia_spreader_scaffolding");
-	private static final Map<DyeColor, ResourceLocation> spreaderPaddingIds = new EnumMap<>(ColorHelper.supportedColors().collect(Collectors.toMap(Function.identity(), color -> prefix("block/" + color.getSerializedName() + "_spreader_padding"))));
+	private static final Identifier goldfishModelId = prefix("icon/goldfish");
+	private static final Identifier phiFlowerModelId = prefix("icon/phiflower");
+	private static final Identifier nerfBatModelId = prefix("icon/nerfbat");
+	private static final Identifier bloodPendantChainId = prefix("icon/blood_pendant_chain");
+	private static final Identifier bloodPendantGemId = prefix("icon/blood_pendant_gem");
+	private static final Identifier[] kingKeyWeaponModelIds = IntStream.range(0, KeyOfTheKingsLawItem.WEAPON_TYPES)
+			.mapToObj(i -> prefix("icon/gate_weapon_" + i)).toArray(Identifier[]::new);
+	private static final Identifier terrasteelHelmWillModelId = prefix("icon/will_flame");
+	private static final Identifier[] thirdEyeLayerIds = IntStream.range(0, ThirdEyeItem.Renderer.NUM_LAYERS)
+			.mapToObj(i -> prefix("icon/third_eye_" + i)).toArray(Identifier[]::new);
+	private static final Identifier pyroclastGemId = prefix("icon/lava_pendant_gem");
+	private static final Identifier crimsonGemId = prefix("icon/super_lava_pendant_gem");
+	private static final Identifier itemFinderGemId = prefix("icon/itemfinder_gem");
+	private static final Identifier cirrusGemId = prefix("icon/cloud_pendant_gem");
+	private static final Identifier nimbusGemId = prefix("icon/super_cloud_pendant_gem");
+	private static final Identifier snowflakePendantGemId = prefix("icon/ice_pendant_gem");
+	private static final Identifier[] tiaraWingIconIds = IntStream.range(0, FlugelTiaraItem.WING_TYPES)
+			.mapToObj(i -> prefix("icon/tiara_wing_" + (i + 1))).toArray(Identifier[]::new);
+	private static final Identifier corporeaCrystalCubeGlassId = prefix("block/corporea_crystal_cube_glass");
+	private static final Identifier manaPumpHead = prefix("block/pump_head");
+	private static final Identifier elvenSpreaderCoreId = prefix("block/elven_spreader_core");
+	private static final Identifier gaiaSpreaderCoreId = prefix("block/gaia_spreader_core");
+	private static final Identifier manaSpreaderCoreId = prefix("block/mana_spreader_core");
+	private static final Identifier redstoneSpreaderCoreId = prefix("block/redstone_spreader_core");
+	private static final Identifier manaSpreaderScaffoldingId = prefix("block/mana_spreader_scaffolding");
+	private static final Identifier elvenSpreaderScaffoldingId = prefix("block/elven_spreader_scaffolding");
+	private static final Identifier gaiaSpreaderScaffoldingId = prefix("block/gaia_spreader_scaffolding");
+	private static final Map<DyeColor, Identifier> spreaderPaddingIds = new EnumMap<>(ColorHelper.supportedColors().collect(Collectors.toMap(Function.identity(), color -> prefix("block/" + color.getSerializedName() + "_spreader_padding"))));
 
 	public static final MiscellaneousModels INSTANCE = new MiscellaneousModels();
 
-	private final Map<ResourceLocation, Function<BakedModel, BakedModel>> afterBakeModifiers;
-	private final Map<ResourceLocation, Consumer<BakedModel>> modelConsumers;
+	private final Map<Identifier, Function<BakedModel, BakedModel>> afterBakeModifiers;
+	private final Map<Identifier, Consumer<BakedModel>> modelConsumers;
 
 	public boolean registeredModels = false;
 
@@ -102,7 +102,7 @@ public class MiscellaneousModels {
 
 	public final BakedModel[] kingKeyWeaponModels;
 
-	public void onModelRegister(ResourceManager rm, Consumer<ResourceLocation> consumer) {
+	public void onModelRegister(ResourceManager rm, Consumer<Identifier> consumer) {
 		modelConsumers.keySet().forEach(consumer);
 
 		registerIslands();
@@ -126,26 +126,26 @@ public class MiscellaneousModels {
 		BotaniaAPIClient.instance().registerIslandTypeModel(FloatingFlower.IslandType.MUTATED, prefix("block/islands/island_mutated"));
 	}
 
-	private static void registerTaters(ResourceManager rm, Consumer<ResourceLocation> consumer) {
-		for (ResourceLocation model : rm.listResources(ResourcesLib.PREFIX_MODELS + ResourcesLib.PREFIX_TINY_POTATO, s -> s.getPath().endsWith(ResourcesLib.ENDING_JSON)).keySet()) {
+	private static void registerTaters(ResourceManager rm, Consumer<Identifier> consumer) {
+		for (Identifier model : rm.listResources(ResourcesLib.PREFIX_MODELS + ResourcesLib.PREFIX_TINY_POTATO, s -> s.getPath().endsWith(ResourcesLib.ENDING_JSON)).keySet()) {
 			if (LibMisc.MOD_ID.equals(model.getNamespace())) {
 				String path = model.getPath();
 				path = path.substring(ResourcesLib.PREFIX_MODELS.length(), path.length() - ResourcesLib.ENDING_JSON.length());
-				consumer.accept(new ResourceLocation(LibMisc.MOD_ID, path));
+				consumer.accept(new Identifier(LibMisc.MOD_ID, path));
 			}
 		}
 	}
 
-	public void onModelBake(ModelBakery loader, Map<ResourceLocation, BakedModel> map) {
+	public void onModelBake(ModelBakery loader, Map<Identifier, BakedModel> map) {
 		if (!registeredModels) {
 			BotaniaAPI.LOGGER.error("Additional models failed to register! Aborting baking models to avoid early crashing.");
 			return;
 		}
-		afterBakeModifiers.forEach((resourceLocation, afterBakeModifier) -> map.computeIfPresent(resourceLocation, (resourceLoc, bakedModel) -> afterBakeModifier.apply(bakedModel)));
-		modelConsumers.forEach((resourceLocation, bakedModelConsumer) -> bakedModelConsumer.accept(map.get(resourceLocation)));
+		afterBakeModifiers.forEach((Identifier, afterBakeModifier) -> map.computeIfPresent(Identifier, (resourceLoc, bakedModel) -> afterBakeModifier.apply(bakedModel)));
+		modelConsumers.forEach((Identifier, bakedModelConsumer) -> bakedModelConsumer.accept(map.get(Identifier)));
 	}
 
-	public BakedModel modifyModelAfterbake(BakedModel bakedModel, ResourceLocation id) {
+	public BakedModel modifyModelAfterbake(BakedModel bakedModel, Identifier id) {
 		modelConsumers.getOrDefault(id, model -> {}).accept(bakedModel);
 		return afterBakeModifiers.getOrDefault(id, Function.identity()).apply(bakedModel);
 	}
@@ -190,7 +190,7 @@ public class MiscellaneousModels {
 		tiaraWingIcons = getBakedModels(modelConsumers, tiaraWingIconIds);
 	}
 
-	private static BakedModel[] getBakedModels(Map<ResourceLocation, Consumer<BakedModel>> consumers, ResourceLocation[] ids) {
+	private static BakedModel[] getBakedModels(Map<Identifier, Consumer<BakedModel>> consumers, Identifier[] ids) {
 		final BakedModel[] bakedModels = new BakedModel[ids.length];
 		for (int i = 0; i < ids.length; i++) {
 			int index = i;

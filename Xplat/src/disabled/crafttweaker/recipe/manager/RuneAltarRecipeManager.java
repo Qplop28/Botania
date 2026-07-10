@@ -21,7 +21,7 @@ import com.blamejared.crafttweaker.api.util.StringUtil;
 import com.blamejared.crafttweaker.platform.Services;
 import com.blamejared.crafttweaker_annotations.annotations.Document;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeType;
 
@@ -61,9 +61,9 @@ public class RuneAltarRecipeManager implements IRecipeManager<IRuneAltarRecipe>,
 	@ZenCodeType.Method
 	public void addRecipe(String name, IItemStack output, int mana, IIngredient... inputs) {
 		name = fixRecipeName(name);
-		ResourceLocation resourceLocation = new ResourceLocation("crafttweaker", name);
+		Identifier Identifier = new Identifier("crafttweaker", name);
 		CraftTweakerAPI.apply(new ActionAddRecipe<>(this,
-				new RecipeRuneAltar(resourceLocation,
+				new RecipeRuneAltar(Identifier,
 						output.getInternal(),
 						mana,
 						Arrays.stream(inputs).map(IIngredient::asVanillaIngredient).toArray(Ingredient[]::new))));
@@ -89,7 +89,7 @@ public class RuneAltarRecipeManager implements IRecipeManager<IRuneAltarRecipe>,
 	}
 
 	@Override
-	public Optional<Function<ResourceLocation, IRuneAltarRecipe>> replaceIngredients(@SuppressWarnings("rawtypes") IRecipeManager manager, IRuneAltarRecipe recipe, List<IReplacementRule> rules) {
+	public Optional<Function<Identifier, IRuneAltarRecipe>> replaceIngredients(@SuppressWarnings("rawtypes") IRecipeManager manager, IRuneAltarRecipe recipe, List<IReplacementRule> rules) {
 		return ReplacementHandlerHelper.replaceNonNullIngredientList(recipe.getIngredients(),
 				Ingredient.class, recipe, rules,
 				ingr -> id -> new RecipeRuneAltar(id, recipe.getResultItem(), recipe.getManaUsage(), ingr.toArray(new Ingredient[0])));

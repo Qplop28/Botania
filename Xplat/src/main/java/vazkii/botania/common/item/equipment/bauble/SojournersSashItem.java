@@ -16,7 +16,7 @@ import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -43,7 +43,7 @@ public class SojournersSashItem extends BaubleItem {
 			"botania:travel_belt",
 			0.65, AttributeModifier.Operation.ADDITION);
 
-	private static final ResourceLocation texture = new ResourceLocation(ResourcesLib.MODEL_TRAVEL_BELT);
+	private static final Identifier texture = new Identifier(ResourcesLib.MODEL_TRAVEL_BELT);
 
 	private static final int COST = 1;
 	private static final int COST_INTERVAL = 10;
@@ -143,7 +143,7 @@ public class SojournersSashItem extends BaubleItem {
 		return !result.isEmpty() && ManaItemHandler.instance().requestManaExact(result, player, COST, false);
 	}
 
-	ResourceLocation getRenderTexture() {
+	Identifier getRenderTexture() {
 		return texture;
 	}
 
@@ -161,7 +161,7 @@ public class SojournersSashItem extends BaubleItem {
 						.getEntityModels().bakeLayer(ModelLayers.PLAYER));
 			}
 
-			ResourceLocation texture = ((SojournersSashItem) stack.getItem()).getRenderTexture();
+			Identifier texture = ((SojournersSashItem) stack.getItem()).getRenderTexture();
 			VertexConsumer buffer = buffers.getBuffer(model.renderType(texture));
 			model.body.render(ms, buffer, light, OverlayTexture.NO_OVERLAY, 1, 1, 1, 1);
 		}

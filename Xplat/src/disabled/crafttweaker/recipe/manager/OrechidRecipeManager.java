@@ -12,7 +12,7 @@ import com.blamejared.crafttweaker.api.annotation.ZenRegister;
 import com.blamejared.crafttweaker.api.recipe.handler.IRecipeHandler;
 import com.blamejared.crafttweaker_annotations.annotations.Document;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.block.Block;
 
@@ -33,7 +33,7 @@ import vazkii.botania.common.integration.crafttweaker.recipe.manager.base.IOrech
 @ZenCodeType.Name("mods.botania.recipe.manager.OrechidRecipeManager")
 public class OrechidRecipeManager implements IOrechidManagerBase<IOrechidRecipe> {
 	@Override
-	public IOrechidRecipe makeRecipe(ResourceLocation name, Block input, StateIngredient output, int weight) {
+	public IOrechidRecipe makeRecipe(Identifier name, Block input, StateIngredient output, int weight) {
 		return new RecipeOrechid(name, input, output, weight);
 	}
 

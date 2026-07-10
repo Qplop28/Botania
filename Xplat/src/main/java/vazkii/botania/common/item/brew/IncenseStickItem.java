@@ -10,7 +10,7 @@ package vazkii.botania.common.item.brew;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -62,14 +62,14 @@ public class IncenseStickItem extends Item implements BrewItem, BrewContainer, C
 	@Override
 	public Brew getBrew(ItemStack stack) {
 		String key = ItemNBTHelper.getString(stack, TAG_BREW_KEY, "");
-		return BotaniaAPI.instance().getBrewRegistry().get(ResourceLocation.tryParse(key));
+		return BotaniaAPI.instance().getBrewRegistry().get(Identifier.tryParse(key));
 	}
 
 	public static void setBrew(ItemStack stack, Brew brew) {
 		setBrew(stack, BotaniaAPI.instance().getBrewRegistry().getKey(brew));
 	}
 
-	public static void setBrew(ItemStack stack, ResourceLocation brew) {
+	public static void setBrew(ItemStack stack, Identifier brew) {
 		ItemNBTHelper.setString(stack, TAG_BREW_KEY, brew.toString());
 	}
 

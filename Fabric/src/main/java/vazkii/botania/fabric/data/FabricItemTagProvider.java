@@ -5,7 +5,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.tags.TagsProvider;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -23,15 +23,15 @@ import java.util.concurrent.CompletableFuture;
 import static vazkii.botania.common.item.BotaniaItems.*;
 
 public class FabricItemTagProvider extends ItemTagProvider {
-	public static final TagKey<Item> QUARTZ_BLOCKS = itemTag(new ResourceLocation("c", "quartz_blocks"));
-	private static final TagKey<Item> MUSHROOMS = itemTag(new ResourceLocation("c", "mushrooms"));
-	private static final TagKey<Item> GLASS = itemTag(new ResourceLocation("c", "glass"));
-	private static final TagKey<Item> GLASS_ALT = itemTag(new ResourceLocation("c", "glass_blocks"));
-	private static final TagKey<Item> GLASS_PANE = itemTag(new ResourceLocation("c", "glass_pane"));
-	private static final TagKey<Item> GLASS_PANE_ALT = itemTag(new ResourceLocation("c", "glass_panes"));
-	public static final TagKey<Item> WOODEN_CHESTS = itemTag(new ResourceLocation("c", "wooden_chests"));
+	public static final TagKey<Item> QUARTZ_BLOCKS = itemTag(new Identifier("c", "quartz_blocks"));
+	private static final TagKey<Item> MUSHROOMS = itemTag(new Identifier("c", "mushrooms"));
+	private static final TagKey<Item> GLASS = itemTag(new Identifier("c", "glass"));
+	private static final TagKey<Item> GLASS_ALT = itemTag(new Identifier("c", "glass_blocks"));
+	private static final TagKey<Item> GLASS_PANE = itemTag(new Identifier("c", "glass_pane"));
+	private static final TagKey<Item> GLASS_PANE_ALT = itemTag(new Identifier("c", "glass_panes"));
+	public static final TagKey<Item> WOODEN_CHESTS = itemTag(new Identifier("c", "wooden_chests"));
 
-	private static TagKey<Item> itemTag(ResourceLocation location) {
+	private static TagKey<Item> itemTag(Identifier location) {
 		return TagKey.create(Registries.ITEM, location);
 	}
 
@@ -137,13 +137,13 @@ public class FabricItemTagProvider extends ItemTagProvider {
 	}
 
 	private void generateCompatTags() {
-		this.tag(itemTag(new ResourceLocation("modern_industrialization", "replicator_blacklist")))
+		this.tag(itemTag(new Identifier("modern_industrialization", "replicator_blacklist")))
 				.add(DiceOfFateItem.RELIC_STACKS.get().stream().map(ItemStack::getItem).toArray(Item[]::new))
 				.add(dice, manaTablet, manaRing, manaRingGreater, blackerLotus, blackHoleTalisman, flowerBag,
 						spawnerMover, terraPick, BotaniaBlocks.terrasteelBlock.asItem());
 	}
 
 	private static TagKey<Item> accessory(String name) {
-		return itemTag(new ResourceLocation("trinkets", name));
+		return itemTag(new Identifier("trinkets", name));
 	}
 }

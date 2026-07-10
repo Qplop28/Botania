@@ -27,7 +27,7 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemStack;
 
@@ -43,7 +43,7 @@ import java.util.List;
 
 public class ElvenTradeREICategory implements DisplayCategory<ElvenTradeREIDisplay> {
 	private final EntryStack<ItemStack> gateway = EntryStacks.of(new ItemStack(BotaniaBlocks.alfPortal));
-	private final ResourceLocation TRADE_OVERLAY = ResourceLocationHelper.prefix("textures/gui/elven_trade_overlay.png");
+	private final Identifier TRADE_OVERLAY = ResourceLocationHelper.prefix("textures/gui/elven_trade_overlay.png");
 
 	@Override
 	public @NotNull CategoryIdentifier<ElvenTradeREIDisplay> getCategoryIdentifier() {

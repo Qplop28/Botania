@@ -9,7 +9,7 @@
 package vazkii.botania.common.item;
 
 import net.minecraft.ChatFormatting;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.food.FoodProperties;
@@ -70,7 +70,7 @@ import java.util.function.BiConsumer;
 import static vazkii.botania.common.lib.ResourceLocationHelper.prefix;
 
 public final class BotaniaItems {
-	private static final Map<ResourceLocation, Item> ALL = new LinkedHashMap<>(); // Preserve insertion order
+	private static final Map<Identifier, Item> ALL = new LinkedHashMap<>(); // Preserve insertion order
 	public static final LexicaBotaniaItem lexicon = make(prefix(LibItemNames.LEXICON), new LexicaBotaniaItem(unstackable().rarity(Rarity.UNCOMMON)));
 	public static final Item twigWand = make(prefix(LibItemNames.TWIG_WAND), new WandOfTheForestItem(ChatFormatting.DARK_GREEN, unstackable().rarity(Rarity.RARE)));
 	public static final Item dreamwoodWand = make(prefix(LibItemNames.DREAMWOOD_WAND), new WandOfTheForestItem(ChatFormatting.LIGHT_PURPLE, unstackable().rarity(Rarity.RARE)));
@@ -391,7 +391,7 @@ public final class BotaniaItems {
 	public static final MenuType<BaubleBoxContainer> BAUBLE_BOX_CONTAINER = XplatAbstractions.INSTANCE.createMenuType(BaubleBoxContainer::fromNetwork);
 	public static final MenuType<FlowerPouchContainer> FLOWER_BAG_CONTAINER = XplatAbstractions.INSTANCE.createMenuType(FlowerPouchContainer::fromNetwork);
 
-	private static <T extends Item> T make(ResourceLocation id, T item) {
+	private static <T extends Item> T make(Identifier id, T item) {
 		var old = ALL.put(id, item);
 		if (old != null) {
 			throw new IllegalArgumentException("Typo? Duplicate id " + id);
@@ -428,18 +428,18 @@ public final class BotaniaItems {
 		return defaultBuilder().stacksTo(1);
 	}
 
-	public static void registerItems(BiConsumer<Item, ResourceLocation> r) {
+	public static void registerItems(BiConsumer<Item, Identifier> r) {
 		for (var e : ALL.entrySet()) {
 			r.accept(e.getValue(), e.getKey());
 		}
 	}
 
-	public static void registerMenuTypes(BiConsumer<MenuType<?>, ResourceLocation> consumer) {
+	public static void registerMenuTypes(BiConsumer<MenuType<?>, Identifier> consumer) {
 		consumer.accept(BAUBLE_BOX_CONTAINER, prefix(LibItemNames.BAUBLE_BOX));
 		consumer.accept(FLOWER_BAG_CONTAINER, prefix(LibItemNames.FLOWER_BAG));
 	}
 
-	public static void registerRecipeSerializers(BiConsumer<RecipeSerializer<?>, ResourceLocation> r) {
+	public static void registerRecipeSerializers(BiConsumer<RecipeSerializer<?>, Identifier> r) {
 		r.accept(AncientWillRecipe.SERIALIZER, prefix("ancient_will_attach"));
 		r.accept(ArmorUpgradeRecipe.SERIALIZER, prefix("armor_upgrade"));
 		r.accept(BlackHoleTalismanExtractRecipe.SERIALIZER, prefix("black_hole_talisman_extract"));

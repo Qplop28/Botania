@@ -22,7 +22,7 @@ import com.blamejared.crafttweaker.api.util.StringUtil;
 import com.blamejared.crafttweaker.natives.block.ExpandBlock;
 import com.blamejared.crafttweaker_annotations.annotations.Document;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Block;
@@ -67,9 +67,9 @@ public class MarimorphosisRecipeManager implements IRecipeManager<IOrechidRecipe
 	@ZenCodeType.Method
 	public void registerOreWeight(String name, CTBlockIngredient output, Block input, int weight, int weightBonus, Biome.BiomeCategory... biomes) {
 		name = fixRecipeName(name);
-		ResourceLocation resourceLocation = CraftTweakerConstants.rl(name);
+		Identifier Identifier = CraftTweakerConstants.rl(name);
 		CraftTweakerAPI.apply(new ActionAddRecipe<>(this,
-				new RecipeMarimorphosis(resourceLocation,
+				new RecipeMarimorphosis(Identifier,
 						input, CTPlugin.blockIngredientToStateIngredient(output), weight, weightBonus, Arrays.stream(biomes).toList())));
 	}
 
@@ -109,7 +109,7 @@ public class MarimorphosisRecipeManager implements IRecipeManager<IOrechidRecipe
 	}
 
 	@Override
-	public Optional<Function<ResourceLocation, RecipeMarimorphosis>> replaceIngredients(@SuppressWarnings("rawtypes") IRecipeManager manager, RecipeMarimorphosis recipe, List<IReplacementRule> rules) {
+	public Optional<Function<Identifier, RecipeMarimorphosis>> replaceIngredients(@SuppressWarnings("rawtypes") IRecipeManager manager, RecipeMarimorphosis recipe, List<IReplacementRule> rules) {
 		return Optional.empty();
 	}
 }

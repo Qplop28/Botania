@@ -16,7 +16,7 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -128,7 +128,7 @@ public class CorporeaHelperImpl implements CorporeaHelper {
 	}
 
 	@Override
-	public <T extends CorporeaRequestMatcher> void registerRequestMatcher(ResourceLocation id, Class<T> clazz, Function<CompoundTag, T> deserializer) {
+	public <T extends CorporeaRequestMatcher> void registerRequestMatcher(Identifier id, Class<T> clazz, Function<CompoundTag, T> deserializer) {
 		CorporeaRetainerBlockEntity.addCorporeaRequestMatcher(id, clazz, deserializer);
 	}
 

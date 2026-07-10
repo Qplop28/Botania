@@ -30,7 +30,7 @@ import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.LivingEntity;
@@ -177,7 +177,7 @@ public final class RenderHelper extends RenderType {
 				.setLightmapState(LIGHTMAP).createCompositeState(false);
 		ENCHANTER = makeLayer(ResourcesLib.PREFIX_MOD + "enchanter_rune", DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP, VertexFormat.Mode.QUADS, 128, glState);
 
-		RenderStateShard.TextureStateShard babylonTexture = new RenderStateShard.TextureStateShard(new ResourceLocation(ResourcesLib.MISC_BABYLON), false, true);
+		RenderStateShard.TextureStateShard babylonTexture = new RenderStateShard.TextureStateShard(new Identifier(ResourcesLib.MISC_BABYLON), false, true);
 		glState = RenderType.CompositeState.builder().setTextureState(babylonTexture)
 				.setShaderState(new ShaderStateShard(CoreShaders::halo))
 				.setTransparencyState(TRANSLUCENT_TRANSPARENCY)
@@ -215,15 +215,15 @@ public final class RenderHelper extends RenderType {
 		throw new UnsupportedOperationException("Should not be instantiated");
 	}
 
-	private static RenderType getPylonGlowDirect(String name, ResourceLocation texture) {
+	private static RenderType getPylonGlowDirect(String name, Identifier texture) {
 		return getPylonGlow(name, texture, true);
 	}
 
-	private static RenderType getPylonGlow(String name, ResourceLocation texture) {
+	private static RenderType getPylonGlow(String name, Identifier texture) {
 		return getPylonGlow(name, texture, false);
 	}
 
-	private static RenderType getPylonGlow(String name, ResourceLocation texture, boolean direct) {
+	private static RenderType getPylonGlow(String name, Identifier texture, boolean direct) {
 		RenderType.CompositeState.CompositeStateBuilder glState = RenderType.CompositeState.builder()
 				.setShaderState(new ShaderStateShard(CoreShaders::pylon))
 				.setTextureState(new RenderStateShard.TextureStateShard(texture, false, false))
@@ -255,7 +255,7 @@ public final class RenderHelper extends RenderType {
 		return builder.createCompositeState(false);
 	}
 
-	public static RenderType getHaloLayer(ResourceLocation texture) {
+	public static RenderType getHaloLayer(Identifier texture) {
 		RenderType.CompositeState glState = RenderType.CompositeState.builder()
 				.setShaderState(RenderStateShard.POSITION_COLOR_TEX_SHADER)
 				.setTextureState(new RenderStateShard.TextureStateShard(texture, true, false))
@@ -264,7 +264,7 @@ public final class RenderHelper extends RenderType {
 		return makeLayer(ResourcesLib.PREFIX_MOD + "crafting_halo", DefaultVertexFormat.POSITION_COLOR_TEX, VertexFormat.Mode.QUADS, 64, false, true, glState);
 	}
 
-	private static final Function<ResourceLocation, RenderType> DOPPLEGANGER = Util.memoize(texture -> {
+	private static final Function<Identifier, RenderType> DOPPLEGANGER = Util.memoize(texture -> {
 		// [VanillaCopy] entity_translucent, with own shader
 		CompositeState glState = RenderType.CompositeState.builder()
 				.setShaderState(new ShaderStateShard(CoreShaders::doppleganger))
@@ -277,11 +277,11 @@ public final class RenderHelper extends RenderType {
 		return makeLayer(ResourcesLib.PREFIX_MOD + "doppleganger", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS, 256, true, true, glState);
 	});
 
-	public static RenderType getDopplegangerLayer(ResourceLocation texture) {
+	public static RenderType getDopplegangerLayer(Identifier texture) {
 		return DOPPLEGANGER.apply(texture);
 	}
 
-	public static void drawTexturedModalRect(GuiGraphics gui, ResourceLocation textureId, int x, int y, int u, int v, int width, int height) {
+	public static void drawTexturedModalRect(GuiGraphics gui, Identifier textureId, int x, int y, int u, int v, int width, int height) {
 		gui.blit(textureId, x, y, u, v, width, height, 256, 256);
 	}
 

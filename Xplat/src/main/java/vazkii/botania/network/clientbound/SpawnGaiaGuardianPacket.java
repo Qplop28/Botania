@@ -12,7 +12,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
 
 import vazkii.botania.common.entity.GaiaGuardianEntity;
@@ -25,7 +25,7 @@ import static vazkii.botania.common.lib.ResourceLocationHelper.prefix;
 public record SpawnGaiaGuardianPacket(ClientboundAddEntityPacket inner, int playerCount, boolean hardMode,
 		BlockPos source, UUID bossInfoId) implements BotaniaPacket {
 
-	public static final ResourceLocation ID = prefix("spg");
+	public static final Identifier ID = prefix("spg");
 
 	@Override
 	public void encode(FriendlyByteBuf buf) {
@@ -37,7 +37,7 @@ public record SpawnGaiaGuardianPacket(ClientboundAddEntityPacket inner, int play
 	}
 
 	@Override
-	public ResourceLocation getFabricId() {
+	public Identifier getFabricId() {
 		return ID;
 	}
 

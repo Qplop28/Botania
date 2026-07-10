@@ -15,7 +15,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -50,14 +50,14 @@ public class LifeAggregatorItem extends Item {
 	}
 
 	@Nullable
-	private static ResourceLocation getEntityId(ItemStack stack) {
+	private static Identifier getEntityId(ItemStack stack) {
 		CompoundTag tag = stack.getTagElement(TAG_SPAWNER);
 		if (tag != null && tag.contains(TAG_SPAWN_DATA)) {
 			tag = tag.getCompound(TAG_SPAWN_DATA);
 			var spawnData = SpawnData.CODEC.parse(NbtOps.INSTANCE, tag);
 			return spawnData.result()
 					.filter(sd -> sd.getEntityToSpawn().contains(TAG_ID))
-					.map(sd -> ResourceLocation.tryParse(sd.getEntityToSpawn().getString(TAG_ID)))
+					.map(sd -> Identifier.tryParse(sd.getEntityToSpawn().getString(TAG_ID)))
 					.orElse(null);
 		}
 
@@ -70,7 +70,7 @@ public class LifeAggregatorItem extends Item {
 
 	@Override
 	public void appendHoverText(ItemStack stack, Level world, List<Component> infoList, TooltipFlag flags) {
-		ResourceLocation id = getEntityId(stack);
+		Identifier id = getEntityId(stack);
 		if (id != null) {
 			BuiltInRegistries.ENTITY_TYPE.getOptional(id).ifPresent(type -> infoList.add(type.getDescription()));
 		}

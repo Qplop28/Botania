@@ -22,7 +22,7 @@ import com.blamejared.crafttweaker.natives.block.ExpandBlockState;
 import com.blamejared.crafttweaker_annotations.annotations.Document;
 
 import net.minecraft.commands.CommandFunction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -63,9 +63,9 @@ public class PureDaisyRecipeManager implements IRecipeManager<IPureDaisyRecipe>,
 	@ZenCodeType.Method
 	public void addRecipe(String name, BlockState output, CTBlockIngredient input, @ZenCodeType.OptionalInt(RecipePureDaisy.DEFAULT_TIME) int time) {
 		name = fixRecipeName(name);
-		ResourceLocation resourceLocation = new ResourceLocation("crafttweaker", name);
+		Identifier Identifier = new Identifier("crafttweaker", name);
 		CraftTweakerAPI.apply(new ActionAddRecipe<>(this,
-				new RecipePureDaisy(resourceLocation, CTPlugin.blockIngredientToStateIngredient(input), output, time, CommandFunction.CacheableFunction.NONE)));
+				new RecipePureDaisy(Identifier, CTPlugin.blockIngredientToStateIngredient(input), output, time, CommandFunction.CacheableFunction.NONE)));
 	}
 
 	/**
@@ -105,7 +105,7 @@ public class PureDaisyRecipeManager implements IRecipeManager<IPureDaisyRecipe>,
 	}
 
 	@Override
-	public Optional<Function<ResourceLocation, IPureDaisyRecipe>> replaceIngredients(@SuppressWarnings("rawtypes") IRecipeManager manager, IPureDaisyRecipe recipe, List<IReplacementRule> rules) {
+	public Optional<Function<Identifier, IPureDaisyRecipe>> replaceIngredients(@SuppressWarnings("rawtypes") IRecipeManager manager, IPureDaisyRecipe recipe, List<IReplacementRule> rules) {
 		return Optional.empty(); // Not supported by CT at the moment
 	}
 }

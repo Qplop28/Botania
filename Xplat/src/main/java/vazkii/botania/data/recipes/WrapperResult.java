@@ -12,7 +12,7 @@ import com.google.gson.JsonObject;
 
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.recipes.FinishedRecipe;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 
 import org.jetbrains.annotations.Nullable;
@@ -66,7 +66,7 @@ public class WrapperResult implements FinishedRecipe {
 	}
 
 	@Override
-	public ResourceLocation getId() {
+	public Identifier getId() {
 		return delegate.getId();
 	}
 
@@ -83,7 +83,7 @@ public class WrapperResult implements FinishedRecipe {
 
 	@Nullable
 	@Override
-	public ResourceLocation getAdvancementId() {
+	public Identifier getAdvancementId() {
 		return delegate.getAdvancementId();
 	}
 }

@@ -8,20 +8,20 @@
  */
 package vazkii.botania.common;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.stats.StatFormatter;
 
 import vazkii.botania.common.lib.LibMisc;
 import vazkii.botania.mixin.StatsAccessor;
 
 public class BotaniaStats {
-	public static final ResourceLocation CORPOREA_ITEMS_REQUESTED =
+	public static final Identifier CORPOREA_ITEMS_REQUESTED =
 			StatsAccessor.botania_callRegisterCustom(LibMisc.MOD_ID + ":corporea_items_requested", StatFormatter.DEFAULT);
 
-	public static final ResourceLocation LUMINIZER_ONE_CM =
+	public static final Identifier LUMINIZER_ONE_CM =
 			StatsAccessor.botania_callRegisterCustom(LibMisc.MOD_ID + ":luminizer_one_cm", StatFormatter.DISTANCE);
 
-	public static final ResourceLocation TINY_POTATOES_PETTED =
+	public static final Identifier TINY_POTATOES_PETTED =
 			StatsAccessor.botania_callRegisterCustom(LibMisc.MOD_ID + ":tiny_potatoes_petted", StatFormatter.DEFAULT);
 
 	public static void init() {

@@ -11,7 +11,7 @@ package vazkii.botania.network.clientbound;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 import org.jetbrains.annotations.Nullable;
@@ -23,7 +23,7 @@ import static vazkii.botania.common.lib.ResourceLocationHelper.prefix;
 
 public record UpdateItemsRemainingPacket(ItemStack stack, int count, @Nullable Component tooltip) implements BotaniaPacket {
 
-	public static final ResourceLocation ID = prefix("rem");
+	public static final Identifier ID = prefix("rem");
 
 	@Override
 	public void encode(FriendlyByteBuf buf) {
@@ -36,7 +36,7 @@ public record UpdateItemsRemainingPacket(ItemStack stack, int count, @Nullable C
 	}
 
 	@Override
-	public ResourceLocation getFabricId() {
+	public Identifier getFabricId() {
 		return ID;
 	}
 

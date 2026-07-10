@@ -23,7 +23,7 @@ import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
@@ -154,7 +154,7 @@ public class FabricClientInitializer implements ClientModInitializer {
 			var texture = armor.getArmorTexture(stack, entity, slot, "");
 			if (model != null) {
 				contextModel.copyPropertiesTo(model);
-				ArmorRenderer.renderPart(matrices, vertexConsumers, light, stack, model, new ResourceLocation(texture));
+				ArmorRenderer.renderPart(matrices, vertexConsumers, light, stack, model, new Identifier(texture));
 			}
 		};
 		ArmorRenderer.register(renderer, armors);

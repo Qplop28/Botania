@@ -12,7 +12,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.Container;
@@ -70,7 +70,7 @@ public interface BotaniaAPI {
 		return null;
 	}
 
-	default Map<ResourceLocation, Function<DyeColor, Block>> getPaintableBlocks() {
+	default Map<Identifier, Function<DyeColor, Block>> getPaintableBlocks() {
 		return Collections.emptyMap();
 	}
 
@@ -85,7 +85,7 @@ public interface BotaniaAPI {
 	 * @param blockId     The block ID
 	 * @param transformer Function from color to a new block
 	 */
-	default void registerPaintableBlock(ResourceLocation blockId, Function<DyeColor, Block> transformer) {
+	default void registerPaintableBlock(Identifier blockId, Function<DyeColor, Block> transformer) {
 
 	}
 

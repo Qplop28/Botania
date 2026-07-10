@@ -16,7 +16,7 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.data.advancements.AdvancementSubProvider;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.Item;
@@ -501,7 +501,7 @@ public class AdvancementProvider {
 				null, frameType, true, true, true);
 	}
 
-	protected static DisplayInfo rootDisplay(ItemLike icon, String titleKey, String descKey, ResourceLocation background) {
+	protected static DisplayInfo rootDisplay(ItemLike icon, String titleKey, String descKey, Identifier background) {
 		return new DisplayInfo(new ItemStack(icon.asItem()),
 				Component.translatable(titleKey),
 				Component.translatable(descKey),

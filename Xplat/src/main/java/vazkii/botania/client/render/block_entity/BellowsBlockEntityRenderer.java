@@ -14,7 +14,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 
 import org.jetbrains.annotations.Nullable;
@@ -26,7 +26,7 @@ import vazkii.botania.common.block.block_entity.mana.BellowsBlockEntity;
 import vazkii.botania.common.helper.VecHelper;
 
 public class BellowsBlockEntityRenderer implements BlockEntityRenderer<BellowsBlockEntity> {
-	private static final ResourceLocation texture = new ResourceLocation(ResourcesLib.MODEL_BELLOWS);
+	private static final Identifier texture = new Identifier(ResourcesLib.MODEL_BELLOWS);
 	private final BellowsModel model;
 
 	public BellowsBlockEntityRenderer(BlockEntityRendererProvider.Context ctx) {

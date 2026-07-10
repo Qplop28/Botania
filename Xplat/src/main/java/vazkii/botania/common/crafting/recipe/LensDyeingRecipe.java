@@ -11,7 +11,7 @@ package vazkii.botania.common.crafting.recipe;
 import com.google.common.base.Suppliers;
 
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -46,7 +46,7 @@ public class LensDyeingRecipe extends CustomRecipe {
 			Ingredient.of(BotaniaItems.manaPearl)
 	));
 
-	public LensDyeingRecipe(ResourceLocation id) {
+	public LensDyeingRecipe(Identifier id) {
 		super(id, CraftingBookCategory.REDSTONE);
 	}
 

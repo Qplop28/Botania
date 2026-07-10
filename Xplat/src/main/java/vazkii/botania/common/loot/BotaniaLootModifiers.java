@@ -8,7 +8,7 @@
  */
 package vazkii.botania.common.loot;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.storage.loot.functions.LootItemFunctionType;
 import net.minecraft.world.level.storage.loot.predicates.LootItemConditionType;
 
@@ -22,13 +22,13 @@ public class BotaniaLootModifiers {
 	public static final LootItemConditionType KILLED_BY_REAL_PLAYER = new LootItemConditionType(new RealPlayerCondition.Serializer());
 	public static final LootItemFunctionType BIND_UUID = new LootItemFunctionType(new BindUuid.Serializer());
 
-	public static void submitLootConditions(BiConsumer<LootItemConditionType, ResourceLocation> consumer) {
+	public static void submitLootConditions(BiConsumer<LootItemConditionType, Identifier> consumer) {
 		consumer.accept(TRUE_GUARDIAN_KILLER, prefix("true_guardian_killer"));
 		consumer.accept(ENABLE_RELICS, prefix("enable_relics"));
 		consumer.accept(KILLED_BY_REAL_PLAYER, prefix("killed_by_player"));
 	}
 
-	public static void submitLootFunctions(BiConsumer<LootItemFunctionType, ResourceLocation> consumer) {
+	public static void submitLootFunctions(BiConsumer<LootItemFunctionType, Identifier> consumer) {
 		consumer.accept(BIND_UUID, prefix("bind_uuid"));
 	}
 }

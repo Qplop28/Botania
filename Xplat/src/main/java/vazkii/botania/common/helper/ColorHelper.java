@@ -9,7 +9,7 @@
 package vazkii.botania.common.helper;
 
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.block.Block;
 
@@ -19,20 +19,20 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 public final class ColorHelper {
-	public static final Function<DyeColor, Block> STAINED_GLASS_MAP = color -> BuiltInRegistries.BLOCK.get(new ResourceLocation(color.getSerializedName() + "_stained_glass"));
-	public static final Function<DyeColor, Block> STAINED_GLASS_PANE_MAP = color -> BuiltInRegistries.BLOCK.get(new ResourceLocation(color.getSerializedName() + "_stained_glass_pane"));
-	public static final Function<DyeColor, Block> TERRACOTTA_MAP = color -> BuiltInRegistries.BLOCK.get(new ResourceLocation(color.getSerializedName() + "_terracotta"));
-	public static final Function<DyeColor, Block> GLAZED_TERRACOTTA_MAP = color -> BuiltInRegistries.BLOCK.get(new ResourceLocation(color.getSerializedName() + "_glazed_terracotta"));
-	public static final Function<DyeColor, Block> WOOL_MAP = color -> BuiltInRegistries.BLOCK.get(new ResourceLocation(color.getSerializedName() + "_wool"));
-	public static final Function<DyeColor, Block> CARPET_MAP = color -> BuiltInRegistries.BLOCK.get(new ResourceLocation(color.getSerializedName() + "_carpet"));
-	public static final Function<DyeColor, Block> CONCRETE_MAP = color -> BuiltInRegistries.BLOCK.get(new ResourceLocation(color.getSerializedName() + "_concrete"));
-	public static final Function<DyeColor, Block> CONCRETE_POWDER_MAP = color -> BuiltInRegistries.BLOCK.get(new ResourceLocation(color.getSerializedName() + "_concrete_powder"));
-	public static final Function<DyeColor, Block> CANDLE_MAP = color -> BuiltInRegistries.BLOCK.get(new ResourceLocation(color.getSerializedName() + "_candle"));
-	public static final Function<DyeColor, Block> CANDLE_CAKE_MAP = color -> BuiltInRegistries.BLOCK.get(new ResourceLocation(color.getSerializedName() + "_candle_cake"));
+	public static final Function<DyeColor, Block> STAINED_GLASS_MAP = color -> BuiltInRegistries.BLOCK.get(new Identifier(color.getSerializedName() + "_stained_glass"));
+	public static final Function<DyeColor, Block> STAINED_GLASS_PANE_MAP = color -> BuiltInRegistries.BLOCK.get(new Identifier(color.getSerializedName() + "_stained_glass_pane"));
+	public static final Function<DyeColor, Block> TERRACOTTA_MAP = color -> BuiltInRegistries.BLOCK.get(new Identifier(color.getSerializedName() + "_terracotta"));
+	public static final Function<DyeColor, Block> GLAZED_TERRACOTTA_MAP = color -> BuiltInRegistries.BLOCK.get(new Identifier(color.getSerializedName() + "_glazed_terracotta"));
+	public static final Function<DyeColor, Block> WOOL_MAP = color -> BuiltInRegistries.BLOCK.get(new Identifier(color.getSerializedName() + "_wool"));
+	public static final Function<DyeColor, Block> CARPET_MAP = color -> BuiltInRegistries.BLOCK.get(new Identifier(color.getSerializedName() + "_carpet"));
+	public static final Function<DyeColor, Block> CONCRETE_MAP = color -> BuiltInRegistries.BLOCK.get(new Identifier(color.getSerializedName() + "_concrete"));
+	public static final Function<DyeColor, Block> CONCRETE_POWDER_MAP = color -> BuiltInRegistries.BLOCK.get(new Identifier(color.getSerializedName() + "_concrete_powder"));
+	public static final Function<DyeColor, Block> CANDLE_MAP = color -> BuiltInRegistries.BLOCK.get(new Identifier(color.getSerializedName() + "_candle"));
+	public static final Function<DyeColor, Block> CANDLE_CAKE_MAP = color -> BuiltInRegistries.BLOCK.get(new Identifier(color.getSerializedName() + "_candle_cake"));
 
 	@Nullable
 	public static DyeColor getWoolColor(Block b) {
-		ResourceLocation name = BuiltInRegistries.BLOCK.getKey(b);
+		Identifier name = BuiltInRegistries.BLOCK.getKey(b);
 		if ("minecraft".equals(name.getNamespace()) && name.getPath().endsWith("_wool")) {
 			String color = name.getPath().substring(0, name.getPath().length() - "_wool".length());
 			return DyeColor.byName(color, null);

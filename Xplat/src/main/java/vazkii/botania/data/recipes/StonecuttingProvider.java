@@ -14,7 +14,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.FinishedRecipe;
 import net.minecraft.data.recipes.SingleItemRecipeBuilder;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
@@ -162,9 +162,9 @@ public class StonecuttingProvider extends BotaniaRecipeProvider {
 		return "Botania stonecutting recipes";
 	}
 
-	protected ResourceLocation idFor(ItemLike a, ItemLike b) {
-		ResourceLocation aId = BuiltInRegistries.ITEM.getKey(a.asItem());
-		ResourceLocation bId = BuiltInRegistries.ITEM.getKey(b.asItem());
+	protected Identifier idFor(ItemLike a, ItemLike b) {
+		Identifier aId = BuiltInRegistries.ITEM.getKey(a.asItem());
+		Identifier bId = BuiltInRegistries.ITEM.getKey(b.asItem());
 		return prefix("stonecutting/" + aId.getPath() + "_to_" + bId.getPath());
 	}
 
@@ -181,13 +181,13 @@ public class StonecuttingProvider extends BotaniaRecipeProvider {
 		return new Result(prefix("stonecutting/" + BuiltInRegistries.ITEM.getKey(output.asItem()).getPath()), RecipeSerializer.STONECUTTER, input, output.asItem(), 1);
 	}
 
-	protected ResourceLocation prefix(String path) {
+	protected Identifier prefix(String path) {
 		return ResourceLocationHelper.prefix(path);
 	}
 
 	// Wrapper without advancements
 	public static class Result extends SingleItemRecipeBuilder.Result {
-		public Result(ResourceLocation id, RecipeSerializer<?> serializer, Ingredient input, Item result, int count) {
+		public Result(Identifier id, RecipeSerializer<?> serializer, Ingredient input, Item result, int count) {
 			super(id, serializer, "", input, result, count, null, null);
 		}
 
@@ -199,7 +199,7 @@ public class StonecuttingProvider extends BotaniaRecipeProvider {
 
 		@Nullable
 		@Override
-		public ResourceLocation getAdvancementId() {
+		public Identifier getAdvancementId() {
 			return null;
 		}
 	}

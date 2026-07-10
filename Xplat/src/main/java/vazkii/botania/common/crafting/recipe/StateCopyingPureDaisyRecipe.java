@@ -15,7 +15,7 @@ import net.minecraft.commands.CommandFunction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
@@ -34,7 +34,7 @@ import vazkii.botania.common.crafting.StateIngredientHelper;
  * Recipe that copies state properties to the new block on crafting.
  */
 public class StateCopyingPureDaisyRecipe extends PureDaisyRecipe {
-	public StateCopyingPureDaisyRecipe(ResourceLocation id, StateIngredient input, Block block, int time) {
+	public StateCopyingPureDaisyRecipe(Identifier id, StateIngredient input, Block block, int time) {
 		super(id, input, block.defaultBlockState(), time, CommandFunction.CacheableFunction.NONE);
 	}
 
@@ -55,9 +55,9 @@ public class StateCopyingPureDaisyRecipe extends PureDaisyRecipe {
 	public static class Serializer implements RecipeSerializer<StateCopyingPureDaisyRecipe> {
 		@NotNull
 		@Override
-		public StateCopyingPureDaisyRecipe fromJson(@NotNull ResourceLocation id, JsonObject object) {
+		public StateCopyingPureDaisyRecipe fromJson(@NotNull Identifier id, JsonObject object) {
 			StateIngredient input = StateIngredientHelper.deserialize(GsonHelper.getAsJsonObject(object, "input"));
-			ResourceLocation blockId = new ResourceLocation(GsonHelper.getAsString(object, "output"));
+			Identifier blockId = new Identifier(GsonHelper.getAsString(object, "output"));
 			Block output = BuiltInRegistries.BLOCK.getOptional(blockId)
 					.orElseThrow(() -> new JsonSyntaxException("Unknown block id: " + blockId));
 
@@ -74,7 +74,7 @@ public class StateCopyingPureDaisyRecipe extends PureDaisyRecipe {
 
 		@Nullable
 		@Override
-		public StateCopyingPureDaisyRecipe fromNetwork(@NotNull ResourceLocation id, @NotNull FriendlyByteBuf buf) {
+		public StateCopyingPureDaisyRecipe fromNetwork(@NotNull Identifier id, @NotNull FriendlyByteBuf buf) {
 			StateIngredient input = StateIngredientHelper.read(buf);
 			Block output = BuiltInRegistries.BLOCK.byId(buf.readVarInt());
 			int time = buf.readVarInt();

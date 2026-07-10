@@ -10,15 +10,15 @@ package vazkii.botania.data.util;
 
 import com.google.gson.JsonObject;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.Map;
 
 public class ModelOverride {
-	private final Map<ResourceLocation, Double> predicates;
-	private final ResourceLocation model;
+	private final Map<Identifier, Double> predicates;
+	private final Identifier model;
 
-	public ModelOverride(Map<ResourceLocation, Double> predicates, ResourceLocation model) {
+	public ModelOverride(Map<Identifier, Double> predicates, Identifier model) {
 		this.predicates = predicates;
 		this.model = model;
 	}

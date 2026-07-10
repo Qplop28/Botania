@@ -9,7 +9,7 @@
 package vazkii.botania.common.item.rod;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.LivingEntity;
@@ -36,7 +36,7 @@ import vazkii.botania.xplat.XplatAbstractions;
 
 public class UnstableReservoirRodItem extends Item {
 
-	private static final ResourceLocation avatarOverlay = new ResourceLocation(ResourcesLib.MODEL_AVATAR_MISSILE);
+	private static final Identifier avatarOverlay = new Identifier(ResourcesLib.MODEL_AVATAR_MISSILE);
 
 	private static final int COST_PER = 120;
 	private static final int COST_AVATAR = 40;
@@ -117,7 +117,7 @@ public class UnstableReservoirRodItem extends Item {
 		}
 
 		@Override
-		public ResourceLocation getOverlayResource(Avatar tile) {
+		public Identifier getOverlayResource(Avatar tile) {
 			return avatarOverlay;
 		}
 	}

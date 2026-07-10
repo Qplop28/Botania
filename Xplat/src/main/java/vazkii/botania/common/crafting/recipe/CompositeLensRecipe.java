@@ -9,7 +9,7 @@
 package vazkii.botania.common.crafting.recipe;
 
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
@@ -25,7 +25,7 @@ import vazkii.botania.common.lib.BotaniaTags;
 public class CompositeLensRecipe extends CustomRecipe {
 	public static final NoOpRecipeSerializer<CompositeLensRecipe> SERIALIZER = new NoOpRecipeSerializer<>(CompositeLensRecipe::new);
 
-	public CompositeLensRecipe(ResourceLocation id) {
+	public CompositeLensRecipe(Identifier id) {
 		super(id, CraftingBookCategory.REDSTONE);
 	}
 

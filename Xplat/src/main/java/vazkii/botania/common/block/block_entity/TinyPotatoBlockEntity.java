@@ -15,7 +15,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -60,7 +60,7 @@ import java.util.Map;
 import static vazkii.botania.common.lib.ResourceLocationHelper.prefix;
 
 public class TinyPotatoBlockEntity extends ExposedSimpleInventoryBlockEntity implements Nameable {
-	private static final ResourceLocation BIRTHDAY_ADVANCEMENT = prefix("challenge/tiny_potato_birthday");
+	private static final Identifier BIRTHDAY_ADVANCEMENT = prefix("challenge/tiny_potato_birthday");
 	private static final String TAG_NAME = "name";
 	private static final int JUMP_EVENT = 0;
 	private static final Map<String, String> GENDER = new HashMap<>(Map.ofEntries(

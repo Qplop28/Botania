@@ -24,7 +24,7 @@ import com.blamejared.crafttweaker.api.util.StringUtil;
 import com.blamejared.crafttweaker.platform.Services;
 import com.blamejared.crafttweaker_annotations.annotations.Document;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeType;
@@ -65,9 +65,9 @@ public class ElvenTradeRecipeManager implements IRecipeManager<IElvenTradeRecipe
 	@ZenCodeType.Method
 	public void addRecipe(String name, IItemStack[] outputs, IIngredient... inputs) {
 		name = fixRecipeName(name);
-		ResourceLocation resourceLocation = CraftTweakerConstants.rl(name);
+		Identifier Identifier = CraftTweakerConstants.rl(name);
 		CraftTweakerAPI.apply(new ActionAddRecipe<>(this,
-				new RecipeElvenTrade(resourceLocation,
+				new RecipeElvenTrade(Identifier,
 						Arrays.stream(outputs).map(IItemStack::getInternal).toArray(ItemStack[]::new),
 						Arrays.stream(inputs).map(IIngredient::asVanillaIngredient).toArray(Ingredient[]::new))));
 	}
@@ -125,7 +125,7 @@ public class ElvenTradeRecipeManager implements IRecipeManager<IElvenTradeRecipe
 	}
 
 	@Override
-	public Optional<Function<ResourceLocation, IElvenTradeRecipe>> replaceIngredients(@SuppressWarnings("rawtypes") IRecipeManager manager, IElvenTradeRecipe recipe, List<IReplacementRule> rules) {
+	public Optional<Function<Identifier, IElvenTradeRecipe>> replaceIngredients(@SuppressWarnings("rawtypes") IRecipeManager manager, IElvenTradeRecipe recipe, List<IReplacementRule> rules) {
 		if ((recipe.getOutputs().size() == 1
 				&& recipe.getIngredients().size() == 1
 				&& recipe.containsItem(recipe.getOutputs().get(0)))) {

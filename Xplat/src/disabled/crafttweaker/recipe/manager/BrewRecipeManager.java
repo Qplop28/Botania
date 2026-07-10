@@ -21,7 +21,7 @@ import com.blamejared.crafttweaker.api.recipe.manager.base.IRecipeManager;
 import com.blamejared.crafttweaker.api.util.StringUtil;
 import com.blamejared.crafttweaker_annotations.annotations.Document;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeType;
 
@@ -61,9 +61,9 @@ public class BrewRecipeManager implements IRecipeManager<IBrewRecipe>, IRecipeHa
 	@ZenCodeType.Method
 	public void addRecipe(String name, Brew output, IIngredient... inputs) {
 		name = fixRecipeName(name);
-		ResourceLocation resourceLocation = CraftTweakerConstants.rl(name);
+		Identifier Identifier = CraftTweakerConstants.rl(name);
 		CraftTweakerAPI.apply(new ActionAddRecipe<>(this,
-				new RecipeBrew(resourceLocation,
+				new RecipeBrew(Identifier,
 						output,
 						Arrays.stream(inputs).map(IIngredient::asVanillaIngredient).toArray(Ingredient[]::new))));
 	}
@@ -98,7 +98,7 @@ public class BrewRecipeManager implements IRecipeManager<IBrewRecipe>, IRecipeHa
 	}
 
 	@Override
-	public Optional<Function<ResourceLocation, IBrewRecipe>> replaceIngredients(@SuppressWarnings("rawtypes") IRecipeManager manager, IBrewRecipe recipe, List<IReplacementRule> rules) {
+	public Optional<Function<Identifier, IBrewRecipe>> replaceIngredients(@SuppressWarnings("rawtypes") IRecipeManager manager, IBrewRecipe recipe, List<IReplacementRule> rules) {
 		return ReplacementHandlerHelper.replaceNonNullIngredientList(recipe.getIngredients(),
 				Ingredient.class, recipe, rules,
 				ingr -> id -> new RecipeBrew(id, recipe.getBrew(), ingr.toArray(new Ingredient[0])));

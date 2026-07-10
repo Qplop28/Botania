@@ -16,7 +16,7 @@ import com.google.gson.JsonObject;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
@@ -34,12 +34,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PetalsRecipe implements PetalApothecaryRecipe {
-	private final ResourceLocation id;
+	private final Identifier id;
 	private final ItemStack output;
 	private final Ingredient reagent;
 	private final NonNullList<Ingredient> inputs;
 
-	public PetalsRecipe(ResourceLocation id, ItemStack output, Ingredient reagent, Ingredient... inputs) {
+	public PetalsRecipe(Identifier id, ItemStack output, Ingredient reagent, Ingredient... inputs) {
 		Preconditions.checkArgument(inputs.length <= 16, "Cannot have more than 16 ingredients");
 		this.id = id;
 		this.output = output;
@@ -108,7 +108,7 @@ public class PetalsRecipe implements PetalApothecaryRecipe {
 
 	@NotNull
 	@Override
-	public ResourceLocation getId() {
+	public Identifier getId() {
 		return id;
 	}
 
@@ -121,7 +121,7 @@ public class PetalsRecipe implements PetalApothecaryRecipe {
 	public static class Serializer implements RecipeSerializer<PetalsRecipe> {
 		@NotNull
 		@Override
-		public PetalsRecipe fromJson(@NotNull ResourceLocation id, @NotNull JsonObject json) {
+		public PetalsRecipe fromJson(@NotNull Identifier id, @NotNull JsonObject json) {
 			ItemStack output = ShapedRecipe.itemStackFromJson(GsonHelper.getAsJsonObject(json, "output"));
 			Ingredient reagent = Ingredient.fromJson(json.get("reagent"));
 			JsonArray ingrs = GsonHelper.getAsJsonArray(json, "ingredients");
@@ -133,7 +133,7 @@ public class PetalsRecipe implements PetalApothecaryRecipe {
 		}
 
 		@Override
-		public PetalsRecipe fromNetwork(@NotNull ResourceLocation id, @NotNull FriendlyByteBuf buf) {
+		public PetalsRecipe fromNetwork(@NotNull Identifier id, @NotNull FriendlyByteBuf buf) {
 			Ingredient[] inputs = new Ingredient[buf.readVarInt()];
 			for (int i = 0; i < inputs.length; i++) {
 				inputs[i] = Ingredient.fromNetwork(buf);

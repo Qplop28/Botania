@@ -11,7 +11,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -153,7 +153,7 @@ public class ForgeCommonInitializer {
 
 		evt.enqueueWork(BotaniaBlocks::addDispenserBehaviours);
 		evt.enqueueWork(() -> {
-			BiConsumer<ResourceLocation, Supplier<? extends Block>> consumer = (resourceLocation, blockSupplier) -> ((FlowerPotBlock) Blocks.FLOWER_POT).addPlant(resourceLocation, blockSupplier);
+			BiConsumer<Identifier, Supplier<? extends Block>> consumer = (Identifier, blockSupplier) -> ((FlowerPotBlock) Blocks.FLOWER_POT).addPlant(Identifier, blockSupplier);
 			BotaniaBlocks.registerFlowerPotPlants(consumer);
 			BotaniaFlowerBlocks.registerFlowerPotPlants(consumer);
 		});
@@ -263,7 +263,7 @@ public class ForgeCommonInitializer {
 		});
 	}
 
-	private static <T> void bind(ResourceKey<Registry<T>> registry, Consumer<BiConsumer<T, ResourceLocation>> source) {
+	private static <T> void bind(ResourceKey<Registry<T>> registry, Consumer<BiConsumer<T, Identifier>> source) {
 		FMLJavaModLoadingContext.get().getModEventBus().addListener((RegisterEvent event) -> {
 			if (registry.equals(event.getRegistryKey())) {
 				source.accept((t, rl) -> event.register(registry, rl, () -> t));
@@ -273,7 +273,7 @@ public class ForgeCommonInitializer {
 
 	private final Set<Item> itemsToAddToCreativeTab = new LinkedHashSet<>();
 
-	private void bindForItems(Consumer<BiConsumer<Item, ResourceLocation>> source) {
+	private void bindForItems(Consumer<BiConsumer<Item, Identifier>> source) {
 		FMLJavaModLoadingContext.get().getModEventBus().addListener((RegisterEvent event) -> {
 			if (event.getRegistryKey().equals(Registries.ITEM)) {
 				source.accept((t, rl) -> {

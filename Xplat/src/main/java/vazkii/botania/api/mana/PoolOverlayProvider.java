@@ -9,7 +9,7 @@
 package vazkii.botania.api.mana;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.Level;
 
 /**
@@ -21,6 +21,6 @@ public interface PoolOverlayProvider {
 	/**
 	 * @return A sprite to render. Must be stitched to the main block/item atlas.
 	 */
-	ResourceLocation getIcon(Level world, BlockPos pos);
+	Identifier getIcon(Level world, BlockPos pos);
 
 }

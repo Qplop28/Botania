@@ -13,7 +13,7 @@ import com.google.gson.JsonObject;
 
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.PackOutput;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.block.Block;
@@ -58,29 +58,29 @@ public class PureDaisyProvider extends BotaniaRecipeProvider {
 		return "Botania Pure Daisy recipes";
 	}
 
-	private static ResourceLocation id(String path) {
+	private static Identifier id(String path) {
 		return prefix("pure_daisy/" + path);
 	}
 
 	protected static class FinishedRecipe implements net.minecraft.data.recipes.FinishedRecipe {
 		public static final int DEFAULT_TIME = 150;
 
-		protected final ResourceLocation id;
+		protected final Identifier id;
 		protected final StateIngredient input;
 		protected final BlockState outputState;
 		protected final int time;
 		@Nullable
-		private final ResourceLocation function;
+		private final Identifier function;
 
-		public FinishedRecipe(ResourceLocation id, StateIngredient input, BlockState state) {
+		public FinishedRecipe(Identifier id, StateIngredient input, BlockState state) {
 			this(id, input, state, DEFAULT_TIME);
 		}
 
-		public FinishedRecipe(ResourceLocation id, StateIngredient input, BlockState state, int time) {
+		public FinishedRecipe(Identifier id, StateIngredient input, BlockState state, int time) {
 			this(id, input, state, time, null);
 		}
 
-		public FinishedRecipe(ResourceLocation id, StateIngredient input, BlockState state, int time, @Nullable ResourceLocation function) {
+		public FinishedRecipe(Identifier id, StateIngredient input, BlockState state, int time, @Nullable Identifier function) {
 			Preconditions.checkArgument(time >= 0, "Time must be nonnegative");
 			this.id = id;
 			this.input = input;
@@ -102,7 +102,7 @@ public class PureDaisyProvider extends BotaniaRecipeProvider {
 		}
 
 		@Override
-		public ResourceLocation getId() {
+		public Identifier getId() {
 			return id;
 		}
 
@@ -119,13 +119,13 @@ public class PureDaisyProvider extends BotaniaRecipeProvider {
 
 		@Nullable
 		@Override
-		public ResourceLocation getAdvancementId() {
+		public Identifier getAdvancementId() {
 			return null;
 		}
 	}
 
 	protected static class StateCopyingRecipe extends FinishedRecipe {
-		public StateCopyingRecipe(ResourceLocation id, StateIngredient input, Block block) {
+		public StateCopyingRecipe(Identifier id, StateIngredient input, Block block) {
 			super(id, input, block.defaultBlockState());
 		}
 

@@ -12,7 +12,7 @@ import net.minecraft.data.models.BlockModelGenerators;
 import net.minecraft.data.models.blockstates.BlockStateGenerator;
 import net.minecraft.data.models.blockstates.PropertyDispatch;
 import net.minecraft.data.models.blockstates.Variant;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Block;
 
 import org.spongepowered.asm.mixin.Mixin;
@@ -21,22 +21,22 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 @Mixin(BlockModelGenerators.class)
 public interface BlockModelGeneratorsAccessor {
 	@Invoker("createSlab")
-	static BlockStateGenerator makeSlabState(Block block, ResourceLocation bottomModel, ResourceLocation topModel, ResourceLocation doubleModel) {
+	static BlockStateGenerator makeSlabState(Block block, Identifier bottomModel, Identifier topModel, Identifier doubleModel) {
 		throw new IllegalStateException();
 	}
 
 	@Invoker("createFenceGate")
-	static BlockStateGenerator makeFenceGateState(Block block, ResourceLocation openModel, ResourceLocation closedModel, ResourceLocation openWallModel, ResourceLocation closedWallModel, boolean uvLock) {
+	static BlockStateGenerator makeFenceGateState(Block block, Identifier openModel, Identifier closedModel, Identifier openWallModel, Identifier closedWallModel, boolean uvLock) {
 		throw new IllegalStateException();
 	}
 
 	@Invoker("createFence")
-	static BlockStateGenerator makeFenceState(Block block, ResourceLocation postModel, ResourceLocation sideModel) {
+	static BlockStateGenerator makeFenceState(Block block, Identifier postModel, Identifier sideModel) {
 		throw new IllegalStateException();
 	}
 
 	@Invoker("createAxisAlignedPillarBlock")
-	static BlockStateGenerator createAxisAlignedPillarBlock(Block block, ResourceLocation model) {
+	static BlockStateGenerator createAxisAlignedPillarBlock(Block block, Identifier model) {
 		throw new IllegalStateException();
 	}
 
@@ -51,7 +51,7 @@ public interface BlockModelGeneratorsAccessor {
 	}
 
 	@Invoker("createRotatedVariants")
-	static Variant[] createRotatedVariants(ResourceLocation model) {
+	static Variant[] createRotatedVariants(Identifier model) {
 		throw new IllegalStateException();
 	}
 }

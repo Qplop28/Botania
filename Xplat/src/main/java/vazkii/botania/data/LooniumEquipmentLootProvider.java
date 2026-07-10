@@ -15,7 +15,7 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -114,7 +114,7 @@ public class LooniumEquipmentLootProvider implements DataProvider {
 				}
 		);
 
-		Map<ResourceLocation, LootTable.Builder> tables = new HashMap<>();
+		Map<Identifier, LootTable.Builder> tables = new HashMap<>();
 
 		defineWeaponEquipmentTables(tables);
 		defineAncientCityEquipmentTables(tables, armorItems, trimFactory, randomizedSetFactory);
@@ -133,7 +133,7 @@ public class LooniumEquipmentLootProvider implements DataProvider {
 
 		// TODO: we should be using LootTableSubProvider implementations instead of three individual loot providers
 		var output = new ArrayList<CompletableFuture<?>>(tables.size());
-		for (Map.Entry<ResourceLocation, LootTable.Builder> e : tables.entrySet()) {
+		for (Map.Entry<Identifier, LootTable.Builder> e : tables.entrySet()) {
 			Path path = pathProvider.json(e.getKey());
 			LootTable.Builder builder = e.getValue();
 			// TODO 1.21: use LootContextParamSets.EQUIPMENT instead
@@ -144,7 +144,7 @@ public class LooniumEquipmentLootProvider implements DataProvider {
 		return CompletableFuture.allOf(output.toArray(CompletableFuture<?>[]::new));
 	}
 
-	private void defineWeaponEquipmentTables(Map<ResourceLocation, LootTable.Builder> tables) {
+	private void defineWeaponEquipmentTables(Map<Identifier, LootTable.Builder> tables) {
 		tables.put(BotaniaLootTables.LOONIUM_WEAPON_AXE,
 				LootTable.lootTable().withPool(LootPool.lootPool()
 						.apply(EnchantRandomlyFunction.randomApplicableEnchantment()
@@ -248,7 +248,7 @@ public class LooniumEquipmentLootProvider implements DataProvider {
 		return tag;
 	}
 
-	private void defineAncientCityEquipmentTables(Map<ResourceLocation, LootTable.Builder> tables,
+	private void defineAncientCityEquipmentTables(Map<Identifier, LootTable.Builder> tables,
 			Map<ArmorMaterial, Item[]> armorItems,
 			BiFunction<ResourceKey<TrimPattern>, ResourceKey<TrimMaterial>, ArmorTrim> trimFactory,
 			BiFunction<ArmorTrim, Item[], LootTable.Builder> randomizedSetFactory) {
@@ -297,7 +297,7 @@ public class LooniumEquipmentLootProvider implements DataProvider {
 		);
 	}
 
-	private void defineBastionRemnantEquipmentTables(Map<ResourceLocation, LootTable.Builder> tables,
+	private void defineBastionRemnantEquipmentTables(Map<Identifier, LootTable.Builder> tables,
 			Map<ArmorMaterial, Item[]> armorItems,
 			BiFunction<ResourceKey<TrimPattern>, ResourceKey<TrimMaterial>, ArmorTrim> trimFactory,
 			BiFunction<ArmorTrim, Item[], LootTable.Builder> randomizedSetFactory) {
@@ -322,7 +322,7 @@ public class LooniumEquipmentLootProvider implements DataProvider {
 		);
 	}
 
-	private void defineDesertPyramidEquipmentTables(Map<ResourceLocation, LootTable.Builder> tables,
+	private void defineDesertPyramidEquipmentTables(Map<Identifier, LootTable.Builder> tables,
 			Map<ArmorMaterial, Item[]> armorItems,
 			BiFunction<ResourceKey<TrimPattern>, ResourceKey<TrimMaterial>, ArmorTrim> trimFactory,
 			BiFunction<ArmorTrim, Item[], LootTable.Builder> randomizedSetFactory) {
@@ -354,7 +354,7 @@ public class LooniumEquipmentLootProvider implements DataProvider {
 		);
 	}
 
-	private void defineEndCityEquipmentTables(Map<ResourceLocation, LootTable.Builder> tables,
+	private void defineEndCityEquipmentTables(Map<Identifier, LootTable.Builder> tables,
 			Map<ArmorMaterial, Item[]> armorItems,
 			BiFunction<ResourceKey<TrimPattern>, ResourceKey<TrimMaterial>, ArmorTrim> trimFactory,
 			BiFunction<ArmorTrim, Item[], LootTable.Builder> randomizedSetFactory) {
@@ -408,7 +408,7 @@ public class LooniumEquipmentLootProvider implements DataProvider {
 		return effectTag;
 	}
 
-	private void defineFortressEquipmentTables(Map<ResourceLocation, LootTable.Builder> tables,
+	private void defineFortressEquipmentTables(Map<Identifier, LootTable.Builder> tables,
 			Map<ArmorMaterial, Item[]> armorItems,
 			BiFunction<ResourceKey<TrimPattern>, ResourceKey<TrimMaterial>, ArmorTrim> trimFactory,
 			BiFunction<ArmorTrim, Item[], LootTable.Builder> randomizedSetFactory) {
@@ -440,7 +440,7 @@ public class LooniumEquipmentLootProvider implements DataProvider {
 		);
 	}
 
-	private void defineJungleTempleEquipmentTables(Map<ResourceLocation, LootTable.Builder> tables,
+	private void defineJungleTempleEquipmentTables(Map<Identifier, LootTable.Builder> tables,
 			Map<ArmorMaterial, Item[]> armorItems,
 			BiFunction<ResourceKey<TrimPattern>, ResourceKey<TrimMaterial>, ArmorTrim> trimFactory,
 			BiFunction<ArmorTrim, Item[], LootTable.Builder> randomizedSetFactory) {
@@ -477,7 +477,7 @@ public class LooniumEquipmentLootProvider implements DataProvider {
 		);
 	}
 
-	private void defineOceanMonumentEquipmentTables(Map<ResourceLocation, LootTable.Builder> tables,
+	private void defineOceanMonumentEquipmentTables(Map<Identifier, LootTable.Builder> tables,
 			Map<ArmorMaterial, Item[]> armorItems,
 			BiFunction<ResourceKey<TrimPattern>, ResourceKey<TrimMaterial>, ArmorTrim> trimFactory,
 			BiFunction<ArmorTrim, Item[], LootTable.Builder> randomizedSetFactory,
@@ -514,7 +514,7 @@ public class LooniumEquipmentLootProvider implements DataProvider {
 		);
 	}
 
-	private void definePillagerOutpostEquipmentTables(Map<ResourceLocation, LootTable.Builder> tables,
+	private void definePillagerOutpostEquipmentTables(Map<Identifier, LootTable.Builder> tables,
 			Map<ArmorMaterial, Item[]> armorItems,
 			BiFunction<ResourceKey<TrimPattern>, ResourceKey<TrimMaterial>, ArmorTrim> trimFactory,
 			BiFunction<ArmorTrim, Item[], LootTable.Builder> randomizedSetFactory) {
@@ -546,7 +546,7 @@ public class LooniumEquipmentLootProvider implements DataProvider {
 		);
 	}
 
-	private void defineRuinedPortalEquipmentTables(Map<ResourceLocation, LootTable.Builder> tables) {
+	private void defineRuinedPortalEquipmentTables(Map<Identifier, LootTable.Builder> tables) {
 
 		tables.put(BotaniaLootTables.LOONIUM_ARMOR_PORTAL,
 				LootTable.lootTable()
@@ -590,7 +590,7 @@ public class LooniumEquipmentLootProvider implements DataProvider {
 		);
 	}
 
-	private void defineShipwreckEquipmentTables(Map<ResourceLocation, LootTable.Builder> tables,
+	private void defineShipwreckEquipmentTables(Map<Identifier, LootTable.Builder> tables,
 			Map<ArmorMaterial, Item[]> armorItems,
 			BiFunction<ResourceKey<TrimPattern>, ResourceKey<TrimMaterial>, ArmorTrim> trimFactory,
 			BiFunction<ArmorTrim, Item[], LootTable.Builder> randomizedSetFactory) {
@@ -627,7 +627,7 @@ public class LooniumEquipmentLootProvider implements DataProvider {
 		);
 	}
 
-	private void defineStrongholdEquipmentTables(Map<ResourceLocation, LootTable.Builder> tables,
+	private void defineStrongholdEquipmentTables(Map<Identifier, LootTable.Builder> tables,
 			Map<ArmorMaterial, Item[]> armorItems,
 			BiFunction<ResourceKey<TrimPattern>, ResourceKey<TrimMaterial>, ArmorTrim> trimFactory,
 			BiFunction<ArmorTrim, Item[], LootTable.Builder> randomizedSetFactory,
@@ -684,7 +684,7 @@ public class LooniumEquipmentLootProvider implements DataProvider {
 		);
 	}
 
-	private void defineTrailRuinsEquipmentTables(Map<ResourceLocation, LootTable.Builder> tables,
+	private void defineTrailRuinsEquipmentTables(Map<Identifier, LootTable.Builder> tables,
 			Map<ArmorMaterial, Item[]> armorItems,
 			BiFunction<ResourceKey<TrimPattern>, ResourceKey<TrimMaterial>, ArmorTrim> trimFactory,
 			BiFunction<ArmorTrim, Item[], LootTable.Builder> randomizedSetFactory) {
@@ -742,7 +742,7 @@ public class LooniumEquipmentLootProvider implements DataProvider {
 		);
 	}
 
-	private void defineWoodlandMansionEquipmentTables(Map<ResourceLocation, LootTable.Builder> tables,
+	private void defineWoodlandMansionEquipmentTables(Map<Identifier, LootTable.Builder> tables,
 			BiFunction<ResourceKey<TrimPattern>, ResourceKey<TrimMaterial>, ArmorTrim> trimFactory,
 			TriFunction<ArmorTrim, Integer, Item[], LootTable.Builder> fixedDyedSetFactory,
 			BiConsumer<ArmorTrim, CompoundTag> trimSetter) {

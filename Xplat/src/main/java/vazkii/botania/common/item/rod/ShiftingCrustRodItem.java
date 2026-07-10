@@ -21,7 +21,7 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.Container;
@@ -405,7 +405,7 @@ public class ShiftingCrustRodItem extends Item implements WireframeCoordinateLis
 	}
 
 	private Item getItemToPlace(ItemStack stack) {
-		return BuiltInRegistries.ITEM.get(ResourceLocation.tryParse(ItemNBTHelper.getString(stack, TAG_REPLACEMENT_ITEM, "air")));
+		return BuiltInRegistries.ITEM.get(Identifier.tryParse(ItemNBTHelper.getString(stack, TAG_REPLACEMENT_ITEM, "air")));
 	}
 
 	private void setHitPos(ItemStack stack, Vec3 vec) {
@@ -474,7 +474,7 @@ public class ShiftingCrustRodItem extends Item implements WireframeCoordinateLis
 	}
 
 	public static Block getTargetState(ItemStack stack) {
-		ResourceLocation id = new ResourceLocation(ItemNBTHelper.getString(stack, TAG_TARGET_BLOCK_NAME, "minecraft:air"));
+		Identifier id = new Identifier(ItemNBTHelper.getString(stack, TAG_TARGET_BLOCK_NAME, "minecraft:air"));
 		return BuiltInRegistries.BLOCK.get(id);
 	}
 

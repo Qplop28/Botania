@@ -5,7 +5,7 @@ import dev.emi.emi.api.stack.EmiIngredient;
 import dev.emi.emi.api.stack.EmiStack;
 import dev.emi.emi.api.widget.WidgetHolder;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import vazkii.botania.api.recipe.PureDaisyRecipe;
 import vazkii.botania.common.block.BotaniaFlowerBlocks;
@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 import static vazkii.botania.common.lib.ResourceLocationHelper.prefix;
 
 public class PureDaisyEmiRecipe extends BotaniaEmiRecipe {
-	private static final ResourceLocation TEXTURE = prefix("textures/gui/pure_daisy_overlay.png");
+	private static final Identifier TEXTURE = prefix("textures/gui/pure_daisy_overlay.png");
 	private static final EmiStack PURE_DAISY = EmiStack.of(BotaniaFlowerBlocks.pureDaisy);
 
 	public PureDaisyEmiRecipe(PureDaisyRecipe recipe) {

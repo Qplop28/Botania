@@ -15,7 +15,7 @@ import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -44,8 +44,8 @@ public class CorporeaRetainerBlockEntity extends BotaniaBlockEntity implements W
 	private static final String TAG_REQUEST_COUNT = "requestCount";
 	private static final String TAG_RETAIN_MISSING = "retainMissing";
 
-	private static final Map<ResourceLocation, Function<CompoundTag, ? extends CorporeaRequestMatcher>> corporeaMatcherDeserializers = new ConcurrentHashMap<>();
-	private static final Map<Class<? extends CorporeaRequestMatcher>, ResourceLocation> corporeaMatcherSerializers = new ConcurrentHashMap<>();
+	private static final Map<Identifier, Function<CompoundTag, ? extends CorporeaRequestMatcher>> corporeaMatcherDeserializers = new ConcurrentHashMap<>();
+	private static final Map<Class<? extends CorporeaRequestMatcher>, Identifier> corporeaMatcherSerializers = new ConcurrentHashMap<>();
 
 	private BlockPos requestPos = ManaBurst.NO_SOURCE;
 
@@ -104,7 +104,7 @@ public class CorporeaRetainerBlockEntity extends BotaniaBlockEntity implements W
 		cmp.putInt(TAG_REQUEST_Y, requestPos.getY());
 		cmp.putInt(TAG_REQUEST_Z, requestPos.getZ());
 
-		ResourceLocation reqType = request != null ? corporeaMatcherSerializers.get(request.getClass()) : null;
+		Identifier reqType = request != null ? corporeaMatcherSerializers.get(request.getClass()) : null;
 
 		if (reqType != null) {
 			cmp.putString(TAG_REQUEST_TYPE, reqType.toString());
@@ -123,7 +123,7 @@ public class CorporeaRetainerBlockEntity extends BotaniaBlockEntity implements W
 		int z = cmp.getInt(TAG_REQUEST_Z);
 		requestPos = new BlockPos(x, y, z);
 
-		ResourceLocation reqType = ResourceLocation.tryParse(cmp.getString(TAG_REQUEST_TYPE));
+		Identifier reqType = Identifier.tryParse(cmp.getString(TAG_REQUEST_TYPE));
 		if (reqType != null && corporeaMatcherDeserializers.containsKey(reqType)) {
 			request = corporeaMatcherDeserializers.get(reqType).apply(cmp);
 		} else {
@@ -133,7 +133,7 @@ public class CorporeaRetainerBlockEntity extends BotaniaBlockEntity implements W
 		retainMissing = cmp.getBoolean(TAG_RETAIN_MISSING);
 	}
 
-	public static <T extends CorporeaRequestMatcher> void addCorporeaRequestMatcher(ResourceLocation id, Class<T> clazz, Function<CompoundTag, T> deserializer) {
+	public static <T extends CorporeaRequestMatcher> void addCorporeaRequestMatcher(Identifier id, Class<T> clazz, Function<CompoundTag, T> deserializer) {
 		corporeaMatcherSerializers.put(clazz, id);
 		corporeaMatcherDeserializers.put(id, deserializer);
 	}

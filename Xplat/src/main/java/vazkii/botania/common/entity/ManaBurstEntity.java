@@ -19,7 +19,7 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
@@ -329,7 +329,7 @@ public class ManaBurstEntity extends ThrowableProjectile implements ManaBurst {
 		if (NO_SOURCE.equals(sourceCoords)) {
 			setBurstSource(null);
 		} else {
-			ResourceLocation dim = cmp.contains(TAG_SPREADER_DIM) ? ResourceLocation.tryParse(cmp.getString(TAG_SPREADER_DIM)) : null;
+			Identifier dim = cmp.contains(TAG_SPREADER_DIM) ? Identifier.tryParse(cmp.getString(TAG_SPREADER_DIM)) : null;
 			setBurstSource(GlobalPos.of(dim != null ? ResourceKey.create(Registries.DIMENSION, dim) : level().dimension(), sourceCoords));
 		}
 

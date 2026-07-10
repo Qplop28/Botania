@@ -13,7 +13,7 @@ import me.shedaniel.rei.api.common.entry.EntryIngredient;
 import me.shedaniel.rei.api.common.util.EntryIngredients;
 
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.crafting.Recipe;
 
@@ -48,7 +48,7 @@ public abstract class BotaniaRecipeDisplay<T extends Recipe<Container>> implemen
 	}
 
 	@Override
-	public @NotNull Optional<ResourceLocation> getDisplayLocation() {
+	public @NotNull Optional<Identifier> getDisplayLocation() {
 		return Optional.ofNullable(this.recipe).map(T::getId);
 	}
 }

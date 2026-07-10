@@ -14,7 +14,7 @@ import com.google.gson.JsonObject;
 
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -31,11 +31,11 @@ import java.util.List;
 import java.util.Optional;
 
 public class ElvenTradeRecipe implements vazkii.botania.api.recipe.ElvenTradeRecipe {
-	private final ResourceLocation id;
+	private final Identifier id;
 	private final ImmutableList<ItemStack> outputs;
 	private final NonNullList<Ingredient> inputs;
 
-	public ElvenTradeRecipe(ResourceLocation id, ItemStack[] outputs, Ingredient... inputs) {
+	public ElvenTradeRecipe(Identifier id, ItemStack[] outputs, Ingredient... inputs) {
 		this.id = id;
 		this.outputs = ImmutableList.copyOf(outputs);
 		this.inputs = NonNullList.create();
@@ -106,7 +106,7 @@ public class ElvenTradeRecipe implements vazkii.botania.api.recipe.ElvenTradeRec
 
 	@NotNull
 	@Override
-	public ResourceLocation getId() {
+	public Identifier getId() {
 		return id;
 	}
 
@@ -124,7 +124,7 @@ public class ElvenTradeRecipe implements vazkii.botania.api.recipe.ElvenTradeRec
 
 		@NotNull
 		@Override
-		public ElvenTradeRecipe fromJson(@NotNull ResourceLocation id, @NotNull JsonObject json) {
+		public ElvenTradeRecipe fromJson(@NotNull Identifier id, @NotNull JsonObject json) {
 			JsonElement output = json.get("output");
 			List<ItemStack> outputStacks = new ArrayList<>();
 			if (output.isJsonArray()) {
@@ -149,7 +149,7 @@ public class ElvenTradeRecipe implements vazkii.botania.api.recipe.ElvenTradeRec
 		}
 
 		@Override
-		public ElvenTradeRecipe fromNetwork(@NotNull ResourceLocation id, FriendlyByteBuf buf) {
+		public ElvenTradeRecipe fromNetwork(@NotNull Identifier id, FriendlyByteBuf buf) {
 			Ingredient[] inputs = new Ingredient[buf.readVarInt()];
 			for (int i = 0; i < inputs.length; i++) {
 				inputs[i] = Ingredient.fromNetwork(buf);

@@ -12,7 +12,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
 import net.minecraft.world.Container;
@@ -53,7 +53,7 @@ public class CraftyCrateBlockEntity extends OpenCrateBlockEntity implements Wand
 	private int signal = 0;
 	private ItemStack craftResult = ItemStack.EMPTY;
 
-	private final Queue<ResourceLocation> lastRecipes = new ArrayDeque<>();
+	private final Queue<Identifier> lastRecipes = new ArrayDeque<>();
 	private boolean dirty;
 	private boolean matchFailed;
 	private int lastRecipeEpoch = recipeEpoch;
@@ -193,7 +193,7 @@ public class CraftyCrateBlockEntity extends OpenCrateBlockEntity implements Wand
 	}
 
 	private Optional<CraftingRecipe> getMatchingRecipe(CraftingContainer craft) {
-		for (ResourceLocation currentRecipe : lastRecipes) {
+		for (Identifier currentRecipe : lastRecipes) {
 			Recipe<CraftingContainer> recipe = ((RecipeManagerAccessor) level.getRecipeManager())
 					.botania_getAll(RecipeType.CRAFTING)
 					.get(currentRecipe);

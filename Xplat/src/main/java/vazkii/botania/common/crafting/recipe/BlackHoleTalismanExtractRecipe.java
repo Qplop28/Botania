@@ -10,7 +10,7 @@ package vazkii.botania.common.crafting.recipe;
 
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
@@ -28,7 +28,7 @@ import vazkii.botania.common.item.BotaniaItems;
 public class BlackHoleTalismanExtractRecipe extends CustomRecipe {
 	public static final NoOpRecipeSerializer<BlackHoleTalismanExtractRecipe> SERIALIZER = new NoOpRecipeSerializer<>(BlackHoleTalismanExtractRecipe::new);
 
-	public BlackHoleTalismanExtractRecipe(ResourceLocation id) {
+	public BlackHoleTalismanExtractRecipe(Identifier id) {
 		super(id, CraftingBookCategory.MISC);
 	}
 

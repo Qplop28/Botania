@@ -11,7 +11,7 @@ package vazkii.botania.common.item.lens;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.animal.Sheep;
 import net.minecraft.world.item.DyeColor;
@@ -60,7 +60,7 @@ public class PaintslingerLens extends Lens {
 			} else if (pos.getType() == HitResult.Type.BLOCK) {
 				BlockPos hitPos = ((BlockHitResult) pos).getBlockPos();
 				Block hitBlock = entity.level().getBlockState(hitPos).getBlock();
-				ResourceLocation blockId = BuiltInRegistries.BLOCK.getKey(hitBlock);
+				Identifier blockId = BuiltInRegistries.BLOCK.getKey(hitBlock);
 
 				if (BotaniaAPI.instance().getPaintableBlocks().containsKey(blockId)
 						&& entity.mayInteract(entity.level(), hitPos)) {

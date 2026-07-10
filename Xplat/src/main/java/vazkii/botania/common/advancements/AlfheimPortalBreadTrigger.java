@@ -12,7 +12,7 @@ import com.google.gson.JsonObject;
 
 import net.minecraft.advancements.critereon.*;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 
@@ -21,14 +21,14 @@ import org.jetbrains.annotations.NotNull;
 import static vazkii.botania.common.lib.ResourceLocationHelper.prefix;
 
 public class AlfheimPortalBreadTrigger extends SimpleCriterionTrigger<AlfheimPortalBreadTrigger.Instance> {
-	public static final ResourceLocation ID = prefix("alf_portal_bread");
+	public static final Identifier ID = prefix("alf_portal_bread");
 	public static final AlfheimPortalBreadTrigger INSTANCE = new AlfheimPortalBreadTrigger();
 
 	private AlfheimPortalBreadTrigger() {}
 
 	@NotNull
 	@Override
-	public ResourceLocation getId() {
+	public Identifier getId() {
 		return ID;
 	}
 
@@ -52,7 +52,7 @@ public class AlfheimPortalBreadTrigger extends SimpleCriterionTrigger<AlfheimPor
 
 		@NotNull
 		@Override
-		public ResourceLocation getCriterion() {
+		public Identifier getCriterion() {
 			return ID;
 		}
 

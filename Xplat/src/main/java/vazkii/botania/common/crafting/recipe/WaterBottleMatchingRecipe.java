@@ -13,7 +13,7 @@ import com.google.gson.JsonObject;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -30,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
 public class WaterBottleMatchingRecipe extends ShapedRecipe {
 	public static final RecipeSerializer<WaterBottleMatchingRecipe> SERIALIZER = new Serializer();
 
-	public WaterBottleMatchingRecipe(ResourceLocation id, String group, CraftingBookCategory category, int width, int height, NonNullList<Ingredient> recipeItems, ItemStack result) {
+	public WaterBottleMatchingRecipe(Identifier id, String group, CraftingBookCategory category, int width, int height, NonNullList<Ingredient> recipeItems, ItemStack result) {
 		super(id, group, category, width, height, NonNullList.of(Ingredient.EMPTY, recipeItems.stream().map(i -> {
 			if (i.test(new ItemStack(Items.POTION))) {
 				return Ingredient.of(PotionUtils.setPotion(new ItemStack(Items.POTION), Potions.WATER));
@@ -68,12 +68,12 @@ public class WaterBottleMatchingRecipe extends ShapedRecipe {
 
 	private static class Serializer implements RecipeSerializer<WaterBottleMatchingRecipe> {
 		@Override
-		public WaterBottleMatchingRecipe fromJson(@NotNull ResourceLocation recipeId, @NotNull JsonObject json) {
+		public WaterBottleMatchingRecipe fromJson(@NotNull Identifier recipeId, @NotNull JsonObject json) {
 			return new WaterBottleMatchingRecipe(SHAPED_RECIPE.fromJson(recipeId, json));
 		}
 
 		@Override
-		public WaterBottleMatchingRecipe fromNetwork(@NotNull ResourceLocation recipeId, @NotNull FriendlyByteBuf buffer) {
+		public WaterBottleMatchingRecipe fromNetwork(@NotNull Identifier recipeId, @NotNull FriendlyByteBuf buffer) {
 			return new WaterBottleMatchingRecipe(SHAPED_RECIPE.fromNetwork(recipeId, buffer));
 		}
 

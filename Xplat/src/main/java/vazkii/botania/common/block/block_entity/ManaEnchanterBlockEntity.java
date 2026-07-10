@@ -20,7 +20,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Clearable;
 import net.minecraft.world.entity.Entity;
@@ -428,7 +428,7 @@ public class ManaEnchanterBlockEntity extends BotaniaBlockEntity implements Mana
 					String[] entryTokens = token.split("=");
 					int lvl = Integer.parseInt(entryTokens[1]);
 					level.holderLookup(Registries.ENCHANTMENT)
-							.get(ResourceKey.create(Registries.ENCHANTMENT, new ResourceLocation(entryTokens[0])))
+							.get(ResourceKey.create(Registries.ENCHANTMENT, new Identifier(entryTokens[0])))
 							.ifPresent(ench -> enchants.add(new EnchantmentInstance(ench.value(), lvl)));
 				} catch (ResourceLocationException ignored) {}
 			}

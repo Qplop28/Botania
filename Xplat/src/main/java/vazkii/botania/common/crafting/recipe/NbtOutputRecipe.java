@@ -17,7 +17,7 @@ import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.TagParser;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeManager;
@@ -31,8 +31,8 @@ public class NbtOutputRecipe {
 	private static class Serializer implements RecipeSerializer<Recipe<?>> {
 		@NotNull
 		@Override
-		public Recipe<?> fromJson(@NotNull ResourceLocation resourceLocation, @NotNull JsonObject jsonObject) {
-			var recipe = RecipeManager.fromJson(resourceLocation, GsonHelper.getAsJsonObject(jsonObject, "recipe"));
+		public Recipe<?> fromJson(@NotNull Identifier Identifier, @NotNull JsonObject jsonObject) {
+			var recipe = RecipeManager.fromJson(Identifier, GsonHelper.getAsJsonObject(jsonObject, "recipe"));
 			JsonElement nbt = jsonObject.get("nbt");
 
 			if (nbt == null) {
@@ -51,7 +51,7 @@ public class NbtOutputRecipe {
 
 		@NotNull
 		@Override
-		public Recipe<?> fromNetwork(@NotNull ResourceLocation recipeId, @NotNull FriendlyByteBuf buffer) {
+		public Recipe<?> fromNetwork(@NotNull Identifier recipeId, @NotNull FriendlyByteBuf buffer) {
 			throw new IllegalStateException("NbtOutputRecipe should not be sent over network");
 		}
 

@@ -16,7 +16,7 @@ import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
@@ -31,12 +31,12 @@ import vazkii.botania.api.recipe.TerrestrialAgglomerationRecipe;
 import vazkii.botania.common.crafting.recipe.RecipeUtils;
 
 public class RecipeTerraPlate implements TerrestrialAgglomerationRecipe {
-	private final ResourceLocation id;
+	private final Identifier id;
 	private final int mana;
 	private final NonNullList<Ingredient> inputs;
 	private final ItemStack output;
 
-	public RecipeTerraPlate(ResourceLocation id, int mana, NonNullList<Ingredient> inputs, ItemStack output) {
+	public RecipeTerraPlate(Identifier id, int mana, NonNullList<Ingredient> inputs, ItemStack output) {
 		this.id = id;
 		this.mana = mana;
 		this.inputs = inputs;
@@ -84,7 +84,7 @@ public class RecipeTerraPlate implements TerrestrialAgglomerationRecipe {
 
 	@NotNull
 	@Override
-	public ResourceLocation getId() {
+	public Identifier getId() {
 		return id;
 	}
 
@@ -97,7 +97,7 @@ public class RecipeTerraPlate implements TerrestrialAgglomerationRecipe {
 	public static class Serializer implements RecipeSerializer<RecipeTerraPlate> {
 		@NotNull
 		@Override
-		public RecipeTerraPlate fromJson(@NotNull ResourceLocation recipeId, @NotNull JsonObject json) {
+		public RecipeTerraPlate fromJson(@NotNull Identifier recipeId, @NotNull JsonObject json) {
 			int mana = GsonHelper.getAsInt(json, "mana");
 			JsonArray ingrs = GsonHelper.getAsJsonArray(json, "ingredients");
 			Ingredient[] ingredients = new Ingredient[ingrs.size()];
@@ -109,7 +109,7 @@ public class RecipeTerraPlate implements TerrestrialAgglomerationRecipe {
 		}
 
 		@Override
-		public RecipeTerraPlate fromNetwork(@NotNull ResourceLocation recipeId, FriendlyByteBuf buffer) {
+		public RecipeTerraPlate fromNetwork(@NotNull Identifier recipeId, FriendlyByteBuf buffer) {
 			int mana = buffer.readVarInt();
 			Ingredient[] ingredients = new Ingredient[buffer.readVarInt()];
 			for (int i = 0; i < ingredients.length; i++) {

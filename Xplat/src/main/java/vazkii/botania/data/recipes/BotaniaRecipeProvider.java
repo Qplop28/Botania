@@ -15,7 +15,7 @@ import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataProvider;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.FinishedRecipe;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -37,7 +37,7 @@ public abstract class BotaniaRecipeProvider implements DataProvider {
 	// [VanillaCopy] RecipeProvider
 	@Override
 	public @NotNull CompletableFuture<?> run(@NotNull CachedOutput cache) {
-		Set<ResourceLocation> checkDuplicates = Sets.newHashSet();
+		Set<Identifier> checkDuplicates = Sets.newHashSet();
 		List<CompletableFuture<?>> output = new ArrayList<>();
 		buildRecipes((recipe) -> {
 			if (!checkDuplicates.add(recipe.getId())) {

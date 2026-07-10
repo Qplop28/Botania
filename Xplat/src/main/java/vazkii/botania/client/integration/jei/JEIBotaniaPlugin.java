@@ -25,7 +25,7 @@ import mezz.jei.api.runtime.IJeiRuntime;
 import mezz.jei.api.runtime.IRecipesGui;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -76,7 +76,7 @@ import static vazkii.botania.common.lib.ResourceLocationHelper.prefix;
 
 @JeiPlugin
 public class JEIBotaniaPlugin implements IModPlugin {
-	private static final ResourceLocation ID = prefix("main");
+	private static final Identifier ID = prefix("main");
 
 	@Override
 	public void registerItemSubtypes(@NotNull ISubtypeRegistration registry) {
@@ -243,7 +243,7 @@ public class JEIBotaniaPlugin implements IModPlugin {
 
 	@NotNull
 	@Override
-	public ResourceLocation getPluginUid() {
+	public Identifier getPluginUid() {
 		return ID;
 	}
 

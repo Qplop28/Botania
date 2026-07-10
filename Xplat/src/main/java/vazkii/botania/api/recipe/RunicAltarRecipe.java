@@ -9,7 +9,7 @@
 package vazkii.botania.api.recipe;
 
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeType;
 
@@ -19,7 +19,7 @@ import vazkii.botania.api.BotaniaAPI;
 import vazkii.botania.common.block.BotaniaBlocks;
 
 public interface RunicAltarRecipe extends RecipeWithReagent {
-	ResourceLocation TYPE_ID = new ResourceLocation(BotaniaAPI.MODID, "runic_altar");
+	Identifier TYPE_ID = new Identifier(BotaniaAPI.MODID, "runic_altar");
 
 	// TODO: read from recipe definition
 	@Override

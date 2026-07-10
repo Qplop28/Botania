@@ -15,7 +15,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.damagesource.DamageSource;
@@ -40,8 +40,8 @@ import vazkii.botania.common.proxy.Proxy;
 
 public class CloakOfVirtueItem extends BaubleItem {
 
-	private static final ResourceLocation texture = new ResourceLocation(ResourcesLib.MODEL_HOLY_CLOAK);
-	private static final ResourceLocation textureGlow = new ResourceLocation(ResourcesLib.MODEL_HOLY_CLOAK_GLOW);
+	private static final Identifier texture = new Identifier(ResourcesLib.MODEL_HOLY_CLOAK);
+	private static final Identifier textureGlow = new Identifier(ResourcesLib.MODEL_HOLY_CLOAK_GLOW);
 
 	private static final String TAG_COOLDOWN = "cooldown";
 	private static final String TAG_IN_EFFECT = "inEffect";
@@ -143,11 +143,11 @@ public class CloakOfVirtueItem extends BaubleItem {
 		ItemNBTHelper.setBoolean(stack, TAG_IN_EFFECT, effect);
 	}
 
-	ResourceLocation getCloakTexture() {
+	Identifier getCloakTexture() {
 		return texture;
 	}
 
-	ResourceLocation getCloakGlowTexture() {
+	Identifier getCloakGlowTexture() {
 		return textureGlow;
 	}
 }

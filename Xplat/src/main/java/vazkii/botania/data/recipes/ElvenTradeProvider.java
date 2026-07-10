@@ -13,7 +13,7 @@ import com.google.gson.JsonObject;
 
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.FinishedRecipe;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -68,7 +68,7 @@ public class ElvenTradeProvider extends BotaniaRecipeProvider {
 			public void serializeRecipeData(JsonObject obj) {}
 
 			@Override
-			public ResourceLocation getId() {
+			public Identifier getId() {
 				return id("lexicon_elven");
 			}
 
@@ -85,13 +85,13 @@ public class ElvenTradeProvider extends BotaniaRecipeProvider {
 
 			@Nullable
 			@Override
-			public ResourceLocation getAdvancementId() {
+			public Identifier getAdvancementId() {
 				return null;
 			}
 		});
 	}
 
-	private static ResourceLocation id(String path) {
+	private static Identifier id(String path) {
 		return prefix("elven_trade/" + path);
 	}
 
@@ -101,15 +101,15 @@ public class ElvenTradeProvider extends BotaniaRecipeProvider {
 	}
 
 	protected static class FinishedElvenRecipe implements FinishedRecipe {
-		private final ResourceLocation id;
+		private final Identifier id;
 		private final List<Ingredient> inputs;
 		private final List<ItemStack> outputs;
 
-		public FinishedElvenRecipe(ResourceLocation id, ItemStack output, Ingredient... inputs) {
+		public FinishedElvenRecipe(Identifier id, ItemStack output, Ingredient... inputs) {
 			this(id, Arrays.asList(inputs), Collections.singletonList(output));
 		}
 
-		protected FinishedElvenRecipe(ResourceLocation id, List<Ingredient> inputs, List<ItemStack> outputs) {
+		protected FinishedElvenRecipe(Identifier id, List<Ingredient> inputs, List<ItemStack> outputs) {
 			this.id = id;
 			this.inputs = inputs;
 			this.outputs = outputs;
@@ -132,7 +132,7 @@ public class ElvenTradeProvider extends BotaniaRecipeProvider {
 		}
 
 		@Override
-		public ResourceLocation getId() {
+		public Identifier getId() {
 			return id;
 		}
 
@@ -149,7 +149,7 @@ public class ElvenTradeProvider extends BotaniaRecipeProvider {
 
 		@Nullable
 		@Override
-		public ResourceLocation getAdvancementId() {
+		public Identifier getAdvancementId() {
 			return null;
 		}
 	}

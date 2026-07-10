@@ -17,7 +17,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
@@ -97,7 +97,7 @@ public class RannuncarpusBlockEntity extends FunctionalFlowerBlockEntity impleme
 				}
 
 				Item stackItem = stack.getItem();
-				ResourceLocation id = BuiltInRegistries.ITEM.getKey(stackItem);
+				Identifier id = BuiltInRegistries.ITEM.getKey(stackItem);
 				if (BotaniaConfig.common().rannuncarpusModBlacklist().contains(id.getNamespace())
 						|| BotaniaConfig.common().rannuncarpusItemBlacklist().contains(id.toString())) {
 					continue;

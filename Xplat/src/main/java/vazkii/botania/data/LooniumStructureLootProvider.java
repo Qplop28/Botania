@@ -6,7 +6,7 @@ import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataProvider;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.levelgen.structure.BuiltinStructures;
@@ -46,22 +46,22 @@ public class LooniumStructureLootProvider implements DataProvider {
 		this.pathProvider = packOutput.createPathProvider(PackOutput.Target.DATA_PACK, "loot_tables/loonium");
 	}
 
-	public static ResourceLocation getStructureId(ResourceKey<Structure> structureKey) {
+	public static Identifier getStructureId(ResourceKey<Structure> structureKey) {
 		return getStructureId(structureKey.location());
 	}
 
-	public static ResourceLocation getStructureId(ResourceLocation structureId) {
+	public static Identifier getStructureId(Identifier structureId) {
 		return prefix("%s/%s".formatted(structureId.getNamespace(), structureId.getPath()));
 	}
 
 	@NotNull
 	@Override
 	public CompletableFuture<?> run(@NotNull CachedOutput cache) {
-		Map<ResourceLocation, LootTable.Builder> tables = new HashMap<>();
+		Map<Identifier, LootTable.Builder> tables = new HashMap<>();
 		addLootTables(tables);
 
 		var output = new ArrayList<CompletableFuture<?>>(tables.size());
-		for (Map.Entry<ResourceLocation, LootTable.Builder> e : tables.entrySet()) {
+		for (Map.Entry<Identifier, LootTable.Builder> e : tables.entrySet()) {
 			Path path = pathProvider.json(e.getKey());
 			LootTable.Builder builder = e.getValue();
 			LootTable lootTable = builder.setParamSet(LootContextParamSets.ALL_PARAMS).build();
@@ -71,7 +71,7 @@ public class LooniumStructureLootProvider implements DataProvider {
 		return CompletableFuture.allOf(output.toArray(CompletableFuture<?>[]::new));
 	}
 
-	private void addLootTables(Map<ResourceLocation, LootTable.Builder> tables) {
+	private void addLootTables(Map<Identifier, LootTable.Builder> tables) {
 		// Note: As far as world generating is concerned, dungeons are "features" (i.e. like trees or geodes),
 		// not "structures" (like everything else the Loonium might care about).
 		tables.put(prefix("default"), buildDelegateLootTable(BuiltInLootTables.SIMPLE_DUNGEON));
@@ -187,7 +187,7 @@ public class LooniumStructureLootProvider implements DataProvider {
 		);
 	}
 
-	public static LootTable.Builder buildVillageLootTable(ResourceLocation house, Set<VillageLoot> villageLootSet) {
+	public static LootTable.Builder buildVillageLootTable(Identifier house, Set<VillageLoot> villageLootSet) {
 		LootPool.Builder lootPool = LootPool.lootPool().add(LootTableReference.lootTableReference(house).setWeight(3));
 		for (VillageLoot loot : villageLootSet) {
 			lootPool.add(LootTableReference.lootTableReference(loot.lootTable));
@@ -205,14 +205,14 @@ public class LooniumStructureLootProvider implements DataProvider {
 	}
 
 	@NotNull
-	public static LootTable.Builder buildDelegateLootTable(ResourceLocation reference) {
+	public static LootTable.Builder buildDelegateLootTable(Identifier reference) {
 		return LootTable.lootTable().withPool(LootPool.lootPool()
 				.add(LootTableReference.lootTableReference(reference))
 		);
 	}
 
 	@NotNull
-	public static LootTable.Builder buildOceanRuinLootTable(ResourceLocation archaeology) {
+	public static LootTable.Builder buildOceanRuinLootTable(Identifier archaeology) {
 		// Note: since the Loonium does not supply a location, treasure maps will roll as empty maps
 		return LootTable.lootTable().withPool(LootPool.lootPool()
 				// 30% of ocean ruin sites generate with a big ruin instead of a small one,
@@ -242,9 +242,9 @@ public class LooniumStructureLootProvider implements DataProvider {
 		TANNERY(BuiltInLootTables.VILLAGE_TANNERY),
 		TEMPLE(BuiltInLootTables.VILLAGE_TEMPLE);
 
-		public final ResourceLocation lootTable;
+		public final Identifier lootTable;
 
-		VillageLoot(ResourceLocation lootTable) {
+		VillageLoot(Identifier lootTable) {
 			this.lootTable = lootTable;
 		}
 	}

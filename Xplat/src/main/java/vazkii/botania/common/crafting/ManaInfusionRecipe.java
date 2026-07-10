@@ -16,7 +16,7 @@ import com.google.gson.JsonParseException;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -32,7 +32,7 @@ import vazkii.botania.common.block.BotaniaBlocks;
 import java.util.Objects;
 
 public class ManaInfusionRecipe implements vazkii.botania.api.recipe.ManaInfusionRecipe {
-	private final ResourceLocation id;
+	private final Identifier id;
 	private final ItemStack output;
 	private final Ingredient input;
 	private final int mana;
@@ -40,7 +40,7 @@ public class ManaInfusionRecipe implements vazkii.botania.api.recipe.ManaInfusio
 	private final StateIngredient catalyst;
 	private final String group;
 
-	public ManaInfusionRecipe(ResourceLocation id, ItemStack output, Ingredient input, int mana,
+	public ManaInfusionRecipe(Identifier id, ItemStack output, Ingredient input, int mana,
 			@Nullable String group, @Nullable StateIngredient catalyst) {
 		Preconditions.checkArgument(mana > 0, "Mana cost must be positive");
 		Preconditions.checkArgument(mana <= 1_000_001, "Mana cost must be at most a pool"); // Leaving wiggle room for a certain modpack having creative-pool-only recipes
@@ -54,7 +54,7 @@ public class ManaInfusionRecipe implements vazkii.botania.api.recipe.ManaInfusio
 
 	@NotNull
 	@Override
-	public final ResourceLocation getId() {
+	public final Identifier getId() {
 		return id;
 	}
 
@@ -107,7 +107,7 @@ public class ManaInfusionRecipe implements vazkii.botania.api.recipe.ManaInfusio
 
 		@NotNull
 		@Override
-		public ManaInfusionRecipe fromJson(@NotNull ResourceLocation id, @NotNull JsonObject json) {
+		public ManaInfusionRecipe fromJson(@NotNull Identifier id, @NotNull JsonObject json) {
 			JsonElement input = Objects.requireNonNull(json.get("input"));
 			Ingredient ing = Ingredient.fromJson(input);
 			ItemStack output = ShapedRecipe.itemStackFromJson(GsonHelper.getAsJsonObject(json, "output"));
@@ -127,7 +127,7 @@ public class ManaInfusionRecipe implements vazkii.botania.api.recipe.ManaInfusio
 
 		@Nullable
 		@Override
-		public ManaInfusionRecipe fromNetwork(@NotNull ResourceLocation id, @NotNull FriendlyByteBuf buf) {
+		public ManaInfusionRecipe fromNetwork(@NotNull Identifier id, @NotNull FriendlyByteBuf buf) {
 			Ingredient input = Ingredient.fromNetwork(buf);
 			ItemStack output = buf.readItem();
 			int mana = buf.readVarInt();

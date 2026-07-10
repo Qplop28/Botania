@@ -14,14 +14,14 @@ import me.shedaniel.math.FloatingPoint;
 import me.shedaniel.math.Point;
 
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 interface CategoryUtils {
 	/**
 	 * Widgets#createTexturedWidget doesn't allow partial transparency, so this is called in createDrawableWidget
 	 * instead.
 	 */
-	static void drawOverlay(GuiGraphics gui, ResourceLocation texture, int x, int y, int u, int v, int width, int height) {
+	static void drawOverlay(GuiGraphics gui, Identifier texture, int x, int y, int u, int v, int width, int height) {
 		RenderSystem.enableBlend();
 		// TODO 1.19.4 check that this still works
 		gui.blit(texture, x, y, u, v, width, height);

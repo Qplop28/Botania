@@ -13,7 +13,7 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockAndTintGetter;
@@ -47,7 +47,7 @@ public class ForgeFloatingFlowerModel implements IUnbakedGeometry<ForgeFloatingF
 	}
 
 	@Override
-	public void resolveParents(Function<ResourceLocation, UnbakedModel> modelGetter, IGeometryBakingContext context) {
+	public void resolveParents(Function<Identifier, UnbakedModel> modelGetter, IGeometryBakingContext context) {
 		this.unbakedFlower.resolveParents(modelGetter);
 		for (var e : BotaniaAPIClient.instance().getRegisteredIslandTypeModels().entrySet()) {
 			UnbakedModel islandModel = modelGetter.apply(e.getValue());
@@ -59,7 +59,7 @@ public class ForgeFloatingFlowerModel implements IUnbakedGeometry<ForgeFloatingF
 	@Nullable
 	@Override
 	public BakedModel bake(IGeometryBakingContext context, ModelBaker baker, Function<Material, TextureAtlasSprite> spriteGetter,
-			ModelState transform, ItemOverrides overrides, ResourceLocation name) {
+			ModelState transform, ItemOverrides overrides, Identifier name) {
 		final Transformation moveFlower = new Transformation(new Vector3f(0F, 0.2F, 0F), null, new Vector3f(0.5F, 0.5F, 0.5F), null);
 		Transformation mul = moveFlower.compose(transform.getRotation());
 		ModelState newTransform = new ModelState() {

@@ -10,7 +10,7 @@ package vazkii.botania.api.brew;
 
 import com.google.common.collect.ImmutableList;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.alchemy.PotionUtils;
@@ -83,7 +83,7 @@ public class Brew {
 	 * Gets the insensitive unlocalized name. This is used for the lexicon.
 	 */
 	public String getTranslationKey() {
-		ResourceLocation id = BotaniaAPI.instance().getBrewRegistry().getKey(this);
+		Identifier id = BotaniaAPI.instance().getBrewRegistry().getKey(this);
 		return String.format("%s.brew.%s", id.getNamespace(), id.getPath());
 	}
 

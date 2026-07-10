@@ -12,7 +12,7 @@ import com.google.gson.JsonObject;
 
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.PackOutput;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.biome.Biome;
@@ -74,15 +74,15 @@ public class OrechidProvider extends BotaniaRecipeProvider {
 		consumer.accept(biomeStone(BotaniaBlocks.biomeStoneMesa, BotaniaTags.Biomes.MARIMORPHOSIS_MESA_BONUS));
 	}
 
-	protected ResourceLocation orechidId(Block b) {
+	protected Identifier orechidId(Block b) {
 		return prefix("orechid/" + BuiltInRegistries.BLOCK.getKey(b).getPath());
 	}
 
-	protected ResourceLocation ignemId(Block b) {
+	protected Identifier ignemId(Block b) {
 		return prefix("orechid_ignem/" + BuiltInRegistries.BLOCK.getKey(b).getPath());
 	}
 
-	protected ResourceLocation marimorphosisId(Block b) {
+	protected Identifier marimorphosisId(Block b) {
 		return prefix("marimorphosis/" + BuiltInRegistries.BLOCK.getKey(b).getPath());
 	}
 
@@ -121,12 +121,12 @@ public class OrechidProvider extends BotaniaRecipeProvider {
 
 	protected static class Result implements net.minecraft.data.recipes.FinishedRecipe {
 		private final RecipeSerializer<? extends OrechidRecipe> type;
-		private final ResourceLocation id;
+		private final Identifier id;
 		private final StateIngredient input;
 		private final StateIngredient output;
 		private final int weight;
 
-		public Result(RecipeSerializer<? extends OrechidRecipe> type, ResourceLocation id,
+		public Result(RecipeSerializer<? extends OrechidRecipe> type, Identifier id,
 				StateIngredient input, StateIngredient output, int weight) {
 			this.type = type;
 			this.id = id;
@@ -143,7 +143,7 @@ public class OrechidProvider extends BotaniaRecipeProvider {
 		}
 
 		@Override
-		public ResourceLocation getId() {
+		public Identifier getId() {
 			return id;
 		}
 
@@ -160,7 +160,7 @@ public class OrechidProvider extends BotaniaRecipeProvider {
 
 		@Nullable
 		@Override
-		public ResourceLocation getAdvancementId() {
+		public Identifier getAdvancementId() {
 			return null;
 		}
 	}
@@ -169,7 +169,7 @@ public class OrechidProvider extends BotaniaRecipeProvider {
 		private final int bonusWeight;
 		private final TagKey<Biome> biome;
 
-		public BiomeResult(RecipeSerializer<? extends OrechidRecipe> type, ResourceLocation id,
+		public BiomeResult(RecipeSerializer<? extends OrechidRecipe> type, Identifier id,
 				StateIngredient input, StateIngredient output, int weight, int bonusWeight,
 				TagKey<Biome> biome) {
 			super(type, id, input, output, weight);

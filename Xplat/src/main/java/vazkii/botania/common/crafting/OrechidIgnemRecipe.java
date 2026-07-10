@@ -12,7 +12,7 @@ import com.google.gson.JsonObject;
 
 import net.minecraft.commands.CommandFunction;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
 
@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import vazkii.botania.api.recipe.StateIngredient;
 
 public class OrechidIgnemRecipe extends OrechidRecipe {
-	public OrechidIgnemRecipe(ResourceLocation id, StateIngredient input, StateIngredient output, int weight, CommandFunction.CacheableFunction successFunction) {
+	public OrechidIgnemRecipe(Identifier id, StateIngredient input, StateIngredient output, int weight, CommandFunction.CacheableFunction successFunction) {
 		super(id, input, output, weight, successFunction);
 	}
 
@@ -42,12 +42,12 @@ public class OrechidIgnemRecipe extends OrechidRecipe {
 
 	public static class Serializer implements RecipeSerializer<OrechidIgnemRecipe> {
 		@Override
-		public OrechidIgnemRecipe fromJson(@NotNull ResourceLocation recipeId, @NotNull JsonObject json) {
+		public OrechidIgnemRecipe fromJson(@NotNull Identifier recipeId, @NotNull JsonObject json) {
 			return new OrechidIgnemRecipe(BotaniaRecipeTypes.ORECHID_SERIALIZER.fromJson(recipeId, json));
 		}
 
 		@Override
-		public OrechidIgnemRecipe fromNetwork(@NotNull ResourceLocation recipeId, @NotNull FriendlyByteBuf buffer) {
+		public OrechidIgnemRecipe fromNetwork(@NotNull Identifier recipeId, @NotNull FriendlyByteBuf buffer) {
 			return new OrechidIgnemRecipe(BotaniaRecipeTypes.ORECHID_SERIALIZER.fromNetwork(recipeId, buffer));
 		}
 

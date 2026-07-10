@@ -12,7 +12,7 @@ import com.google.gson.JsonObject;
 
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
@@ -71,13 +71,13 @@ public class WandOfTheForestRecipe extends ShapedRecipe {
 	private static class Serializer implements RecipeSerializer<WandOfTheForestRecipe> {
 		@NotNull
 		@Override
-		public WandOfTheForestRecipe fromJson(@NotNull ResourceLocation recipeId, @NotNull JsonObject json) {
+		public WandOfTheForestRecipe fromJson(@NotNull Identifier recipeId, @NotNull JsonObject json) {
 			return new WandOfTheForestRecipe(SHAPED_RECIPE.fromJson(recipeId, json));
 		}
 
 		@NotNull
 		@Override
-		public WandOfTheForestRecipe fromNetwork(@NotNull ResourceLocation recipeId, @NotNull FriendlyByteBuf buffer) {
+		public WandOfTheForestRecipe fromNetwork(@NotNull Identifier recipeId, @NotNull FriendlyByteBuf buffer) {
 			return new WandOfTheForestRecipe(SHAPED_RECIPE.fromNetwork(recipeId, buffer));
 		}
 

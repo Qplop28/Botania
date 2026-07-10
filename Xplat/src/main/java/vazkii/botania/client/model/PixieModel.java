@@ -17,7 +17,7 @@ import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.CubeListBuilder;
 import net.minecraft.client.model.geom.builders.MeshDefinition;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 
 import vazkii.botania.client.core.helper.RenderHelper;
@@ -32,7 +32,7 @@ public class PixieModel extends EntityModel<PixieEntity> {
 
 	private static boolean evil = false;
 
-	private static RenderType pixieLayer(ResourceLocation texture) {
+	private static RenderType pixieLayer(Identifier texture) {
 		return evil ? RenderHelper.getDopplegangerLayer(texture)
 				: RenderType.entityCutoutNoCull(texture);
 	}

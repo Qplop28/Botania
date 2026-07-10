@@ -6,7 +6,7 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.PreparableReloadListener;
@@ -178,7 +178,7 @@ public interface XplatAbstractions {
 			Supplier<BlockEntityType<? extends SpecialFlowerBlockEntity>> beType,
 			boolean hasComparatorOutput);
 	<T extends BlockEntity> BlockEntityType<T> createBlockEntityType(BiFunction<BlockPos, BlockState, T> func, Block... blocks);
-	void registerReloadListener(PackType type, ResourceLocation id, PreparableReloadListener listener);
+	void registerReloadListener(PackType type, Identifier id, PreparableReloadListener listener);
 	Item.Properties defaultItemBuilder();
 
 	default Item.Properties defaultItemBuilderWithCustomDamageOnFabric() {

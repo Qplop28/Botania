@@ -4,7 +4,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.tags.IntrinsicHolderTagsProvider;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EntityType;
 import net.minecraftforge.common.data.ExistingFileHelper;
@@ -29,6 +29,6 @@ public class ForgeEntityTagProvider extends IntrinsicHolderTagsProvider<EntityTy
 	}
 
 	private static TagKey<EntityType<?>> forge(String name) {
-		return TagKey.create(Registries.ENTITY_TYPE, new ResourceLocation("forge", name));
+		return TagKey.create(Registries.ENTITY_TYPE, new Identifier("forge", name));
 	}
 }

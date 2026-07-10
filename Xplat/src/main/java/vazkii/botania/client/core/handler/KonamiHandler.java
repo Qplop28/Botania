@@ -16,7 +16,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import org.lwjgl.glfw.GLFW;
 
@@ -60,7 +60,7 @@ public class KonamiHandler {
 		}
 	}
 
-	public static void renderBook(ResourceLocation book, Screen gui, int mouseX, int mouseY, float partialTicks, GuiGraphics guiGraphics) {
+	public static void renderBook(Identifier book, Screen gui, int mouseX, int mouseY, float partialTicks, GuiGraphics guiGraphics) {
 		PoseStack ms = guiGraphics.pose();
 		if (konamiTime > 0) {
 			String meme = I18n.get("botania.subtitle.way");

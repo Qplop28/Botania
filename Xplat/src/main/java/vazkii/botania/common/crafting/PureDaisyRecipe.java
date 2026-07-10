@@ -14,7 +14,7 @@ import com.google.gson.JsonObject;
 import net.minecraft.commands.CommandFunction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.item.crafting.RecipeSerializer;
@@ -32,7 +32,7 @@ public class PureDaisyRecipe implements vazkii.botania.api.recipe.PureDaisyRecip
 
 	public static final int DEFAULT_TIME = 150;
 
-	private final ResourceLocation id;
+	private final Identifier id;
 	protected final StateIngredient input;
 	protected final BlockState outputState;
 	private final int time;
@@ -48,7 +48,7 @@ public class PureDaisyRecipe implements vazkii.botania.api.recipe.PureDaisyRecip
 	 * @param function An mcfunction to run at the converted block after finish. If you don't want one, pass
 	 *                 CommandFunction.CacheableFunction.NONE
 	 */
-	public PureDaisyRecipe(ResourceLocation id, StateIngredient input, BlockState state, int time, CommandFunction.CacheableFunction function) {
+	public PureDaisyRecipe(Identifier id, StateIngredient input, BlockState state, int time, CommandFunction.CacheableFunction function) {
 		Preconditions.checkArgument(time >= 0, "Time must be nonnegative");
 		this.id = id;
 		this.input = input;
@@ -102,7 +102,7 @@ public class PureDaisyRecipe implements vazkii.botania.api.recipe.PureDaisyRecip
 	}
 
 	@Override
-	public ResourceLocation getId() {
+	public Identifier getId() {
 		return id;
 	}
 
@@ -114,12 +114,12 @@ public class PureDaisyRecipe implements vazkii.botania.api.recipe.PureDaisyRecip
 	public static class Serializer implements RecipeSerializer<PureDaisyRecipe> {
 		@NotNull
 		@Override
-		public PureDaisyRecipe fromJson(@NotNull ResourceLocation id, JsonObject object) {
+		public PureDaisyRecipe fromJson(@NotNull Identifier id, JsonObject object) {
 			StateIngredient input = StateIngredientHelper.deserialize(GsonHelper.getAsJsonObject(object, "input"));
 			BlockState output = StateIngredientHelper.readBlockState(GsonHelper.getAsJsonObject(object, "output"));
 			int time = GsonHelper.getAsInt(object, "time", DEFAULT_TIME);
 			var functionIdString = GsonHelper.getAsString(object, "success_function", null);
-			var functionId = functionIdString == null ? null : new ResourceLocation(functionIdString);
+			var functionId = functionIdString == null ? null : new Identifier(functionIdString);
 			var function = functionId == null ? CommandFunction.CacheableFunction.NONE : new CommandFunction.CacheableFunction(functionId);
 			return new PureDaisyRecipe(id, input, output, time, function);
 		}
@@ -133,7 +133,7 @@ public class PureDaisyRecipe implements vazkii.botania.api.recipe.PureDaisyRecip
 
 		@NotNull
 		@Override
-		public PureDaisyRecipe fromNetwork(@NotNull ResourceLocation id, @NotNull FriendlyByteBuf buf) {
+		public PureDaisyRecipe fromNetwork(@NotNull Identifier id, @NotNull FriendlyByteBuf buf) {
 			StateIngredient input = StateIngredientHelper.read(buf);
 			BlockState output = Block.stateById(buf.readVarInt());
 			int time = buf.readVarInt();

@@ -12,7 +12,7 @@ import com.google.gson.JsonObject;
 
 import net.minecraft.data.recipes.FinishedRecipe;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 
 import org.jetbrains.annotations.Nullable;
@@ -43,7 +43,7 @@ public class NbtOutputResult implements FinishedRecipe {
 	}
 
 	@Override
-	public ResourceLocation getId() {
+	public Identifier getId() {
 		return innerRecipe.getId();
 	}
 
@@ -60,7 +60,7 @@ public class NbtOutputResult implements FinishedRecipe {
 
 	@Nullable
 	@Override
-	public ResourceLocation getAdvancementId() {
+	public Identifier getAdvancementId() {
 		return innerRecipe.getAdvancementId();
 	}
 }

@@ -8,7 +8,7 @@
  */
 package vazkii.botania.common.brew;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.effect.MobEffect;
 
 import vazkii.botania.common.brew.effect.*;
@@ -27,7 +27,7 @@ public class BotaniaMobEffects {
 	public static final MobEffect allure = new AllureMobEffect();
 	public static final MobEffect clear = new AbsolutionMobEffect();
 
-	public static void registerPotions(BiConsumer<MobEffect, ResourceLocation> r) {
+	public static void registerPotions(BiConsumer<MobEffect, Identifier> r) {
 		r.accept(soulCross, prefix(LibPotionNames.SOUL_CROSS));
 		r.accept(featherfeet, prefix(LibPotionNames.FEATHER_FEET));
 		r.accept(emptiness, prefix(LibPotionNames.EMPTINESS));

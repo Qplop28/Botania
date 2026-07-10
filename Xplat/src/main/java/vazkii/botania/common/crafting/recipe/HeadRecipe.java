@@ -32,7 +32,7 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FormattedText;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
@@ -78,7 +78,7 @@ public class HeadRecipe extends RunicAltarRecipe {
 						}
 					});
 
-	public HeadRecipe(ResourceLocation id, ItemStack output, int mana, Ingredient... inputs) {
+	public HeadRecipe(Identifier id, ItemStack output, int mana, Ingredient... inputs) {
 		super(id, output, mana, inputs);
 	}
 
@@ -210,7 +210,7 @@ public class HeadRecipe extends RunicAltarRecipe {
 
 		@NotNull
 		@Override
-		public HeadRecipe fromJson(@NotNull ResourceLocation id, @NotNull JsonObject json) {
+		public HeadRecipe fromJson(@NotNull Identifier id, @NotNull JsonObject json) {
 			ItemStack output = ShapedRecipe.itemStackFromJson(GsonHelper.getAsJsonObject(json, "output"));
 			int mana = GsonHelper.getAsInt(json, "mana");
 			JsonArray ingrs = GsonHelper.getAsJsonArray(json, "ingredients");
@@ -222,7 +222,7 @@ public class HeadRecipe extends RunicAltarRecipe {
 		}
 
 		@Override
-		public HeadRecipe fromNetwork(@NotNull ResourceLocation id, @NotNull FriendlyByteBuf buf) {
+		public HeadRecipe fromNetwork(@NotNull Identifier id, @NotNull FriendlyByteBuf buf) {
 			Ingredient[] inputs = new Ingredient[buf.readVarInt()];
 			for (int i = 0; i < inputs.length; i++) {
 				inputs[i] = Ingredient.fromNetwork(buf);

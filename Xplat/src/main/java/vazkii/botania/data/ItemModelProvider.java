@@ -24,7 +24,7 @@ import net.minecraft.data.models.model.ModelTemplate;
 import net.minecraft.data.models.model.ModelTemplates;
 import net.minecraft.data.models.model.TextureMapping;
 import net.minecraft.data.models.model.TextureSlot;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
@@ -68,19 +68,19 @@ public class ItemModelProvider implements DataProvider {
 	private static final TextureSlot LAYER1 = TextureSlotAccessor.make("layer1");
 	private static final TextureSlot LAYER2 = TextureSlotAccessor.make("layer2");
 	private static final TextureSlot LAYER3 = TextureSlotAccessor.make("layer3");
-	private static final ModelTemplate GENERATED_1 = new ModelTemplate(Optional.of(new ResourceLocation("item/generated")), Optional.empty(), TextureSlot.LAYER0, LAYER1);
-	private static final ModelTemplate GENERATED_2 = new ModelTemplate(Optional.of(new ResourceLocation("item/generated")), Optional.empty(), TextureSlot.LAYER0, LAYER1, LAYER2);
-	private static final ModelTemplate HANDHELD_1 = new ModelTemplate(Optional.of(new ResourceLocation("item/handheld")), Optional.empty(), TextureSlot.LAYER0, LAYER1);
-	private static final ModelTemplate HANDHELD_3 = new ModelTemplate(Optional.of(new ResourceLocation("item/handheld")), Optional.empty(), TextureSlot.LAYER0, LAYER1, LAYER2, LAYER3);
+	private static final ModelTemplate GENERATED_1 = new ModelTemplate(Optional.of(new Identifier("item/generated")), Optional.empty(), TextureSlot.LAYER0, LAYER1);
+	private static final ModelTemplate GENERATED_2 = new ModelTemplate(Optional.of(new Identifier("item/generated")), Optional.empty(), TextureSlot.LAYER0, LAYER1, LAYER2);
+	private static final ModelTemplate HANDHELD_1 = new ModelTemplate(Optional.of(new Identifier("item/handheld")), Optional.empty(), TextureSlot.LAYER0, LAYER1);
+	private static final ModelTemplate HANDHELD_3 = new ModelTemplate(Optional.of(new Identifier("item/handheld")), Optional.empty(), TextureSlot.LAYER0, LAYER1, LAYER2, LAYER3);
 	private static final ModelTemplate WALL_INVENTORY = new ModelTemplate(Optional.of(prefix("block/shapes/wall_inventory")), Optional.empty(), TextureSlot.TOP, TextureSlot.BOTTOM, TextureSlot.WALL);
 	private static final ModelTemplate WALL_INVENTORY_CHECKERED = new ModelTemplate(Optional.of(prefix("block/shapes/wall_inventory_checkered")), Optional.empty(), TextureSlot.NORTH, TextureSlot.SIDE);
 	private static final TextureSlot OUTSIDE = TextureSlotAccessor.make("outside");
 	private static final TextureSlot CORE = TextureSlotAccessor.make("core");
 	private static final ModelTemplate SPREADER = new ModelTemplate(Optional.of(prefix("block/shapes/spreader_item")), Optional.empty(), TextureSlot.SIDE, TextureSlot.BACK, TextureSlot.INSIDE, OUTSIDE, CORE);
-	private static final ModelWithOverrides GENERATED_OVERRIDES = new ModelWithOverrides(new ResourceLocation("item/generated"), TextureSlot.LAYER0);
-	private static final ModelWithOverrides GENERATED_OVERRIDES_1 = new ModelWithOverrides(new ResourceLocation("item/generated"), TextureSlot.LAYER0, LAYER1);
-	private static final ModelWithOverrides HANDHELD_OVERRIDES = new ModelWithOverrides(new ResourceLocation("item/handheld"), TextureSlot.LAYER0);
-	private static final ModelWithOverrides HANDHELD_OVERRIDES_2 = new ModelWithOverrides(new ResourceLocation("item/handheld"), TextureSlot.LAYER0, LAYER1, LAYER2);
+	private static final ModelWithOverrides GENERATED_OVERRIDES = new ModelWithOverrides(new Identifier("item/generated"), TextureSlot.LAYER0);
+	private static final ModelWithOverrides GENERATED_OVERRIDES_1 = new ModelWithOverrides(new Identifier("item/generated"), TextureSlot.LAYER0, LAYER1);
+	private static final ModelWithOverrides HANDHELD_OVERRIDES = new ModelWithOverrides(new Identifier("item/handheld"), TextureSlot.LAYER0);
+	private static final ModelWithOverrides HANDHELD_OVERRIDES_2 = new ModelWithOverrides(new Identifier("item/handheld"), TextureSlot.LAYER0, LAYER1, LAYER2);
 
 	private final PackOutput packOutput;
 
@@ -92,7 +92,7 @@ public class ItemModelProvider implements DataProvider {
 	public CompletableFuture<?> run(CachedOutput cache) {
 		Set<Item> items = BuiltInRegistries.ITEM.stream().filter(i -> LibMisc.MOD_ID.equals(BuiltInRegistries.ITEM.getKey(i).getNamespace()))
 				.collect(Collectors.toSet());
-		Map<ResourceLocation, Supplier<JsonElement>> map = new HashMap<>();
+		Map<Identifier, Supplier<JsonElement>> map = new HashMap<>();
 		registerItemBlocks(takeAll(items, i -> i instanceof BlockItem).stream().map(i -> (BlockItem) i).collect(Collectors.toSet()), map::put);
 		registerItemOverrides(items, map::put);
 		registerItems(items, map::put);
@@ -100,20 +100,20 @@ public class ItemModelProvider implements DataProvider {
 		PackOutput.PathProvider modelPathProvider = packOutput.createPathProvider(PackOutput.Target.RESOURCE_PACK, "models");
 		List<CompletableFuture<?>> output = new ArrayList<>();
 
-		for (Map.Entry<ResourceLocation, Supplier<JsonElement>> e : map.entrySet()) {
-			ResourceLocation id = e.getKey();
+		for (Map.Entry<Identifier, Supplier<JsonElement>> e : map.entrySet()) {
+			Identifier id = e.getKey();
 			output.add(DataProvider.saveStable(cache, e.getValue().get(), modelPathProvider.json(id)));
 		}
 
 		return CompletableFuture.allOf(output.toArray(CompletableFuture[]::new));
 	}
 
-	private static void registerItems(Set<Item> items, BiConsumer<ResourceLocation, Supplier<JsonElement>> consumer) {
+	private static void registerItems(Set<Item> items, BiConsumer<Identifier, Supplier<JsonElement>> consumer) {
 		// Written manually
 		items.remove(manaGun);
 
 		takeAll(items, i -> i instanceof LensItem).forEach(i -> {
-			ResourceLocation lens;
+			Identifier lens;
 			if (i == lensTime || i == lensWarp || i == lensFire || i == lensTripwire) {
 				// To avoid z-fighting
 				lens = prefix("item/lens_small");
@@ -169,7 +169,7 @@ public class ItemModelProvider implements DataProvider {
 		takeAll(items, i -> true).forEach(i -> ModelTemplates.FLAT_ITEM.create(ModelLocationUtils.getModelLocation(i), TextureMapping.layer0(i), consumer));
 	}
 
-	private static void singleGeneratedOverride(Item item, ResourceLocation overrideModel, ResourceLocation predicate, double value, BiConsumer<ResourceLocation, Supplier<JsonElement>> consumer) {
+	private static void singleGeneratedOverride(Item item, Identifier overrideModel, Identifier predicate, double value, BiConsumer<Identifier, Supplier<JsonElement>> consumer) {
 		ModelTemplates.FLAT_ITEM.create(overrideModel, TextureMapping.layer0(overrideModel), consumer);
 		GENERATED_OVERRIDES.create(ModelLocationUtils.getModelLocation(item),
 				TextureMapping.layer0(item),
@@ -178,11 +178,11 @@ public class ItemModelProvider implements DataProvider {
 				consumer);
 	}
 
-	private static void singleGeneratedSuffixOverride(Item item, String suffix, ResourceLocation predicate, double value, BiConsumer<ResourceLocation, Supplier<JsonElement>> consumer) {
+	private static void singleGeneratedSuffixOverride(Item item, String suffix, Identifier predicate, double value, BiConsumer<Identifier, Supplier<JsonElement>> consumer) {
 		singleGeneratedOverride(item, ModelLocationUtils.getModelLocation(item, suffix), predicate, value, consumer);
 	}
 
-	private static void singleHandheldOverride(Item item, ResourceLocation overrideModel, ResourceLocation predicate, double value, BiConsumer<ResourceLocation, Supplier<JsonElement>> consumer) {
+	private static void singleHandheldOverride(Item item, Identifier overrideModel, Identifier predicate, double value, BiConsumer<Identifier, Supplier<JsonElement>> consumer) {
 		ModelTemplates.FLAT_HANDHELD_ITEM.create(overrideModel, TextureMapping.layer0(overrideModel), consumer);
 		HANDHELD_OVERRIDES.create(ModelLocationUtils.getModelLocation(item),
 				TextureMapping.layer0(item),
@@ -191,11 +191,11 @@ public class ItemModelProvider implements DataProvider {
 				consumer);
 	}
 
-	private static void singleHandheldSuffixOverride(Item item, String suffix, ResourceLocation predicate, double value, BiConsumer<ResourceLocation, Supplier<JsonElement>> consumer) {
+	private static void singleHandheldSuffixOverride(Item item, String suffix, Identifier predicate, double value, BiConsumer<Identifier, Supplier<JsonElement>> consumer) {
 		singleHandheldOverride(item, ModelLocationUtils.getModelLocation(item, suffix), predicate, value, consumer);
 	}
 
-	private static void registerItemOverrides(Set<Item> items, BiConsumer<ResourceLocation, Supplier<JsonElement>> consumer) {
+	private static void registerItemOverrides(Set<Item> items, BiConsumer<Identifier, Supplier<JsonElement>> consumer) {
 		// Written manually
 		items.remove(livingwoodBow);
 		items.remove(crystalBow);
@@ -215,7 +215,7 @@ public class ItemModelProvider implements DataProvider {
 		singleHandheldOverride(elementiumShears, prefix("item/dammitreddit"), prefix("reddit"), 1, consumer);
 		items.remove(elementiumShears);
 
-		ResourceLocation vuvuzela = prefix("item/vuvuzela");
+		Identifier vuvuzela = prefix("item/vuvuzela");
 		ModelTemplates.FLAT_HANDHELD_ITEM.create(vuvuzela, TextureMapping.layer0(vuvuzela), consumer);
 		for (Item i : new Item[] { grassHorn, leavesHorn, snowHorn }) {
 			GENERATED_OVERRIDES.create(ModelLocationUtils.getModelLocation(i),
@@ -243,7 +243,7 @@ public class ItemModelProvider implements DataProvider {
 
 		OverrideHolder bottleOverrides = new OverrideHolder();
 		for (int i = 1; i < BottledManaItem.SWIGS; i++) {
-			ResourceLocation overrideModel = ModelLocationUtils.getModelLocation(manaBottle, "_" + i);
+			Identifier overrideModel = ModelLocationUtils.getModelLocation(manaBottle, "_" + i);
 			ModelTemplates.FLAT_ITEM.create(overrideModel, TextureMapping.layer0(overrideModel), consumer);
 			bottleOverrides.add(overrideModel, Pair.of(prefix("swigs_taken"), (double) i / (BottledManaItem.SWIGS - 1)));
 		}
@@ -286,13 +286,13 @@ public class ItemModelProvider implements DataProvider {
 		singleGeneratedSuffixOverride(autocraftingHalo, "_active", prefix("active"), 1.0, consumer);
 		items.remove(autocraftingHalo);
 
-		ResourceLocation enabledModel = ModelLocationUtils.getModelLocation(terraPick, "_active");
+		Identifier enabledModel = ModelLocationUtils.getModelLocation(terraPick, "_active");
 		ModelTemplates.FLAT_HANDHELD_ITEM.create(enabledModel, TextureMapping.layer0(enabledModel), consumer);
 
-		ResourceLocation tippedModel = ModelLocationUtils.getModelLocation(terraPick, "_tipped");
+		Identifier tippedModel = ModelLocationUtils.getModelLocation(terraPick, "_tipped");
 		ModelTemplates.FLAT_HANDHELD_ITEM.create(tippedModel, TextureMapping.layer0(tippedModel), consumer);
 
-		ResourceLocation tippedEnabledModel = ModelLocationUtils.getModelLocation(terraPick, "_tipped_active");
+		Identifier tippedEnabledModel = ModelLocationUtils.getModelLocation(terraPick, "_tipped_active");
 		ModelTemplates.FLAT_HANDHELD_ITEM.create(tippedEnabledModel, TextureMapping.layer0(tippedEnabledModel), consumer);
 
 		HANDHELD_OVERRIDES.create(ModelLocationUtils.getModelLocation(terraPick),
@@ -310,7 +310,7 @@ public class ItemModelProvider implements DataProvider {
 		TextureMapping twigWandTextures = TextureMapping.layer0(twigWand)
 				.put(LAYER1, TextureMapping.getItemTexture(twigWand, "_top"))
 				.put(LAYER2, TextureMapping.getItemTexture(twigWand, "_bottom"));
-		ResourceLocation twigWandBind = ModelLocationUtils.getModelLocation(twigWand, "_bind");
+		Identifier twigWandBind = ModelLocationUtils.getModelLocation(twigWand, "_bind");
 		HANDHELD_3.create(twigWandBind,
 				twigWandTextures.copyAndUpdate(LAYER3, TextureMapping.getItemTexture(twigWand, "_bind")),
 				consumer);
@@ -324,7 +324,7 @@ public class ItemModelProvider implements DataProvider {
 		TextureMapping dreamwoodWandTextures = TextureMapping.layer0(dreamwoodWand)
 				.put(LAYER1, TextureMapping.getItemTexture(dreamwoodWand, "_top"))
 				.put(LAYER2, TextureMapping.getItemTexture(dreamwoodWand, "_bottom"));
-		ResourceLocation dreamwoodWandBind = ModelLocationUtils.getModelLocation(dreamwoodWand, "_bind");
+		Identifier dreamwoodWandBind = ModelLocationUtils.getModelLocation(dreamwoodWand, "_bind");
 		HANDHELD_3.create(dreamwoodWandBind,
 				dreamwoodWandTextures.copyAndUpdate(LAYER3, TextureMapping.getItemTexture(dreamwoodWand, "_bind")),
 				consumer);
@@ -337,10 +337,10 @@ public class ItemModelProvider implements DataProvider {
 	}
 
 	private static void registerBrewContainerOverrides(BaseBrewItem brewItem, Item emptyItem,
-			BiConsumer<ResourceLocation, Supplier<JsonElement>> consumer) {
+			BiConsumer<Identifier, Supplier<JsonElement>> consumer) {
 		OverrideHolder flaskOverrides = new OverrideHolder();
 		for (int i = 1; i < brewItem.getSwigs(); i++) {
-			ResourceLocation overrideModel = ModelLocationUtils.getModelLocation(brewItem, "_" + i);
+			Identifier overrideModel = ModelLocationUtils.getModelLocation(brewItem, "_" + i);
 			GENERATED_1.create(overrideModel,
 					TextureMapping.layer0(emptyItem).put(LAYER1, overrideModel),
 					consumer);
@@ -353,7 +353,7 @@ public class ItemModelProvider implements DataProvider {
 				consumer);
 	}
 
-	private void registerItemBlocks(Set<BlockItem> itemBlocks, BiConsumer<ResourceLocation, Supplier<JsonElement>> consumer) {
+	private void registerItemBlocks(Set<BlockItem> itemBlocks, BiConsumer<Identifier, Supplier<JsonElement>> consumer) {
 		// Manually written
 		itemBlocks.remove(BotaniaBlocks.corporeaCrystalCube.asItem());
 
@@ -408,12 +408,12 @@ public class ItemModelProvider implements DataProvider {
 
 		takeAll(itemBlocks, b -> b.getBlock() instanceof FlowerMotifBlock).forEach(i -> {
 			String name = BuiltInRegistries.ITEM.getKey(i).getPath();
-			ResourceLocation texName = prefix("block/" + name.replace("_motif", ""));
+			Identifier texName = prefix("block/" + name.replace("_motif", ""));
 			ModelTemplates.FLAT_ITEM.create(ModelLocationUtils.getModelLocation(i), TextureMapping.layer0(texName), consumer);
 		});
 
 		takeAll(itemBlocks, i -> i.getBlock() instanceof ManaPoolBlock).forEach(i -> {
-			ResourceLocation fullModel = ModelLocationUtils.getModelLocation(i.getBlock(), "_full");
+			Identifier fullModel = ModelLocationUtils.getModelLocation(i.getBlock(), "_full");
 			OverrideHolder overrides = new OverrideHolder().add(fullModel, Pair.of(prefix("full"), 1.0));
 			consumer.accept(ModelLocationUtils.getModelLocation(i),
 					new SimpleModelSupplierWithOverrides(ModelLocationUtils.getModelLocation(i.getBlock()), overrides));
@@ -545,11 +545,11 @@ public class ItemModelProvider implements DataProvider {
 					}""";
 	private static final JsonElement BUILTIN_ENTITY_DISPLAY = new Gson().fromJson(BUILTIN_ENTITY_DISPLAY_STR, JsonElement.class);
 
-	protected void builtinEntity(Item i, BiConsumer<ResourceLocation, Supplier<JsonElement>> consumer) {
+	protected void builtinEntity(Item i, BiConsumer<Identifier, Supplier<JsonElement>> consumer) {
 		builtinEntity(i, consumer, 0.0);
 	}
 
-	protected void builtinEntity(Item i, BiConsumer<ResourceLocation, Supplier<JsonElement>> consumer, double handYOffset) {
+	protected void builtinEntity(Item i, BiConsumer<Identifier, Supplier<JsonElement>> consumer, double handYOffset) {
 		final JsonElement display;
 		if (handYOffset == 0.0) {
 			display = BUILTIN_ENTITY_DISPLAY;

@@ -5,7 +5,7 @@ import dev.emi.emi.api.stack.EmiStack;
 import dev.emi.emi.api.widget.WidgetHolder;
 
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 import org.jetbrains.annotations.Nullable;
@@ -18,24 +18,24 @@ import java.util.stream.Stream;
 import static vazkii.botania.common.lib.ResourceLocationHelper.prefix;
 
 public class BotanicalBreweryEmiRecipe extends BotaniaEmiRecipe {
-	private static final ResourceLocation TEXTURE = prefix("textures/gui/nei_brewery.png");
+	private static final Identifier TEXTURE = prefix("textures/gui/nei_brewery.png");
 	private final List<EmiIngredient> ingredients;
-	private final ResourceLocation id;
+	private final Identifier id;
 
 	public BotanicalBreweryEmiRecipe(BotanicalBreweryRecipe recipe, ItemStack container) {
 		super(BotaniaEmiPlugin.BOTANICAL_BREWERY, recipe);
 		this.ingredients = recipe.getIngredients().stream().map(EmiIngredient::of).toList();
 		this.input = Stream.concat(Stream.of(EmiStack.of(container)), ingredients.stream()).toList();
 		this.output = List.of(EmiStack.of(recipe.getOutput(container.copy())));
-		ResourceLocation id = recipe.getId();
-		ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(container.getItem());
-		this.id = new ResourceLocation("emi", "botania/botanical_brewery/"
+		Identifier id = recipe.getId();
+		Identifier itemId = BuiltInRegistries.ITEM.getKey(container.getItem());
+		this.id = new Identifier("emi", "botania/botanical_brewery/"
 				+ id.getNamespace() + "/" + id.getPath() + "/"
 				+ itemId.getNamespace() + "/" + itemId.getPath());
 	}
 
 	@Override
-	public @Nullable ResourceLocation getId() {
+	public @Nullable Identifier getId() {
 		return id;
 	}
 

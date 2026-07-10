@@ -22,7 +22,7 @@ import com.blamejared.crafttweaker.platform.Services;
 import com.blamejared.crafttweaker_annotations.annotations.Document;
 
 import net.minecraft.core.NonNullList;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeType;
 
@@ -62,12 +62,12 @@ public class TerraPlateRecipeManager implements IRecipeManager<ITerraPlateRecipe
 	@ZenCodeType.Method
 	public void addRecipe(String name, IItemStack output, int mana, IIngredient... inputs) {
 		name = fixRecipeName(name);
-		ResourceLocation resourceLocation = new ResourceLocation("crafttweaker", name);
+		Identifier Identifier = new Identifier("crafttweaker", name);
 		NonNullList<Ingredient> inputList =
 				NonNullList.of(Ingredient.EMPTY, Arrays.stream(inputs).map(IIngredient::asVanillaIngredient).toArray(
 						Ingredient[]::new));
 		CraftTweakerAPI.apply(new ActionAddRecipe<>(this,
-				new RecipeTerraPlate(resourceLocation,
+				new RecipeTerraPlate(Identifier,
 						mana,
 						inputList,
 						output.getInternal())));
@@ -93,7 +93,7 @@ public class TerraPlateRecipeManager implements IRecipeManager<ITerraPlateRecipe
 	}
 
 	@Override
-	public Optional<Function<ResourceLocation, ITerraPlateRecipe>> replaceIngredients(@SuppressWarnings("rawtypes") IRecipeManager manager, ITerraPlateRecipe recipe, List<IReplacementRule> rules) {
+	public Optional<Function<Identifier, ITerraPlateRecipe>> replaceIngredients(@SuppressWarnings("rawtypes") IRecipeManager manager, ITerraPlateRecipe recipe, List<IReplacementRule> rules) {
 		return ReplacementHandlerHelper.replaceNonNullIngredientList(recipe.getIngredients(),
 				Ingredient.class, recipe, rules,
 				ingr -> id -> new RecipeTerraPlate(id, recipe.getMana(), ingr, recipe.getResultItem()));

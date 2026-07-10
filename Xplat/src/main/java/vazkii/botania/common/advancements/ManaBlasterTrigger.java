@@ -11,7 +11,7 @@ package vazkii.botania.common.advancements;
 import com.google.gson.JsonObject;
 
 import net.minecraft.advancements.critereon.*;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
@@ -20,14 +20,14 @@ import org.jetbrains.annotations.NotNull;
 import static vazkii.botania.common.lib.ResourceLocationHelper.prefix;
 
 public class ManaBlasterTrigger extends SimpleCriterionTrigger<ManaBlasterTrigger.Instance> {
-	private static final ResourceLocation ID = prefix("fire_mana_blaster");
+	private static final Identifier ID = prefix("fire_mana_blaster");
 	public static final ManaBlasterTrigger INSTANCE = new ManaBlasterTrigger();
 
 	private ManaBlasterTrigger() {}
 
 	@NotNull
 	@Override
-	public ResourceLocation getId() {
+	public Identifier getId() {
 		return ID;
 	}
 
@@ -54,7 +54,7 @@ public class ManaBlasterTrigger extends SimpleCriterionTrigger<ManaBlasterTrigge
 
 		@NotNull
 		@Override
-		public ResourceLocation getCriterion() {
+		public Identifier getCriterion() {
 			return ID;
 		}
 

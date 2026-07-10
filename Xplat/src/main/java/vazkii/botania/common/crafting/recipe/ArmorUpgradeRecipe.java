@@ -12,7 +12,7 @@ import com.google.gson.JsonObject;
 
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ItemStack;
@@ -54,12 +54,12 @@ public class ArmorUpgradeRecipe extends ShapedRecipe {
 
 	private static class Serializer implements RecipeSerializer<ArmorUpgradeRecipe> {
 		@Override
-		public ArmorUpgradeRecipe fromJson(@NotNull ResourceLocation recipeId, @NotNull JsonObject json) {
+		public ArmorUpgradeRecipe fromJson(@NotNull Identifier recipeId, @NotNull JsonObject json) {
 			return new ArmorUpgradeRecipe(SHAPED_RECIPE.fromJson(recipeId, json));
 		}
 
 		@Override
-		public ArmorUpgradeRecipe fromNetwork(@NotNull ResourceLocation recipeId, @NotNull FriendlyByteBuf buffer) {
+		public ArmorUpgradeRecipe fromNetwork(@NotNull Identifier recipeId, @NotNull FriendlyByteBuf buffer) {
 			return new ArmorUpgradeRecipe(SHAPED_RECIPE.fromNetwork(recipeId, buffer));
 		}
 

@@ -10,7 +10,7 @@ package vazkii.botania.api.recipe;
 
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Recipe;
@@ -22,7 +22,7 @@ import vazkii.botania.api.BotaniaAPI;
 import vazkii.botania.api.brew.Brew;
 
 public interface BotanicalBreweryRecipe extends Recipe<Container> {
-	ResourceLocation TYPE_ID = new ResourceLocation(BotaniaAPI.MODID, "brew");
+	Identifier TYPE_ID = new Identifier(BotaniaAPI.MODID, "brew");
 
 	Brew getBrew();
 

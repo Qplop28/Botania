@@ -9,7 +9,7 @@
 package vazkii.botania.common.crafting;
 
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
@@ -61,7 +61,7 @@ public class BotaniaRecipeTypes {
 	public static final RecipeType<MarimorphosisRecipe> MARIMORPHOSIS_TYPE = new ModRecipeType<>();
 	public static final RecipeSerializer<MarimorphosisRecipe> MARIMORPHOSIS_SERIALIZER = new MarimorphosisRecipe.Serializer();
 
-	public static void submitRecipeTypes(BiConsumer<RecipeType<?>, ResourceLocation> r) {
+	public static void submitRecipeTypes(BiConsumer<RecipeType<?>, Identifier> r) {
 		r.accept(ELVEN_TRADE_TYPE, vazkii.botania.api.recipe.ElvenTradeRecipe.TYPE_ID);
 		r.accept(MANA_INFUSION_TYPE, vazkii.botania.api.recipe.ManaInfusionRecipe.TYPE_ID);
 		r.accept(PURE_DAISY_TYPE, vazkii.botania.api.recipe.PureDaisyRecipe.TYPE_ID);
@@ -74,7 +74,7 @@ public class BotaniaRecipeTypes {
 		r.accept(MARIMORPHOSIS_TYPE, vazkii.botania.api.recipe.OrechidRecipe.MARIMORPHOSIS_TYPE_ID);
 	}
 
-	public static void submitRecipeSerializers(BiConsumer<RecipeSerializer<?>, ResourceLocation> r) {
+	public static void submitRecipeSerializers(BiConsumer<RecipeSerializer<?>, Identifier> r) {
 		r.accept(ELVEN_TRADE_SERIALIZER, vazkii.botania.api.recipe.ElvenTradeRecipe.TYPE_ID);
 		r.accept(LEXICON_ELVEN_TRADE_SERIALIZER, prefix("elven_trade_lexicon"));
 		r.accept(MANA_INFUSION_SERIALIZER, vazkii.botania.api.recipe.ManaInfusionRecipe.TYPE_ID);
@@ -97,7 +97,7 @@ public class BotaniaRecipeTypes {
 		}
 	}
 
-	public static <C extends Container, T extends Recipe<C>> Map<ResourceLocation, T> getRecipes(Level world, RecipeType<T> type) {
+	public static <C extends Container, T extends Recipe<C>> Map<Identifier, T> getRecipes(Level world, RecipeType<T> type) {
 		return ((RecipeManagerAccessor) world.getRecipeManager()).botania_getAll(type);
 	}
 }

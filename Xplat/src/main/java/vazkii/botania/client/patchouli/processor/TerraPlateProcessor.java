@@ -8,7 +8,7 @@
  */
 package vazkii.botania.client.patchouli.processor;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.Level;
 
@@ -26,7 +26,7 @@ public class TerraPlateProcessor implements IComponentProcessor {
 
 	@Override
 	public void setup(Level level, IVariableProvider variables) {
-		ResourceLocation id = new ResourceLocation(variables.get("recipe").asString());
+		Identifier id = new Identifier(variables.get("recipe").asString());
 		this.recipe = PatchouliUtils.getRecipe(level, BotaniaRecipeTypes.TERRA_PLATE_TYPE, id);
 	}
 

@@ -20,7 +20,7 @@ import me.shedaniel.rei.api.common.entry.EntryStack;
 import me.shedaniel.rei.api.common.util.EntryStacks;
 
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 import org.jetbrains.annotations.NotNull;
@@ -33,7 +33,7 @@ import java.util.List;
 
 public class PureDaisyREICategory implements DisplayCategory<PureDaisyREIDisplay> {
 	private final EntryStack<ItemStack> daisy = EntryStacks.of(new ItemStack(BotaniaFlowerBlocks.pureDaisy));
-	private static final ResourceLocation OVERLAY = ResourceLocationHelper.prefix("textures/gui/pure_daisy_overlay.png");
+	private static final Identifier OVERLAY = ResourceLocationHelper.prefix("textures/gui/pure_daisy_overlay.png");
 
 	@Override
 	public @NotNull CategoryIdentifier<PureDaisyREIDisplay> getCategoryIdentifier() {

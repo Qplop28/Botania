@@ -11,7 +11,7 @@ package vazkii.botania.api.recipe;
 import net.minecraft.commands.CommandFunction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Recipe;
@@ -23,9 +23,9 @@ import org.jetbrains.annotations.NotNull;
 import vazkii.botania.api.BotaniaAPI;
 
 public interface OrechidRecipe extends Recipe<Container> {
-	ResourceLocation TYPE_ID = new ResourceLocation(BotaniaAPI.MODID, "orechid");
-	ResourceLocation IGNEM_TYPE_ID = new ResourceLocation(BotaniaAPI.MODID, "orechid_ignem");
-	ResourceLocation MARIMORPHOSIS_TYPE_ID = new ResourceLocation(BotaniaAPI.MODID, "marimorphosis");
+	Identifier TYPE_ID = new Identifier(BotaniaAPI.MODID, "orechid");
+	Identifier IGNEM_TYPE_ID = new Identifier(BotaniaAPI.MODID, "orechid_ignem");
+	Identifier MARIMORPHOSIS_TYPE_ID = new Identifier(BotaniaAPI.MODID, "marimorphosis");
 
 	/** Valid inputs for the recipe */
 	StateIngredient getInput();

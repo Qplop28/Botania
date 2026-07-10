@@ -11,7 +11,7 @@ package vazkii.botania.common.advancements;
 import com.google.gson.JsonObject;
 
 import net.minecraft.advancements.critereon.*;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 
@@ -22,14 +22,14 @@ import vazkii.botania.common.entity.GaiaGuardianEntity;
 import static vazkii.botania.common.lib.ResourceLocationHelper.prefix;
 
 public class GaiaGuardianNoArmorTrigger extends SimpleCriterionTrigger<GaiaGuardianNoArmorTrigger.Instance> {
-	public static final ResourceLocation ID = prefix("gaia_guardian_no_armor");
+	public static final Identifier ID = prefix("gaia_guardian_no_armor");
 	public static final GaiaGuardianNoArmorTrigger INSTANCE = new GaiaGuardianNoArmorTrigger();
 
 	private GaiaGuardianNoArmorTrigger() {}
 
 	@NotNull
 	@Override
-	public ResourceLocation getId() {
+	public Identifier getId() {
 		return ID;
 	}
 
@@ -58,7 +58,7 @@ public class GaiaGuardianNoArmorTrigger extends SimpleCriterionTrigger<GaiaGuard
 
 		@NotNull
 		@Override
-		public ResourceLocation getCriterion() {
+		public Identifier getCriterion() {
 			return ID;
 		}
 

@@ -12,7 +12,7 @@ import com.google.gson.JsonObject;
 
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.Container;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
@@ -64,12 +64,12 @@ public class ManaUpgradeRecipe extends ShapedRecipe {
 
 	private static class Serializer implements RecipeSerializer<ManaUpgradeRecipe> {
 		@Override
-		public ManaUpgradeRecipe fromJson(@NotNull ResourceLocation recipeId, @NotNull JsonObject json) {
+		public ManaUpgradeRecipe fromJson(@NotNull Identifier recipeId, @NotNull JsonObject json) {
 			return new ManaUpgradeRecipe(SHAPED_RECIPE.fromJson(recipeId, json));
 		}
 
 		@Override
-		public ManaUpgradeRecipe fromNetwork(@NotNull ResourceLocation recipeId, @NotNull FriendlyByteBuf buffer) {
+		public ManaUpgradeRecipe fromNetwork(@NotNull Identifier recipeId, @NotNull FriendlyByteBuf buffer) {
 			return new ManaUpgradeRecipe(SHAPED_RECIPE.fromNetwork(recipeId, buffer));
 		}
 

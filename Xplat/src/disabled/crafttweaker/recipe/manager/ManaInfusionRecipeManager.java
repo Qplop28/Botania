@@ -23,7 +23,7 @@ import com.blamejared.crafttweaker.api.util.StringUtil;
 import com.blamejared.crafttweaker.platform.Services;
 import com.blamejared.crafttweaker_annotations.annotations.Document;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeType;
@@ -75,12 +75,12 @@ public class ManaInfusionRecipeManager implements IRecipeManager<IManaInfusionRe
 	@ZenCodeType.Method
 	public void addRecipe(String name, IItemStack output, IIngredient input, int mana, @ZenCodeType.Optional CTBlockIngredient catalyst, @ZenCodeType.OptionalString("") String group, @ZenCodeType.Optional RecipeFunctionSingle function) {
 		name = fixRecipeName(name);
-		ResourceLocation resourceLocation = CraftTweakerConstants.rl(name);
+		Identifier Identifier = CraftTweakerConstants.rl(name);
 		RecipeManaInfusion recipe;
 		if (function == null) {
-			recipe = new RecipeManaInfusion(resourceLocation, output.getInternal(), input.asVanillaIngredient(), mana, group, CTPlugin.blockIngredientToStateIngredient(catalyst));
+			recipe = new RecipeManaInfusion(Identifier, output.getInternal(), input.asVanillaIngredient(), mana, group, CTPlugin.blockIngredientToStateIngredient(catalyst));
 		} else {
-			recipe = new InfusionWithFunction(resourceLocation, output.getInternal(), input.asVanillaIngredient(), mana, group, CTPlugin.blockIngredientToStateIngredient(catalyst), function);
+			recipe = new InfusionWithFunction(Identifier, output.getInternal(), input.asVanillaIngredient(), mana, group, CTPlugin.blockIngredientToStateIngredient(catalyst), function);
 		}
 		CraftTweakerAPI.apply(new ActionAddRecipe<>(this, recipe));
 	}
@@ -113,7 +113,7 @@ public class ManaInfusionRecipeManager implements IRecipeManager<IManaInfusionRe
 	}
 
 	@Override
-	public Optional<Function<ResourceLocation, IManaInfusionRecipe>> replaceIngredients(@SuppressWarnings("rawtypes") IRecipeManager manager, IManaInfusionRecipe recipe, List<IReplacementRule> rules) {
+	public Optional<Function<Identifier, IManaInfusionRecipe>> replaceIngredients(@SuppressWarnings("rawtypes") IRecipeManager manager, IManaInfusionRecipe recipe, List<IReplacementRule> rules) {
 		return IRecipeHandler.attemptReplacing(recipe.getIngredients().get(0), Ingredient.class, recipe, rules)
 				.map(ingr -> {
 					if (recipe instanceof InfusionWithFunction) {
@@ -130,8 +130,8 @@ public class ManaInfusionRecipeManager implements IRecipeManager<IManaInfusionRe
 	private static class InfusionWithFunction extends RecipeManaInfusion {
 		private final RecipeFunctionSingle function;
 
-		public InfusionWithFunction(ResourceLocation resourceLocation, ItemStack internal, Ingredient input1, int mana, String group, StateIngredient catalyst, RecipeFunctionSingle function) {
-			super(resourceLocation, internal, input1, mana, group, catalyst);
+		public InfusionWithFunction(Identifier Identifier, ItemStack internal, Ingredient input1, int mana, String group, StateIngredient catalyst, RecipeFunctionSingle function) {
+			super(Identifier, internal, input1, mana, group, catalyst);
 			this.function = function;
 		}
 

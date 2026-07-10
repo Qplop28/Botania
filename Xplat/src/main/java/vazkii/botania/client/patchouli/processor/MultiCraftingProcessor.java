@@ -9,7 +9,7 @@
 package vazkii.botania.client.patchouli.processor;
 
 import net.minecraft.core.NonNullList;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeType;
@@ -37,7 +37,7 @@ public class MultiCraftingProcessor implements IComponentProcessor {
 		List<String> names = variables.get("recipes").asStream().map(IVariable::asString).collect(Collectors.toList());
 		this.recipes = new ArrayList<>();
 		for (String name : names) {
-			CraftingRecipe recipe = PatchouliUtils.getRecipe(level, RecipeType.CRAFTING, new ResourceLocation(name));
+			CraftingRecipe recipe = PatchouliUtils.getRecipe(level, RecipeType.CRAFTING, new Identifier(name));
 			if (recipe != null) {
 				recipes.add(recipe);
 				if (shapeless) {

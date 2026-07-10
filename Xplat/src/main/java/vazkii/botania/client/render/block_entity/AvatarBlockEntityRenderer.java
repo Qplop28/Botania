@@ -17,7 +17,7 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -39,7 +39,7 @@ public class AvatarBlockEntityRenderer implements BlockEntityRenderer<AvatarBloc
 			180F, 0F, 90F, 270F
 	};
 
-	private static final ResourceLocation texture = new ResourceLocation(ResourcesLib.MODEL_AVATAR);
+	private static final Identifier texture = new Identifier(ResourcesLib.MODEL_AVATAR);
 	private final AvatarModel model;
 
 	public AvatarBlockEntityRenderer(BlockEntityRendererProvider.Context context) {

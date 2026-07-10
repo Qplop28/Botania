@@ -11,7 +11,7 @@ package vazkii.botania.common.advancements;
 import com.google.gson.JsonObject;
 
 import net.minecraft.advancements.critereon.*;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
@@ -20,14 +20,14 @@ import org.jetbrains.annotations.NotNull;
 import static vazkii.botania.common.lib.ResourceLocationHelper.prefix;
 
 public class LokiPlaceTrigger extends SimpleCriterionTrigger<LokiPlaceTrigger.Instance> {
-	public static final ResourceLocation ID = prefix("loki_placed_blocks");
+	public static final Identifier ID = prefix("loki_placed_blocks");
 	public static final LokiPlaceTrigger INSTANCE = new LokiPlaceTrigger();
 
 	private LokiPlaceTrigger() {}
 
 	@NotNull
 	@Override
-	public ResourceLocation getId() {
+	public Identifier getId() {
 		return ID;
 	}
 
@@ -56,7 +56,7 @@ public class LokiPlaceTrigger extends SimpleCriterionTrigger<LokiPlaceTrigger.In
 
 		@NotNull
 		@Override
-		public ResourceLocation getCriterion() {
+		public Identifier getCriterion() {
 			return ID;
 		}
 

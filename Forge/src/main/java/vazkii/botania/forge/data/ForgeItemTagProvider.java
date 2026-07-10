@@ -4,7 +4,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.tags.ItemTagsProvider;
 import net.minecraft.data.tags.TagsProvider;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
@@ -141,15 +141,15 @@ public class ForgeItemTagProvider extends ItemTagsProvider {
 	}
 
 	private static TagKey<Item> accessory(String name) {
-		return ItemTags.create(new ResourceLocation("curios", name));
+		return ItemTags.create(new Identifier("curios", name));
 	}
 
 	private static TagKey<Item> forge(String name) {
-		return ItemTags.create(new ResourceLocation("forge", name));
+		return ItemTags.create(new Identifier("forge", name));
 	}
 
 	private static TagKey<Item> quark(String name) {
-		return ItemTags.create(new ResourceLocation("quark", name));
+		return ItemTags.create(new Identifier("quark", name));
 	}
 
 	private void copyToSameName(TagKey<Block> source) {

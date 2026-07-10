@@ -19,7 +19,7 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,7 +33,7 @@ import vazkii.botania.common.block.block_entity.corporea.CorporeaIndexBlockEntit
 import vazkii.botania.common.helper.VecHelper;
 
 public class CorporeaIndexBlockEntityRenderer implements BlockEntityRenderer<CorporeaIndexBlockEntity> {
-	private static final RenderType LAYER = RenderType.entityCutoutNoCull(new ResourceLocation(ResourcesLib.MODEL_CORPOREA_INDEX));
+	private static final RenderType LAYER = RenderType.entityCutoutNoCull(new Identifier(ResourcesLib.MODEL_CORPOREA_INDEX));
 	private static final float ANGLE = (float) Math.sin(Math.toRadians(45));
 	private final ModelPart ring;
 	private final ModelPart cube;

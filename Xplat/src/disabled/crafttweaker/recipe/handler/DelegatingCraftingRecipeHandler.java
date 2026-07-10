@@ -5,7 +5,7 @@ import com.blamejared.crafttweaker.api.recipe.handler.IRecipeHandler;
 import com.blamejared.crafttweaker.api.recipe.handler.IReplacementRule;
 import com.blamejared.crafttweaker.api.recipe.manager.base.IRecipeManager;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeType;
@@ -33,10 +33,10 @@ public class DelegatingCraftingRecipeHandler<T extends U, U extends V, V extends
 	}
 
 	@Override
-	public Optional<Function<ResourceLocation, T>> replaceIngredients(@SuppressWarnings("rawtypes") IRecipeManager manager, T recipe, List<IReplacementRule> rules) throws ReplacementNotSupportedException {
+	public Optional<Function<Identifier, T>> replaceIngredients(@SuppressWarnings("rawtypes") IRecipeManager manager, T recipe, List<IReplacementRule> rules) throws ReplacementNotSupportedException {
 		IRecipeHandler<U> handler = delegate.get();
 		IRecipeManager<?> mgr = RecipeTypeBracketHandler.getOrDefault(wrappedType);
-		Optional<Function<ResourceLocation, U>> function = handler.replaceIngredients(mgr, recipe, rules);
+		Optional<Function<Identifier, U>> function = handler.replaceIngredients(mgr, recipe, rules);
 		return function.map(f -> f.andThen(wrapper));
 	}
 

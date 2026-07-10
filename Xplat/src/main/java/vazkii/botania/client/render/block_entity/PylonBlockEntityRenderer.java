@@ -15,7 +15,7 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
@@ -34,9 +34,9 @@ import java.util.Random;
 
 public class PylonBlockEntityRenderer implements BlockEntityRenderer<PylonBlockEntity> {
 
-	public static final ResourceLocation MANA_TEXTURE = new ResourceLocation(ResourcesLib.MODEL_PYLON_MANA);
-	public static final ResourceLocation NATURA_TEXTURE = new ResourceLocation(ResourcesLib.MODEL_PYLON_NATURA);
-	public static final ResourceLocation GAIA_TEXTURE = new ResourceLocation(ResourcesLib.MODEL_PYLON_GAIA);
+	public static final Identifier MANA_TEXTURE = new Identifier(ResourcesLib.MODEL_PYLON_MANA);
+	public static final Identifier NATURA_TEXTURE = new Identifier(ResourcesLib.MODEL_PYLON_NATURA);
+	public static final Identifier GAIA_TEXTURE = new Identifier(ResourcesLib.MODEL_PYLON_GAIA);
 
 	private final ManaPylonModel manaModel;
 	private final NaturaPylonModel naturaModel;
@@ -58,7 +58,7 @@ public class PylonBlockEntityRenderer implements BlockEntityRenderer<PylonBlockE
 		boolean direct = renderingItem && (forceTransform == ItemDisplayContext.GUI || forceTransform.firstPerson()); // loosely based off ItemRenderer logic
 		PylonBlock.Variant type = renderingItem ? forceVariant : ((PylonBlock) pylon.getBlockState().getBlock()).variant;
 		PylonModel model;
-		ResourceLocation texture;
+		Identifier texture;
 		RenderType shaderLayer;
 		switch (type) {
 			default -> {

@@ -37,7 +37,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.packs.PackType;
@@ -516,7 +516,7 @@ public class FabricXplatImpl implements XplatAbstractions {
 	}
 
 	@Override
-	public void registerReloadListener(PackType type, ResourceLocation id, PreparableReloadListener listener) {
+	public void registerReloadListener(PackType type, Identifier id, PreparableReloadListener listener) {
 		ResourceManagerHelper.get(type).registerReloadListener(new IdentifiableResourceReloadListener() {
 			@Override
 			public CompletableFuture<Void> reload(PreparationBarrier barrier, ResourceManager manager, ProfilerFiller prepProfiler,
@@ -525,7 +525,7 @@ public class FabricXplatImpl implements XplatAbstractions {
 			}
 
 			@Override
-			public ResourceLocation getFabricId() {
+			public Identifier getFabricId() {
 				return id;
 			}
 		});
@@ -594,7 +594,7 @@ public class FabricXplatImpl implements XplatAbstractions {
 		return StepHeightEntityAttributeMain.STEP_HEIGHT;
 	}
 
-	private final TagKey<Block> oreTag = TagKey.create(Registries.BLOCK, new ResourceLocation("c", "ores"));
+	private final TagKey<Block> oreTag = TagKey.create(Registries.BLOCK, new Identifier("c", "ores"));
 
 	@Override
 	public TagKey<Block> getOreTag() {
@@ -602,9 +602,9 @@ public class FabricXplatImpl implements XplatAbstractions {
 	}
 
 	// No standard so we have to check both :wacko:
-	private final TagKey<Block> cGlass = TagKey.create(Registries.BLOCK, new ResourceLocation("c", "glass"));
-	private final TagKey<Block> cGlassBlocks = TagKey.create(Registries.BLOCK, new ResourceLocation("c", "glass_blocks"));
-	private final TagKey<Block> cGlassPanes = TagKey.create(Registries.BLOCK, new ResourceLocation("c", "glass_panes"));
+	private final TagKey<Block> cGlass = TagKey.create(Registries.BLOCK, new Identifier("c", "glass"));
+	private final TagKey<Block> cGlassBlocks = TagKey.create(Registries.BLOCK, new Identifier("c", "glass_blocks"));
+	private final TagKey<Block> cGlassPanes = TagKey.create(Registries.BLOCK, new Identifier("c", "glass_panes"));
 
 	@Override
 	public boolean isInGlassTag(BlockState state) {

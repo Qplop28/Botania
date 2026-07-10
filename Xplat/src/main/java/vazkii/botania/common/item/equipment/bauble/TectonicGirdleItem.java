@@ -18,7 +18,7 @@ import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -35,7 +35,7 @@ import vazkii.botania.common.proxy.Proxy;
 
 public class TectonicGirdleItem extends BaubleItem {
 
-	private static final ResourceLocation texture = new ResourceLocation(ResourcesLib.MODEL_KNOCKBACK_BELT);
+	private static final Identifier texture = new Identifier(ResourcesLib.MODEL_KNOCKBACK_BELT);
 
 	public TectonicGirdleItem(Properties props) {
 		super(props);

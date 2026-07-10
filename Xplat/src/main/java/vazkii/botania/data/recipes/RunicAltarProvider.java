@@ -12,7 +12,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 import net.minecraft.data.PackOutput;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -91,17 +91,17 @@ public class RunicAltarProvider extends BotaniaRecipeProvider {
 		consumer.accept(new FinishedHeadRecipe(idFor("head"), new ItemStack(Items.PLAYER_HEAD), 22500, Ingredient.of(Items.SKELETON_SKULL), Ingredient.of(BotaniaItems.pixieDust), Ingredient.of(Items.PRISMARINE_CRYSTALS), Ingredient.of(Items.NAME_TAG, Items.WRITTEN_BOOK), Ingredient.of(Items.GOLDEN_APPLE)));
 	}
 
-	private static ResourceLocation idFor(String s) {
+	private static Identifier idFor(String s) {
 		return prefix("runic_altar/" + s);
 	}
 
 	protected static class FinishedRecipe implements net.minecraft.data.recipes.FinishedRecipe {
-		private final ResourceLocation id;
+		private final Identifier id;
 		private final ItemStack output;
 		private final int mana;
 		private final Ingredient[] inputs;
 
-		protected FinishedRecipe(ResourceLocation id, ItemStack output, int mana, Ingredient... inputs) {
+		protected FinishedRecipe(Identifier id, ItemStack output, int mana, Ingredient... inputs) {
 			this.id = id;
 			this.output = output;
 			this.mana = mana;
@@ -120,7 +120,7 @@ public class RunicAltarProvider extends BotaniaRecipeProvider {
 		}
 
 		@Override
-		public ResourceLocation getId() {
+		public Identifier getId() {
 			return id;
 		}
 
@@ -137,13 +137,13 @@ public class RunicAltarProvider extends BotaniaRecipeProvider {
 
 		@Nullable
 		@Override
-		public ResourceLocation getAdvancementId() {
+		public Identifier getAdvancementId() {
 			return null;
 		}
 	}
 
 	private static class FinishedHeadRecipe extends FinishedRecipe {
-		private FinishedHeadRecipe(ResourceLocation id, ItemStack output, int mana, Ingredient... inputs) {
+		private FinishedHeadRecipe(Identifier id, ItemStack output, int mana, Ingredient... inputs) {
 			super(id, output, mana, inputs);
 		}
 

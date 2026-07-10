@@ -21,7 +21,7 @@ import me.shedaniel.rei.api.common.entry.EntryStack;
 import me.shedaniel.rei.api.common.util.EntryStacks;
 
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
@@ -36,7 +36,7 @@ import java.util.List;
 public class PetalApothecaryREICategory implements DisplayCategory<PetalApothecaryREIDisplay> {
 	private final EntryStack<ItemStack> apothecary = EntryStacks.of(new ItemStack(BotaniaBlocks.defaultAltar));
 	private final EntryStack<ItemStack> waterBucket = EntryStacks.of(new ItemStack(Items.WATER_BUCKET));
-	private final ResourceLocation PETAL_OVERLAY = ResourceLocationHelper.prefix("textures/gui/petal_overlay.png");
+	private final Identifier PETAL_OVERLAY = ResourceLocationHelper.prefix("textures/gui/petal_overlay.png");
 
 	@Override
 	public @NotNull CategoryIdentifier<PetalApothecaryREIDisplay> getCategoryIdentifier() {

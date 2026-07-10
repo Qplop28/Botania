@@ -14,7 +14,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.inventory.InventoryMenu;
 
 import org.joml.Matrix3f;
@@ -25,7 +25,7 @@ import vazkii.botania.api.recipe.ElvenTradeRecipe;
 import static vazkii.botania.common.lib.ResourceLocationHelper.prefix;
 
 public class ElvenTradeEmiRecipe extends BotaniaEmiRecipe {
-	private static final ResourceLocation TEXTURE = prefix("textures/gui/elven_trade_overlay.png");
+	private static final Identifier TEXTURE = prefix("textures/gui/elven_trade_overlay.png");
 
 	public ElvenTradeEmiRecipe(ElvenTradeRecipe recipe) {
 		super(BotaniaEmiPlugin.ELVEN_TRADE, recipe);

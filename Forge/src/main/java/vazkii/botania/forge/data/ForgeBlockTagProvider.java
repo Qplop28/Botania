@@ -4,7 +4,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.tags.IntrinsicHolderTagsProvider;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.block.Block;
@@ -59,7 +59,7 @@ public class ForgeBlockTagProvider extends IntrinsicHolderTagsProvider<Block> {
 			storageBlocks.addTag(petalStorageBlockTag);
 		});
 
-		tag(TagKey.create(Registries.BLOCK, new ResourceLocation("buzzier_bees", "flower_blacklist")))
+		tag(TagKey.create(Registries.BLOCK, new Identifier("buzzier_bees", "flower_blacklist")))
 				.addTag(BotaniaTags.Blocks.MYSTICAL_FLOWERS)
 				.addTag(BotaniaTags.Blocks.SPECIAL_FLOWERS);
 
@@ -83,6 +83,6 @@ public class ForgeBlockTagProvider extends IntrinsicHolderTagsProvider<Block> {
 	}
 
 	private static TagKey<Block> forge(String name) {
-		return TagKey.create(Registries.BLOCK, new ResourceLocation("forge", name));
+		return TagKey.create(Registries.BLOCK, new Identifier("forge", name));
 	}
 }

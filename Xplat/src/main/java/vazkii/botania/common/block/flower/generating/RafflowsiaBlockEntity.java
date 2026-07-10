@@ -11,7 +11,7 @@ package vazkii.botania.common.block.flower.generating;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.*;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -29,7 +29,7 @@ public class RafflowsiaBlockEntity extends GeneratingFlowerBlockEntity {
 	public static final String TAG_LAST_FLOWER_TIMES = "lastFlowerTimes";
 	public static final String TAG_STREAK_LENGTH = "streakLength";
 
-	private final List<ResourceLocation> lastFlowers = new LinkedList<>();
+	private final List<Identifier> lastFlowers = new LinkedList<>();
 	private int streakLength = -1;
 	private int lastFlowerCount = 0;
 
@@ -62,10 +62,10 @@ public class RafflowsiaBlockEntity extends GeneratingFlowerBlockEntity {
 	 * @return the last time the flower showed up in history.
 	 */
 	private int processFlower(Block flower) {
-		ResourceLocation flowerKey = BuiltInRegistries.BLOCK.getKey(flower);
-		for (ListIterator<ResourceLocation> it = lastFlowers.listIterator(); it.hasNext();) {
+		Identifier flowerKey = BuiltInRegistries.BLOCK.getKey(flower);
+		for (ListIterator<Identifier> it = lastFlowers.listIterator(); it.hasNext();) {
 			int index = it.nextIndex();
-			ResourceLocation streakFlower = it.next();
+			Identifier streakFlower = it.next();
 			if (streakFlower.equals(flowerKey)) {
 				it.remove();
 				lastFlowers.add(0, streakFlower);
@@ -111,7 +111,7 @@ public class RafflowsiaBlockEntity extends GeneratingFlowerBlockEntity {
 		super.writeToPacketNBT(cmp);
 
 		ListTag flowerList = new ListTag();
-		for (ResourceLocation flower : lastFlowers) {
+		for (Identifier flower : lastFlowers) {
 			flowerList.add(StringTag.valueOf(flower.toString()));
 		}
 		cmp.put(TAG_LAST_FLOWERS, flowerList);
@@ -126,7 +126,7 @@ public class RafflowsiaBlockEntity extends GeneratingFlowerBlockEntity {
 		lastFlowers.clear();
 		ListTag flowerList = cmp.getList(TAG_LAST_FLOWERS, Tag.TAG_STRING);
 		for (int i = 0; i < flowerList.size(); i++) {
-			ResourceLocation blockID = ResourceLocation.tryParse(flowerList.getString(i));
+			Identifier blockID = Identifier.tryParse(flowerList.getString(i));
 			if (blockID == null) {
 				continue;
 			}

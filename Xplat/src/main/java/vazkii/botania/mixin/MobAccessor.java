@@ -8,7 +8,7 @@
  */
 package vazkii.botania.mixin;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.goal.GoalSelector;
@@ -25,7 +25,7 @@ public interface MobAccessor {
 	SoundEvent botania_getAmbientSound();
 
 	@Accessor
-	void setLootTable(ResourceLocation id);
+	void setLootTable(Identifier id);
 
 	@Accessor
 	GoalSelector getGoalSelector();

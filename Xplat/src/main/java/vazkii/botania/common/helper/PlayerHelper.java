@@ -12,7 +12,7 @@ import com.mojang.datafixers.util.Pair;
 
 import net.minecraft.advancements.Advancement;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.PlayerAdvancements;
 import net.minecraft.server.ServerAdvancementManager;
 import net.minecraft.server.level.ServerPlayer;
@@ -138,14 +138,14 @@ public final class PlayerHelper {
 		return getItemFromInventory(player, s -> template.isAssignableFrom(s.getItem().getClass()));
 	}
 
-	public static boolean hasAdvancement(ServerPlayer player, ResourceLocation advancementId) {
+	public static boolean hasAdvancement(ServerPlayer player, Identifier advancementId) {
 		PlayerAdvancements advancements = player.getAdvancements();
 		ServerAdvancementManager manager = player.level().getServer().getAdvancements();
 		Advancement advancement = manager.getAdvancement(advancementId);
 		return advancement != null && advancements.getOrStartProgress(advancement).isDone();
 	}
 
-	public static void grantCriterion(ServerPlayer player, ResourceLocation advancementId, String criterion) {
+	public static void grantCriterion(ServerPlayer player, Identifier advancementId, String criterion) {
 		PlayerAdvancements advancements = player.getAdvancements();
 		ServerAdvancementManager manager = player.level().getServer().getAdvancements();
 		Advancement advancement = manager.getAdvancement(advancementId);

@@ -7,7 +7,7 @@ import net.minecraft.client.renderer.block.model.BlockModel;
 import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.*;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.GsonHelper;
 
 import org.jetbrains.annotations.Nullable;
@@ -23,21 +23,21 @@ import java.util.function.Function;
  * Pretty much all of the data of the superclass is ignored.
  */
 public class FabricManaBlasterModel extends BlockModel {
-	private final ResourceLocation gunNoClip, gunClip;
+	private final Identifier gunNoClip, gunClip;
 
-	public FabricManaBlasterModel(ResourceLocation gunNoClip, ResourceLocation gunClip) {
+	public FabricManaBlasterModel(Identifier gunNoClip, Identifier gunClip) {
 		super(null, Collections.emptyList(), Collections.emptyMap(), false, GuiLight.SIDE, ItemTransforms.NO_TRANSFORMS, Collections.emptyList());
 		this.gunNoClip = gunNoClip;
 		this.gunClip = gunClip;
 	}
 
 	@Override
-	public Collection<ResourceLocation> getDependencies() {
+	public Collection<Identifier> getDependencies() {
 		return List.of(this.gunNoClip, this.gunClip);
 	}
 
 	@Override
-	public void resolveParents(Function<ResourceLocation, UnbakedModel> modelGetter) {
+	public void resolveParents(Function<Identifier, UnbakedModel> modelGetter) {
 		modelGetter.apply(this.gunNoClip).resolveParents(modelGetter);
 		modelGetter.apply(this.gunClip).resolveParents(modelGetter);
 	}
@@ -45,7 +45,7 @@ public class FabricManaBlasterModel extends BlockModel {
 	@Nullable
 	@Override
 	public BakedModel bake(ModelBaker baker, Function<Material, TextureAtlasSprite> spriteGetter,
-			ModelState state, ResourceLocation location) {
+			ModelState state, Identifier location) {
 
 		return ManaBlasterBakedModel.create(
 				baker,
@@ -60,8 +60,8 @@ public class FabricManaBlasterModel extends BlockModel {
 		if (loader != null && loader.isJsonPrimitive()
 				&& loader.getAsString().equals(ClientXplatAbstractions.MANA_GUN_MODEL_LOADER_ID.toString())) {
 			return new FabricManaBlasterModel(
-					new ResourceLocation(GsonHelper.getAsString(json, "gun_noclip")),
-					new ResourceLocation(GsonHelper.getAsString(json, "gun_clip"))
+					new Identifier(GsonHelper.getAsString(json, "gun_noclip")),
+					new Identifier(GsonHelper.getAsString(json, "gun_clip"))
 			);
 		}
 		return null;

@@ -4,7 +4,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataProvider;
 import net.minecraft.data.PackOutput;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.storage.loot.Deserializers;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
@@ -26,9 +26,9 @@ public class FabricBlockLootProvider implements DataProvider {
 
 	@Override
 	public CompletableFuture<?> run(CachedOutput cache) {
-		var tables = new HashMap<ResourceLocation, LootTable.Builder>();
+		var tables = new HashMap<Identifier, LootTable.Builder>();
 		for (var b : BuiltInRegistries.BLOCK) {
-			ResourceLocation id = BuiltInRegistries.BLOCK.getKey(b);
+			Identifier id = BuiltInRegistries.BLOCK.getKey(b);
 			if (!LibMisc.MOD_ID.equals(id.getNamespace())) {
 				continue;
 			}

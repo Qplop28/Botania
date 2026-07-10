@@ -11,7 +11,7 @@ package vazkii.botania.common.crafting.recipe;
 import com.google.gson.JsonObject;
 
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeManager;
@@ -27,7 +27,7 @@ public class GogAlternationRecipe {
 	private static class Serializer implements RecipeSerializer<Recipe<?>> {
 		@NotNull
 		@Override
-		public Recipe<?> fromJson(@NotNull ResourceLocation recipeId, @NotNull JsonObject json) {
+		public Recipe<?> fromJson(@NotNull Identifier recipeId, @NotNull JsonObject json) {
 			// just select the recipe here
 			Recipe<?> gog = RecipeManager.fromJson(recipeId, GsonHelper.getAsJsonObject(json, "gog"));
 			Recipe<?> base = RecipeManager.fromJson(recipeId, GsonHelper.getAsJsonObject(json, "base"));
@@ -45,7 +45,7 @@ public class GogAlternationRecipe {
 
 		@NotNull
 		@Override
-		public Recipe<?> fromNetwork(@NotNull ResourceLocation recipeId, @NotNull FriendlyByteBuf buffer) {
+		public Recipe<?> fromNetwork(@NotNull Identifier recipeId, @NotNull FriendlyByteBuf buffer) {
 			throw new IllegalStateException("GogAlternationRecipe should not be sent over network");
 		}
 

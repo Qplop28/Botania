@@ -21,7 +21,7 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.FogRenderer;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.ShaderInstance;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
@@ -34,15 +34,15 @@ import java.util.Random;
 
 public class SkyblockSkyRenderer {
 
-	private static final ResourceLocation textureSkybox = new ResourceLocation(ResourcesLib.MISC_SKYBOX);
-	private static final ResourceLocation textureRainbow = new ResourceLocation(ResourcesLib.MISC_RAINBOW);
-	private static final ResourceLocation[] planetTextures = new ResourceLocation[] {
-			new ResourceLocation(ResourcesLib.MISC_PLANET + "0.png"),
-			new ResourceLocation(ResourcesLib.MISC_PLANET + "1.png"),
-			new ResourceLocation(ResourcesLib.MISC_PLANET + "2.png"),
-			new ResourceLocation(ResourcesLib.MISC_PLANET + "3.png"),
-			new ResourceLocation(ResourcesLib.MISC_PLANET + "4.png"),
-			new ResourceLocation(ResourcesLib.MISC_PLANET + "5.png")
+	private static final Identifier textureSkybox = new Identifier(ResourcesLib.MISC_SKYBOX);
+	private static final Identifier textureRainbow = new Identifier(ResourcesLib.MISC_RAINBOW);
+	private static final Identifier[] planetTextures = new Identifier[] {
+			new Identifier(ResourcesLib.MISC_PLANET + "0.png"),
+			new Identifier(ResourcesLib.MISC_PLANET + "1.png"),
+			new Identifier(ResourcesLib.MISC_PLANET + "2.png"),
+			new Identifier(ResourcesLib.MISC_PLANET + "3.png"),
+			new Identifier(ResourcesLib.MISC_PLANET + "4.png"),
+			new Identifier(ResourcesLib.MISC_PLANET + "5.png")
 	};
 
 	public static void renderExtra(PoseStack ms, ClientLevel world, float partialTicks, float insideVoid) {

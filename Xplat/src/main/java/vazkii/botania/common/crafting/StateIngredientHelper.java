@@ -19,7 +19,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.level.block.Block;
@@ -46,7 +46,7 @@ public class StateIngredientHelper {
 		return of(tag.location());
 	}
 
-	public static StateIngredient of(ResourceLocation id) {
+	public static StateIngredient of(Identifier id) {
 		return new TagStateIngredient(id);
 	}
 
@@ -83,19 +83,19 @@ public class StateIngredientHelper {
 	public static StateIngredient deserialize(JsonObject object) {
 		switch (GsonHelper.getAsString(object, "type")) {
 			case "tag":
-				return new TagStateIngredient(new ResourceLocation(GsonHelper.getAsString(object, "tag")));
+				return new TagStateIngredient(new Identifier(GsonHelper.getAsString(object, "tag")));
 			case "block":
-				return new BlockStateIngredient(BuiltInRegistries.BLOCK.get(new ResourceLocation(GsonHelper.getAsString(object, "block"))));
+				return new BlockStateIngredient(BuiltInRegistries.BLOCK.get(new Identifier(GsonHelper.getAsString(object, "block"))));
 			case "state":
 				return new BlockStateStateIngredient(readBlockState(object));
 			case "blocks":
 				List<Block> blocks = new ArrayList<>();
 				for (JsonElement element : GsonHelper.getAsJsonArray(object, "blocks")) {
-					blocks.add(BuiltInRegistries.BLOCK.get(new ResourceLocation(element.getAsString())));
+					blocks.add(BuiltInRegistries.BLOCK.get(new Identifier(element.getAsString())));
 				}
 				return new BlocksStateIngredient(blocks);
 			case "tag_excluding":
-				ResourceLocation tag = new ResourceLocation(GsonHelper.getAsString(object, "tag"));
+				Identifier tag = new Identifier(GsonHelper.getAsString(object, "tag"));
 				List<StateIngredient> ingr = new ArrayList<>();
 				for (JsonElement element : GsonHelper.getAsJsonArray(object, "exclude")) {
 					ingr.add(deserialize(GsonHelper.convertToJsonObject(element, "exclude entry")));
@@ -194,7 +194,7 @@ public class StateIngredientHelper {
 		ItemNBTHelper.renameTag(nbt, "name", "Name");
 		ItemNBTHelper.renameTag(nbt, "properties", "Properties");
 		String name = nbt.getString("Name");
-		ResourceLocation id = ResourceLocation.tryParse(name);
+		Identifier id = Identifier.tryParse(name);
 		if (id == null || BuiltInRegistries.BLOCK.getOptional(id).isEmpty()) {
 			throw new IllegalArgumentException("Invalid or unknown block ID: " + name);
 		}

@@ -10,7 +10,7 @@ package vazkii.botania.common.crafting.recipe;
 
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -26,7 +26,7 @@ import vazkii.botania.api.mana.BasicLensItem;
 public class SplitLensRecipe extends CustomRecipe {
 	public static final NoOpRecipeSerializer<SplitLensRecipe> SERIALIZER = new NoOpRecipeSerializer<>(SplitLensRecipe::new);
 
-	public SplitLensRecipe(ResourceLocation id) {
+	public SplitLensRecipe(Identifier id) {
 		super(id, CraftingBookCategory.REDSTONE);
 	}
 

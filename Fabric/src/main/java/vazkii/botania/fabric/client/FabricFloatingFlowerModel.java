@@ -22,7 +22,7 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockAndTintGetter;
@@ -55,12 +55,12 @@ public class FabricFloatingFlowerModel extends BlockModel {
 
 	@NotNull
 	@Override
-	public Collection<ResourceLocation> getDependencies() {
+	public Collection<Identifier> getDependencies() {
 		return Collections.emptyList();
 	}
 
 	@Override
-	public void resolveParents(@NotNull Function<ResourceLocation, UnbakedModel> modelGetter) {
+	public void resolveParents(@NotNull Function<Identifier, UnbakedModel> modelGetter) {
 		this.unbakedFlower.resolveParents(modelGetter);
 		for (var e : BotaniaAPIClient.instance().getRegisteredIslandTypeModels().entrySet()) {
 			UnbakedModel islandModel = modelGetter.apply(e.getValue());
@@ -72,7 +72,7 @@ public class FabricFloatingFlowerModel extends BlockModel {
 	@NotNull
 	@Override
 	public BakedModel bake(ModelBaker baker, BlockModel model, Function<Material, TextureAtlasSprite> spriteGetter,
-			ModelState transform, ResourceLocation location, boolean guiLight3d) {
+			ModelState transform, Identifier location, boolean guiLight3d) {
 		final Transformation moveFlower = new Transformation(new Vector3f(0F, 0.2F, 0F), null, new Vector3f(0.5F, 0.5F, 0.5F), null);
 		Transformation mul = moveFlower.compose(transform.getRotation());
 		ModelState newTransform = new ModelState() {

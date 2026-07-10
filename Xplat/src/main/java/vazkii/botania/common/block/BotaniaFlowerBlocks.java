@@ -9,7 +9,7 @@
 package vazkii.botania.common.block;
 
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.item.Item;
@@ -294,19 +294,19 @@ public class BotaniaFlowerBlocks {
 	public static final BlockEntityType<SolegnoliaBlockEntity.Mini> SOLEGNOLIA_CHIBI = XplatAbstractions.INSTANCE.createBlockEntityType(SolegnoliaBlockEntity.Mini::new, solegnoliaChibi, solegnoliaChibiFloating);
 	public static final BlockEntityType<OrechidIgnemBlockEntity> ORECHID_IGNEM = XplatAbstractions.INSTANCE.createBlockEntityType(OrechidIgnemBlockEntity::new, orechidIgnem, orechidIgnemFloating);
 
-	private static ResourceLocation floating(ResourceLocation orig) {
-		return new ResourceLocation(orig.getNamespace(), "floating_" + orig.getPath());
+	private static Identifier floating(Identifier orig) {
+		return new Identifier(orig.getNamespace(), "floating_" + orig.getPath());
 	}
 
-	private static ResourceLocation potted(ResourceLocation orig) {
-		return new ResourceLocation(orig.getNamespace(), "potted_" + orig.getPath());
+	private static Identifier potted(Identifier orig) {
+		return new Identifier(orig.getNamespace(), "potted_" + orig.getPath());
 	}
 
-	private static ResourceLocation chibi(ResourceLocation orig) {
-		return new ResourceLocation(orig.getNamespace(), orig.getPath() + "_chibi");
+	private static Identifier chibi(Identifier orig) {
+		return new Identifier(orig.getNamespace(), orig.getPath() + "_chibi");
 	}
 
-	private static ResourceLocation getId(Block b) {
+	private static Identifier getId(Block b) {
 		return BuiltInRegistries.BLOCK.getKey(b);
 	}
 
@@ -328,7 +328,7 @@ public class BotaniaFlowerBlocks {
 		);
 	}
 
-	public static void registerBlocks(BiConsumer<Block, ResourceLocation> r) {
+	public static void registerBlocks(BiConsumer<Block, Identifier> r) {
 		r.accept(pureDaisy, LibBlockNames.SUBTILE_PUREDAISY);
 		r.accept(pureDaisyFloating, floating(LibBlockNames.SUBTILE_PUREDAISY));
 		r.accept(pureDaisyPotted, potted(LibBlockNames.SUBTILE_PUREDAISY));
@@ -528,7 +528,7 @@ public class BotaniaFlowerBlocks {
 		r.accept(labelliaPotted, potted(LibBlockNames.SUBTILE_LABELLIA));
 	}
 
-	public static void registerItemBlocks(BiConsumer<Item, ResourceLocation> r) {
+	public static void registerItemBlocks(BiConsumer<Item, Identifier> r) {
 		Item.Properties props = BotaniaItems.defaultBuilder();
 
 		r.accept(new SpecialFlowerBlockItem(pureDaisy, props), getId(pureDaisy));
@@ -678,7 +678,7 @@ public class BotaniaFlowerBlocks {
 		r.accept(new SpecialFlowerBlockItem(labelliaFloating, props), getId(labelliaFloating));
 	}
 
-	public static void registerTEs(BiConsumer<BlockEntityType<?>, ResourceLocation> r) {
+	public static void registerTEs(BiConsumer<BlockEntityType<?>, Identifier> r) {
 		r.accept(PURE_DAISY, getId(pureDaisy));
 		r.accept(MANASTAR, getId(manastar));
 		r.accept(HYDROANGEAS, getId(hydroangeas));
@@ -752,11 +752,11 @@ public class BotaniaFlowerBlocks {
 				ORECHID_IGNEM, LABELLIA);
 	}
 
-	public static void registerFlowerPotPlants(BiConsumer<ResourceLocation, Supplier<? extends Block>> consumer) {
-		registerBlocks((block, resourceLocation) -> {
+	public static void registerFlowerPotPlants(BiConsumer<Identifier, Supplier<? extends Block>> consumer) {
+		registerBlocks((block, Identifier) -> {
 			if (block instanceof FlowerPotBlock) {
 				var id = getId(block);
-				consumer.accept(new ResourceLocation(id.getNamespace(), id.getPath().substring(LibBlockNames.POTTED_PREFIX.length())), () -> block);
+				consumer.accept(new Identifier(id.getNamespace(), id.getPath().substring(LibBlockNames.POTTED_PREFIX.length())), () -> block);
 			}
 		});
 	}

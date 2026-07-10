@@ -11,7 +11,7 @@ package vazkii.botania.data.recipes;
 import com.google.gson.JsonObject;
 
 import net.minecraft.data.recipes.FinishedRecipe;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 
 import org.jetbrains.annotations.Nullable;
@@ -40,7 +40,7 @@ public class GogAlternationResult implements FinishedRecipe {
 
 	// Take these from the base recipe
 	@Override
-	public ResourceLocation getId() {
+	public Identifier getId() {
 		return baseRecipe.getId();
 	}
 
@@ -52,7 +52,7 @@ public class GogAlternationResult implements FinishedRecipe {
 
 	@Nullable
 	@Override
-	public ResourceLocation getAdvancementId() {
+	public Identifier getAdvancementId() {
 		return baseRecipe.getAdvancementId();
 	}
 }

@@ -12,7 +12,7 @@ import com.google.gson.JsonObject;
 
 import net.minecraft.advancements.critereon.*;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 
@@ -21,14 +21,14 @@ import org.jetbrains.annotations.NotNull;
 import static vazkii.botania.common.lib.ResourceLocationHelper.prefix;
 
 public class CorporeaRequestTrigger extends SimpleCriterionTrigger<CorporeaRequestTrigger.Instance> {
-	public static final ResourceLocation ID = prefix("corporea_index_request");
+	public static final Identifier ID = prefix("corporea_index_request");
 	public static final CorporeaRequestTrigger INSTANCE = new CorporeaRequestTrigger();
 
 	private CorporeaRequestTrigger() {}
 
 	@NotNull
 	@Override
-	public ResourceLocation getId() {
+	public Identifier getId() {
 		return ID;
 	}
 
@@ -54,7 +54,7 @@ public class CorporeaRequestTrigger extends SimpleCriterionTrigger<CorporeaReque
 
 		@NotNull
 		@Override
-		public ResourceLocation getCriterion() {
+		public Identifier getCriterion() {
 			return ID;
 		}
 

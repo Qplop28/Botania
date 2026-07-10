@@ -12,7 +12,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 import net.minecraft.data.PackOutput;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -66,16 +66,16 @@ public class BrewProvider extends BotaniaRecipeProvider {
 		consumer.accept(new FinishedRecipe(idFor("clear"), BotaniaBrews.clear, Ingredient.of(Items.NETHER_WART), Ingredient.of(Items.QUARTZ), Ingredient.of(Items.EMERALD), Ingredient.of(Items.MELON_SLICE)));
 	}
 
-	private static ResourceLocation idFor(String s) {
+	private static Identifier idFor(String s) {
 		return prefix("brew/" + s);
 	}
 
 	protected static class FinishedRecipe implements net.minecraft.data.recipes.FinishedRecipe {
-		private final ResourceLocation id;
+		private final Identifier id;
 		private final Brew brew;
 		private final Ingredient[] inputs;
 
-		private FinishedRecipe(ResourceLocation id, Brew brew, Ingredient... inputs) {
+		private FinishedRecipe(Identifier id, Brew brew, Ingredient... inputs) {
 			this.id = id;
 			this.brew = brew;
 			this.inputs = inputs;
@@ -92,7 +92,7 @@ public class BrewProvider extends BotaniaRecipeProvider {
 		}
 
 		@Override
-		public ResourceLocation getId() {
+		public Identifier getId() {
 			return id;
 		}
 
@@ -109,7 +109,7 @@ public class BrewProvider extends BotaniaRecipeProvider {
 
 		@Nullable
 		@Override
-		public ResourceLocation getAdvancementId() {
+		public Identifier getAdvancementId() {
 			return null;
 		}
 	}

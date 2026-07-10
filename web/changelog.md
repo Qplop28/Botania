@@ -5506,7 +5506,7 @@ in the Minecraft 1.8-1.10 era.
 * [API] Added IGuiLexiconEntry sensitive updateScreen(), onOpened(), onClosed() and onActionPerformed() to LexiconPage. Buttons in lexicon pages can now be done as well as other things.
 * [API] Fixed any instances of "tile." returned by SubTileSignature.getUnlocalizedNameForStack() being replaced with "tile.botania:".
 * [API] Fixed SubTileSignature.getUnlocalizedLoreTextForStack() not having any effect.
-* [API] LexiconCategory now has a ResourceLocation with the icon to be rendered on the main page.
+* [API] LexiconCategory now has a Identifier with the icon to be rendered on the main page.
 * [API] Increased version number to 19.
 
 ---

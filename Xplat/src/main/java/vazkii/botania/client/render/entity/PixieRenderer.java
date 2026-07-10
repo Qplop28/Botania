@@ -14,7 +14,7 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -43,9 +43,9 @@ public class PixieRenderer extends MobRenderer<PixieEntity, PixieModel> {
 
 	@NotNull
 	@Override
-	public ResourceLocation getTextureLocation(@NotNull PixieEntity entity) {
+	public Identifier getTextureLocation(@NotNull PixieEntity entity) {
 		return ClientProxy.dootDoot
-				? new ResourceLocation(ResourcesLib.MODEL_PIXIE_HALLOWEEN)
-				: new ResourceLocation(ResourcesLib.MODEL_PIXIE);
+				? new Identifier(ResourcesLib.MODEL_PIXIE_HALLOWEEN)
+				: new Identifier(ResourcesLib.MODEL_PIXIE);
 	}
 }

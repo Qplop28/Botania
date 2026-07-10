@@ -9,7 +9,7 @@
 package vazkii.botania.common.crafting.recipe;
 
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
@@ -25,7 +25,7 @@ import vazkii.botania.common.item.AncientWillItem;
 public class AncientWillRecipe extends CustomRecipe {
 	public static final NoOpRecipeSerializer<AncientWillRecipe> SERIALIZER = new NoOpRecipeSerializer<>(AncientWillRecipe::new);
 
-	public AncientWillRecipe(ResourceLocation id) {
+	public AncientWillRecipe(Identifier id) {
 		super(id, CraftingBookCategory.EQUIPMENT);
 	}
 

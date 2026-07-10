@@ -11,7 +11,7 @@ package vazkii.botania.common.entity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ItemParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
@@ -48,7 +48,7 @@ import static vazkii.botania.common.lib.ResourceLocationHelper.prefix;
 
 public class EnderAirBottleEntity extends ThrowableProjectile implements ItemSupplier {
 	public static final int PARTICLE_COLOR = 0x000008;
-	private static final ResourceLocation GHAST_LOOT_TABLE = prefix("ghast_ender_air_crying");
+	private static final Identifier GHAST_LOOT_TABLE = prefix("ghast_ender_air_crying");
 
 	public EnderAirBottleEntity(EntityType<EnderAirBottleEntity> type, Level world) {
 		super(type, world);

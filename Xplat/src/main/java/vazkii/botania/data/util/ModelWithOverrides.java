@@ -16,7 +16,7 @@ import com.google.gson.JsonObject;
 
 import net.minecraft.data.models.model.TextureMapping;
 import net.minecraft.data.models.model.TextureSlot;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -27,16 +27,16 @@ import java.util.function.Supplier;
  * Copy of {@link net.minecraft.data.models.model.ModelTemplate} with support for generating item predicate overrides.
  */
 public class ModelWithOverrides {
-	private final ResourceLocation parent;
+	private final Identifier parent;
 	private final TextureSlot[] requiredTextures;
 
-	public ModelWithOverrides(ResourceLocation parent, TextureSlot... requiredTextures) {
+	public ModelWithOverrides(Identifier parent, TextureSlot... requiredTextures) {
 		this.parent = parent;
 		this.requiredTextures = requiredTextures;
 	}
 
-	public void create(ResourceLocation modelId, TextureMapping textures, OverrideHolder overrides, BiConsumer<ResourceLocation, Supplier<JsonElement>> consumer) {
-		Map<TextureSlot, ResourceLocation> textureMap = Streams.concat(Arrays.stream(this.requiredTextures), textures.getForced())
+	public void create(Identifier modelId, TextureMapping textures, OverrideHolder overrides, BiConsumer<Identifier, Supplier<JsonElement>> consumer) {
+		Map<TextureSlot, Identifier> textureMap = Streams.concat(Arrays.stream(this.requiredTextures), textures.getForced())
 				.collect(ImmutableMap.toImmutableMap(Function.identity(), textures::get));
 		consumer.accept(modelId, () -> {
 			JsonObject ret = new JsonObject();

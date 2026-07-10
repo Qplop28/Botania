@@ -12,7 +12,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.tags.IntrinsicHolderTagsProvider;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EntityType;
 
@@ -35,11 +35,11 @@ public class EntityTagProvider extends IntrinsicHolderTagsProvider<EntityType<?>
 				.add(EntityType.HORSE, EntityType.DONKEY, EntityType.WOLF, EntityType.OCELOT,
 						EntityType.CAT, EntityType.PARROT, EntityType.LLAMA, EntityType.FOX,
 						EntityType.PANDA, EntityType.TURTLE, EntityType.GOAT, EntityType.CAMEL)
-				.addOptional(new ResourceLocation("quark", "frog"));
+				.addOptional(new Identifier("quark", "frog"));
 
 		tag(BotaniaTags.Entities.COCOON_COMMON_AQUATIC)
 				.add(EntityType.COD, EntityType.SALMON, EntityType.TROPICAL_FISH, EntityType.PUFFERFISH, EntityType.SQUID, EntityType.FROG)
-				.addOptional(new ResourceLocation("quark", "crab"));
+				.addOptional(new Identifier("quark", "crab"));
 		tag(BotaniaTags.Entities.COCOON_RARE_AQUATIC).add(EntityType.DOLPHIN, EntityType.GLOW_SQUID, EntityType.AXOLOTL);
 
 		tag(BotaniaTags.Entities.DRUM_MILKABLE).add(EntityType.COW, EntityType.MOOSHROOM, EntityType.GOAT);
@@ -54,7 +54,7 @@ public class EntityTagProvider extends IntrinsicHolderTagsProvider<EntityType<?>
 
 		tag(BotaniaTags.Entities.KEY_IMMUNE).add(EntityType.ITEM, EntityType.ITEM_FRAME, EntityType.PAINTING, EntityType.EXPERIENCE_ORB);
 
-		var bosses = TagKey.create(Registries.ENTITY_TYPE, new ResourceLocation("c", "bosses"));
+		var bosses = TagKey.create(Registries.ENTITY_TYPE, new Identifier("c", "bosses"));
 		tag(bosses).add(BotaniaEntities.DOPPLEGANGER);
 	}
 }

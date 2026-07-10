@@ -14,7 +14,7 @@ import net.minecraft.core.dispenser.DispenseItemBehavior;
 import net.minecraft.core.dispenser.OptionalDispenseItemBehavior;
 import net.minecraft.core.dispenser.ShearsDispenseItemBehavior;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.projectile.Projectile;
@@ -677,7 +677,7 @@ public final class BotaniaBlocks {
 		return new FlowerPotBlock(block, lightLevel > 0 ? properties.lightLevel(blockState -> lightLevel) : properties);
 	}
 
-	public static void registerBlocks(BiConsumer<Block, ResourceLocation> r) {
+	public static void registerBlocks(BiConsumer<Block, Identifier> r) {
 		// triples of: block getter from dye color, block ID prefix, block ID suffix
 		Stream.<Triple<Function<DyeColor, Block>, String, String>>of(
 				Triple.of(BotaniaBlocks::getFlower, "", LibBlockNames.MYSTICAL_FLOWER_SUFFIX),
@@ -1087,7 +1087,7 @@ public final class BotaniaBlocks {
 		r.accept(bifrostPane, prefix(LibBlockNames.BIFROST + "_pane"));
 	}
 
-	public static void registerItemBlocks(BiConsumer<Item, ResourceLocation> r) {
+	public static void registerItemBlocks(BiConsumer<Item, Identifier> r) {
 		Item.Properties props = BotaniaItems.defaultBuilder();
 		Stream.<Function<DyeColor, Block>>of(
 				BotaniaBlocks::getFlower,
@@ -1774,7 +1774,7 @@ public final class BotaniaBlocks {
 		};
 	}
 
-	public static void registerFlowerPotPlants(BiConsumer<ResourceLocation, Supplier<? extends Block>> consumer) {
+	public static void registerFlowerPotPlants(BiConsumer<Identifier, Supplier<? extends Block>> consumer) {
 		ColorHelper.supportedColors().forEach(dyeColor -> {
 			consumer.accept(prefix(dyeColor.getName() + MYSTICAL_FLOWER_SUFFIX), () -> getPottedFlower(dyeColor));
 			consumer.accept(prefix(dyeColor.getName() + SHINY_FLOWER_SUFFIX), () -> getPottedShinyFlower(dyeColor));

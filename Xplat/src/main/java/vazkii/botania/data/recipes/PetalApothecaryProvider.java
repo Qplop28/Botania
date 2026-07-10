@@ -14,7 +14,7 @@ import com.google.gson.JsonObject;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.PackOutput;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -157,17 +157,17 @@ public class PetalApothecaryProvider extends BotaniaRecipeProvider {
 				new ItemStack(item), DEFAULT_REAGENT, ingredients);
 	}
 
-	protected static ResourceLocation idFor(ResourceLocation name) {
-		return new ResourceLocation(name.getNamespace(), "petal_apothecary/" + name.getPath());
+	protected static Identifier idFor(Identifier name) {
+		return new Identifier(name.getNamespace(), "petal_apothecary/" + name.getPath());
 	}
 
 	protected static class FinishedRecipe implements net.minecraft.data.recipes.FinishedRecipe {
-		private final ResourceLocation id;
+		private final Identifier id;
 		private final ItemStack output;
 		private final Ingredient reagent;
 		private final Ingredient[] inputs;
 
-		private FinishedRecipe(ResourceLocation id, ItemStack output, Ingredient reagent, Ingredient... inputs) {
+		private FinishedRecipe(Identifier id, ItemStack output, Ingredient reagent, Ingredient... inputs) {
 			this.id = id;
 			this.output = output;
 			this.reagent = reagent;
@@ -186,7 +186,7 @@ public class PetalApothecaryProvider extends BotaniaRecipeProvider {
 		}
 
 		@Override
-		public ResourceLocation getId() {
+		public Identifier getId() {
 			return id;
 		}
 
@@ -203,7 +203,7 @@ public class PetalApothecaryProvider extends BotaniaRecipeProvider {
 
 		@Nullable
 		@Override
-		public ResourceLocation getAdvancementId() {
+		public Identifier getAdvancementId() {
 			return null;
 		}
 	}

@@ -12,7 +12,7 @@ import com.google.common.collect.ImmutableList;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
@@ -44,7 +44,7 @@ public class ManaInfusionProcessor implements IComponentProcessor {
 			builder.addAll(PatchouliUtils.getRecipeGroup(BotaniaRecipeTypes.MANA_INFUSION_TYPE, group));
 		} else {
 			for (IVariable s : variables.get("recipes").asListOrSingleton()) {
-				ManaInfusionRecipe recipe = PatchouliUtils.getRecipe(level, BotaniaRecipeTypes.MANA_INFUSION_TYPE, new ResourceLocation(s.asString()));
+				ManaInfusionRecipe recipe = PatchouliUtils.getRecipe(level, BotaniaRecipeTypes.MANA_INFUSION_TYPE, new Identifier(s.asString()));
 				if (recipe != null) {
 					builder.add(recipe);
 				}

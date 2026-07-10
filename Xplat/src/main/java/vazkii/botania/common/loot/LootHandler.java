@@ -8,7 +8,7 @@
  */
 package vazkii.botania.common.loot;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.storage.loot.LootPool;
 import net.minecraft.world.level.storage.loot.entries.LootPoolEntryContainer;
@@ -24,9 +24,9 @@ import java.util.function.Consumer;
 import static vazkii.botania.common.lib.ResourceLocationHelper.prefix;
 
 public final class LootHandler {
-	public static final ResourceLocation GOG_SEEDS_TABLE = new ResourceLocation(BotaniaAPI.GOG_MODID, "extra_seeds");
+	public static final Identifier GOG_SEEDS_TABLE = new Identifier(BotaniaAPI.GOG_MODID, "extra_seeds");
 
-	public static void lootLoad(ResourceLocation id, Consumer<LootPool.Builder> addPool) {
+	public static void lootLoad(Identifier id, Consumer<LootPool.Builder> addPool) {
 		String prefix = "minecraft:chests/";
 		String name = id.toString();
 
@@ -65,7 +65,7 @@ public final class LootHandler {
 	}
 
 	private static LootPoolEntryContainer.Builder<?> getInjectEntry(String name, int weight) {
-		ResourceLocation table = prefix("inject/" + name);
+		Identifier table = prefix("inject/" + name);
 		return LootTableReference.lootTableReference(table)
 				.setWeight(weight);
 	}

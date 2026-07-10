@@ -12,7 +12,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 import net.minecraft.data.PackOutput;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
@@ -45,17 +45,17 @@ public class TerrestrialAgglomerationProvider extends BotaniaRecipeProvider {
 				Ingredient.of(BotaniaItems.manaPearl), Ingredient.of(BotaniaItems.manaDiamond)));
 	}
 
-	private static ResourceLocation idFor(String s) {
+	private static Identifier idFor(String s) {
 		return prefix("terra_plate/" + s);
 	}
 
 	protected static class FinishedRecipe implements net.minecraft.data.recipes.FinishedRecipe {
-		private final ResourceLocation id;
+		private final Identifier id;
 		private final int mana;
 		private final ItemStack output;
 		private final Ingredient[] inputs;
 
-		public FinishedRecipe(ResourceLocation id, int mana, ItemStack output, Ingredient... inputs) {
+		public FinishedRecipe(Identifier id, int mana, ItemStack output, Ingredient... inputs) {
 			this.id = id;
 			this.mana = mana;
 			this.output = output;
@@ -74,7 +74,7 @@ public class TerrestrialAgglomerationProvider extends BotaniaRecipeProvider {
 		}
 
 		@Override
-		public ResourceLocation getId() {
+		public Identifier getId() {
 			return id;
 		}
 
@@ -91,7 +91,7 @@ public class TerrestrialAgglomerationProvider extends BotaniaRecipeProvider {
 
 		@Nullable
 		@Override
-		public ResourceLocation getAdvancementId() {
+		public Identifier getAdvancementId() {
 			return null;
 		}
 	}

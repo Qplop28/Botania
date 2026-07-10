@@ -19,7 +19,7 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.FluidTags;
@@ -60,8 +60,8 @@ import java.util.List;
 
 public class FlugelTiaraItem extends BaubleItem implements CustomCreativeTabContents {
 
-	private static final ResourceLocation textureHud = new ResourceLocation(ResourcesLib.GUI_HUD_ICONS);
-	public static final ResourceLocation textureHalo = new ResourceLocation(ResourcesLib.MISC_HALO);
+	private static final Identifier textureHud = new Identifier(ResourcesLib.GUI_HUD_ICONS);
+	public static final Identifier textureHalo = new Identifier(ResourcesLib.MISC_HALO);
 
 	private static final String TAG_VARIANT = "variant";
 	private static final String TAG_FLYING = "flying";

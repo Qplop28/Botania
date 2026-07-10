@@ -12,7 +12,7 @@ import com.google.gson.JsonObject;
 
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.PackOutput;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.DyeItem;
 import net.minecraft.world.item.Item;
@@ -200,7 +200,7 @@ public class ManaInfusionProvider extends BotaniaRecipeProvider {
 		return FinishedRecipe.alchemy(id(id), new ItemStack(items, 4), ingr(block), 25, "botania:block_deconstruction");
 	}
 
-	protected ResourceLocation id(String s) {
+	protected Identifier id(String s) {
 		return prefix("mana_infusion/" + s);
 	}
 
@@ -212,7 +212,7 @@ public class ManaInfusionProvider extends BotaniaRecipeProvider {
 		private static final StateIngredient CONJURATION = StateIngredientHelper.of(BotaniaBlocks.conjurationCatalyst);
 		private static final StateIngredient ALCHEMY = StateIngredientHelper.of(BotaniaBlocks.alchemyCatalyst);
 
-		private final ResourceLocation id;
+		private final Identifier id;
 		private final Ingredient input;
 		private final ItemStack output;
 		private final int mana;
@@ -220,27 +220,27 @@ public class ManaInfusionProvider extends BotaniaRecipeProvider {
 		@Nullable
 		private final StateIngredient catalyst;
 
-		public static FinishedRecipe conjuration(ResourceLocation id, ItemStack output, Ingredient input, int mana) {
+		public static FinishedRecipe conjuration(Identifier id, ItemStack output, Ingredient input, int mana) {
 			return new FinishedRecipe(id, output, input, mana, "", CONJURATION);
 		}
 
-		public static FinishedRecipe alchemy(ResourceLocation id, ItemStack output, Ingredient input, int mana) {
+		public static FinishedRecipe alchemy(Identifier id, ItemStack output, Ingredient input, int mana) {
 			return alchemy(id, output, input, mana, "");
 		}
 
-		public static FinishedRecipe alchemy(ResourceLocation id, ItemStack output, Ingredient input, int mana, String group) {
+		public static FinishedRecipe alchemy(Identifier id, ItemStack output, Ingredient input, int mana, String group) {
 			return new FinishedRecipe(id, output, input, mana, group, ALCHEMY);
 		}
 
-		public FinishedRecipe(ResourceLocation id, ItemStack output, Ingredient input, int mana) {
+		public FinishedRecipe(Identifier id, ItemStack output, Ingredient input, int mana) {
 			this(id, output, input, mana, "");
 		}
 
-		public FinishedRecipe(ResourceLocation id, ItemStack output, Ingredient input, int mana, String group) {
+		public FinishedRecipe(Identifier id, ItemStack output, Ingredient input, int mana, String group) {
 			this(id, output, input, mana, group, null);
 		}
 
-		public FinishedRecipe(ResourceLocation id, ItemStack output, Ingredient input, int mana, String group, @Nullable StateIngredient catalyst) {
+		public FinishedRecipe(Identifier id, ItemStack output, Ingredient input, int mana, String group, @Nullable StateIngredient catalyst) {
 			this.id = id;
 			this.input = input;
 			this.output = output;
@@ -263,7 +263,7 @@ public class ManaInfusionProvider extends BotaniaRecipeProvider {
 		}
 
 		@Override
-		public ResourceLocation getId() {
+		public Identifier getId() {
 			return id;
 		}
 
@@ -280,7 +280,7 @@ public class ManaInfusionProvider extends BotaniaRecipeProvider {
 
 		@Nullable
 		@Override
-		public ResourceLocation getAdvancementId() {
+		public Identifier getAdvancementId() {
 			return null;
 		}
 	}

@@ -10,7 +10,7 @@ package vazkii.botania.common.block;
 
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.entity.BannerPattern;
 
 import vazkii.botania.common.lib.LibMisc;
@@ -46,9 +46,9 @@ public final class BotaniaBannerPatterns {
 		return ResourceKey.create(Registries.BANNER_PATTERN, prefix(hashName));
 	}
 
-	public static void submitRegistrations(BiConsumer<BannerPattern, ResourceLocation> consumer) {
+	public static void submitRegistrations(BiConsumer<BannerPattern, Identifier> consumer) {
 		for (var pattern : ALL) {
-			consumer.accept(pattern, new ResourceLocation(pattern.getHashname()));
+			consumer.accept(pattern, new Identifier(pattern.getHashname()));
 		}
 	}
 }

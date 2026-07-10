@@ -15,7 +15,7 @@ import com.google.gson.JsonParseException;
 
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
@@ -36,11 +36,11 @@ import java.util.Iterator;
 import java.util.List;
 
 public class BotanicalBreweryRecipe implements vazkii.botania.api.recipe.BotanicalBreweryRecipe {
-	private final ResourceLocation id;
+	private final Identifier id;
 	private final Brew brew;
 	private final NonNullList<Ingredient> inputs;
 
-	public BotanicalBreweryRecipe(ResourceLocation id, Brew brew, Ingredient... inputs) {
+	public BotanicalBreweryRecipe(Identifier id, Brew brew, Ingredient... inputs) {
 		this.id = id;
 		this.brew = brew;
 		this.inputs = NonNullList.of(Ingredient.EMPTY, inputs);
@@ -94,7 +94,7 @@ public class BotanicalBreweryRecipe implements vazkii.botania.api.recipe.Botanic
 
 	@NotNull
 	@Override
-	public ResourceLocation getId() {
+	public Identifier getId() {
 		return id;
 	}
 
@@ -138,9 +138,9 @@ public class BotanicalBreweryRecipe implements vazkii.botania.api.recipe.Botanic
 	public static class Serializer implements RecipeSerializer<BotanicalBreweryRecipe> {
 		@NotNull
 		@Override
-		public BotanicalBreweryRecipe fromJson(@NotNull ResourceLocation id, @NotNull JsonObject json) {
+		public BotanicalBreweryRecipe fromJson(@NotNull Identifier id, @NotNull JsonObject json) {
 			String brewStr = GsonHelper.getAsString(json, "brew");
-			ResourceLocation brewId = ResourceLocation.tryParse(brewStr);
+			Identifier brewId = Identifier.tryParse(brewStr);
 			Brew brew = BotaniaAPI.instance().getBrewRegistry().getOptional(brewId).orElseThrow(() -> new JsonParseException("Unknown brew " + brewStr));
 
 			JsonArray ingrs = GsonHelper.getAsJsonArray(json, "ingredients");
@@ -152,7 +152,7 @@ public class BotanicalBreweryRecipe implements vazkii.botania.api.recipe.Botanic
 		}
 
 		@Override
-		public BotanicalBreweryRecipe fromNetwork(@NotNull ResourceLocation id, @NotNull FriendlyByteBuf buf) {
+		public BotanicalBreweryRecipe fromNetwork(@NotNull Identifier id, @NotNull FriendlyByteBuf buf) {
 			var brewId = buf.readResourceLocation();
 			Brew brew = BotaniaAPI.instance().getBrewRegistry().get(brewId);
 			Ingredient[] inputs = new Ingredient[buf.readVarInt()];

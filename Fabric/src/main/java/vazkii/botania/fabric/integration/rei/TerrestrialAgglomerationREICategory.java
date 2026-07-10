@@ -21,7 +21,7 @@ import me.shedaniel.rei.api.common.entry.EntryStack;
 import me.shedaniel.rei.api.common.util.EntryStacks;
 
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 import org.jetbrains.annotations.NotNull;
@@ -35,7 +35,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TerrestrialAgglomerationREICategory implements DisplayCategory<TerrestrialAgglomerationREIDisplay> {
-	private static final ResourceLocation OVERLAY = ResourceLocationHelper.prefix("textures/gui/terrasteel_jei_overlay.png");
+	private static final Identifier OVERLAY = ResourceLocationHelper.prefix("textures/gui/terrasteel_jei_overlay.png");
 	private final EntryStack<ItemStack> icon = EntryStacks.of(BotaniaBlocks.terraPlate);
 
 	@Override

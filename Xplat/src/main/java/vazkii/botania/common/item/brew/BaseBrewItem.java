@@ -14,7 +14,7 @@ import com.mojang.datafixers.util.Pair;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
@@ -195,11 +195,11 @@ public class BaseBrewItem extends Item implements BrewItem, CustomCreativeTabCon
 	@Override
 	public Brew getBrew(ItemStack stack) {
 		String key = ItemNBTHelper.getString(stack, TAG_BREW_KEY, "");
-		return BotaniaAPI.instance().getBrewRegistry().get(ResourceLocation.tryParse(key));
+		return BotaniaAPI.instance().getBrewRegistry().get(Identifier.tryParse(key));
 	}
 
 	public static void setBrew(ItemStack stack, @Nullable Brew brew) {
-		ResourceLocation id;
+		Identifier id;
 		if (brew != null) {
 			id = BotaniaAPI.instance().getBrewRegistry().getKey(brew);
 		} else {
@@ -208,7 +208,7 @@ public class BaseBrewItem extends Item implements BrewItem, CustomCreativeTabCon
 		setBrew(stack, id);
 	}
 
-	public static void setBrew(ItemStack stack, ResourceLocation brew) {
+	public static void setBrew(ItemStack stack, Identifier brew) {
 		ItemNBTHelper.setString(stack, TAG_BREW_KEY, brew.toString());
 	}
 

@@ -19,7 +19,7 @@ import net.minecraft.client.model.geom.builders.CubeListBuilder;
 import net.minecraft.client.model.geom.builders.MeshDefinition;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -31,7 +31,7 @@ import vazkii.botania.common.block.block_entity.BreweryBlockEntity;
 import vazkii.botania.common.helper.VecHelper;
 
 public class BotanicalBreweryModel extends Model {
-	private static final ResourceLocation TEXTURE = new ResourceLocation(ResourcesLib.MODEL_BREWERY);
+	private static final Identifier TEXTURE = new Identifier(ResourcesLib.MODEL_BREWERY);
 	final ModelPart top;
 	final ModelPart pole;
 	final ModelPart bottom;

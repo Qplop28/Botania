@@ -11,7 +11,7 @@ package vazkii.botania.client.core.handler;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.Level;
 
 import vazkii.botania.common.handler.ManaNetworkHandler;
@@ -37,7 +37,7 @@ public final class DebugHandler {
 
 			if (Minecraft.getInstance().hasSingleplayerServer()) {
 				ResourceKey<Level> dim = world.dimension();
-				ResourceLocation dimName = dim.location();
+				Identifier dimName = dim.location();
 				if (mc.getSingleplayerServer() != null) {
 					Level serverWorld = mc.getSingleplayerServer().getLevel(dim);
 					left.add(PREFIX + String.format("(INTEGRATED SERVER %s) netColl : %d, netPool: %d", dimName, ManaNetworkHandler.instance.getAllCollectorsInWorld(serverWorld).size(), ManaNetworkHandler.instance.getAllPoolsInWorld(serverWorld).size()));

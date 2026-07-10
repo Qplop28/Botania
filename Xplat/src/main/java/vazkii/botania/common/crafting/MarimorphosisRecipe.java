@@ -15,7 +15,7 @@ import net.minecraft.commands.CommandFunction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.item.crafting.RecipeSerializer;
@@ -31,7 +31,7 @@ public class MarimorphosisRecipe extends OrechidRecipe {
 	private final int weightBonus;
 	private final TagKey<Biome> biomes;
 
-	public MarimorphosisRecipe(ResourceLocation id, StateIngredient input, StateIngredient output, int weight,
+	public MarimorphosisRecipe(Identifier id, StateIngredient input, StateIngredient output, int weight,
 			CommandFunction.CacheableFunction successFunction,
 			int weightBonus, TagKey<Biome> biomes) {
 		super(id, input, output, weight, successFunction);
@@ -60,11 +60,11 @@ public class MarimorphosisRecipe extends OrechidRecipe {
 
 	public static class Serializer implements RecipeSerializer<MarimorphosisRecipe> {
 		@Override
-		public MarimorphosisRecipe fromJson(@NotNull ResourceLocation recipeId, @NotNull JsonObject json) {
+		public MarimorphosisRecipe fromJson(@NotNull Identifier recipeId, @NotNull JsonObject json) {
 			OrechidRecipe base = BotaniaRecipeTypes.ORECHID_SERIALIZER.fromJson(recipeId, json);
 
 			var biomes = TagKey.create(Registries.BIOME,
-					new ResourceLocation(GsonHelper.getAsString(json, "biome_bonus_tag")));
+					new Identifier(GsonHelper.getAsString(json, "biome_bonus_tag")));
 			int weightBonus = GsonHelper.getAsInt(json, "biome_bonus", 0);
 			if (base.getWeight() + weightBonus <= 0) {
 				throw new JsonSyntaxException("Weight combined with bonus cannot be 0 or less");
@@ -75,7 +75,7 @@ public class MarimorphosisRecipe extends OrechidRecipe {
 		}
 
 		@Override
-		public MarimorphosisRecipe fromNetwork(@NotNull ResourceLocation recipeId, @NotNull FriendlyByteBuf buffer) {
+		public MarimorphosisRecipe fromNetwork(@NotNull Identifier recipeId, @NotNull FriendlyByteBuf buffer) {
 			OrechidRecipe base = BotaniaRecipeTypes.ORECHID_SERIALIZER.fromNetwork(recipeId, buffer);
 
 			TagKey<Biome> biomes = TagKey.create(Registries.BIOME, buffer.readResourceLocation());

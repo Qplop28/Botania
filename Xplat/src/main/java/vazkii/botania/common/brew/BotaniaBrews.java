@@ -8,7 +8,7 @@
  */
 package vazkii.botania.common.brew;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.item.alchemy.PotionUtils;
@@ -46,7 +46,7 @@ public class BotaniaBrews {
 	public static final Brew overload = new Brew(0x232323, 12000, new MobEffectInstance(MobEffects.DAMAGE_BOOST, 1800, 3), new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 1800, 2), new MobEffectInstance(MobEffects.WEAKNESS, 3600, 1), new MobEffectInstance(MobEffects.HUNGER, 200, 2));
 	public static final Brew clear = make(4000, new MobEffectInstance(BotaniaMobEffects.clear, 0, 0));
 
-	public static void submitRegistrations(BiConsumer<Brew, ResourceLocation> r) {
+	public static void submitRegistrations(BiConsumer<Brew, Identifier> r) {
 		r.accept(fallbackBrew, prefix("fallback"));
 		r.accept(speed, prefix(LibBrewNames.SPEED));
 		r.accept(strength, prefix(LibBrewNames.STRENGTH));

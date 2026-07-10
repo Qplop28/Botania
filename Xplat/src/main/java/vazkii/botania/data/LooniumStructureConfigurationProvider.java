@@ -11,7 +11,7 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -53,11 +53,11 @@ public class LooniumStructureConfigurationProvider implements DataProvider {
 	@NotNull
 	@Override
 	public CompletableFuture<?> run(@NotNull CachedOutput cache) {
-		Map<ResourceLocation, LooniumStructureConfiguration> configs = new HashMap<>();
+		Map<Identifier, LooniumStructureConfiguration> configs = new HashMap<>();
 		addConfigs(configs);
 
 		var output = new ArrayList<CompletableFuture<?>>(configs.size());
-		for (Map.Entry<ResourceLocation, LooniumStructureConfiguration> e : configs.entrySet()) {
+		for (Map.Entry<Identifier, LooniumStructureConfiguration> e : configs.entrySet()) {
 			Path path = pathProvider.json(e.getKey());
 			LooniumStructureConfiguration config = e.getValue();
 			JsonElement jsonTree = LooniumStructureConfiguration.CODEC.encodeStart(JsonOps.INSTANCE, config)
@@ -67,8 +67,8 @@ public class LooniumStructureConfigurationProvider implements DataProvider {
 		return CompletableFuture.allOf(output.toArray(CompletableFuture<?>[]::new));
 	}
 
-	private void addConfigs(Map<ResourceLocation, LooniumStructureConfiguration> configs) {
-		ResourceLocation defaultConfigId = LooniumStructureConfiguration.DEFAULT_CONFIG_ID;
+	private void addConfigs(Map<Identifier, LooniumStructureConfiguration> configs) {
+		Identifier defaultConfigId = LooniumStructureConfiguration.DEFAULT_CONFIG_ID;
 		configs.put(defaultConfigId, getDefaultConfig());
 
 		configs.put(BuiltinStructures.ANCIENT_CITY.location(), getConfigAncientCity(defaultConfigId));
@@ -79,7 +79,7 @@ public class LooniumStructureConfigurationProvider implements DataProvider {
 		configs.put(BuiltinStructures.JUNGLE_TEMPLE.location(), getConfigJungleTemple(defaultConfigId));
 		configs.put(BuiltinStructures.OCEAN_MONUMENT.location(), getConfigOceanMonument(defaultConfigId));
 
-		ResourceLocation oceanRuinId = prefix("ocean_ruins");
+		Identifier oceanRuinId = prefix("ocean_ruins");
 		configs.put(oceanRuinId,
 				LooniumStructureConfiguration.forParent(defaultConfigId)
 						.boundingBoxType(StructureSpawnOverride.BoundingBoxType.STRUCTURE).build()
@@ -103,7 +103,7 @@ public class LooniumStructureConfigurationProvider implements DataProvider {
 		configs.put(BuiltinStructures.STRONGHOLD.location(), getConfigStronghold(defaultConfigId));
 		configs.put(BuiltinStructures.TRAIL_RUINS.location(), getConfigTrailRuins(defaultConfigId));
 
-		ResourceLocation villageId = prefix("village");
+		Identifier villageId = prefix("village");
 		configs.put(villageId, LooniumStructureConfiguration.forParent(defaultConfigId)
 				.boundingBoxType(StructureSpawnOverride.BoundingBoxType.STRUCTURE).build()
 		);
@@ -149,7 +149,7 @@ public class LooniumStructureConfigurationProvider implements DataProvider {
 				.build();
 	}
 
-	public static LooniumStructureConfiguration getConfigAncientCity(ResourceLocation parentId) {
+	public static LooniumStructureConfiguration getConfigAncientCity(Identifier parentId) {
 		return LooniumStructureConfiguration.forParent(parentId).spawnedMobs(
 				LooniumMobSpawnData.entityWeight(EntityType.ENDERMAN, 30).build(),
 				getCreeperSpawnData(99, false, getCreeperEffects(false)),
@@ -169,7 +169,7 @@ public class LooniumStructureConfigurationProvider implements DataProvider {
 		).build();
 	}
 
-	public static LooniumStructureConfiguration getConfigBastionRemnant(ResourceLocation parentId) {
+	public static LooniumStructureConfiguration getConfigBastionRemnant(Identifier parentId) {
 		return LooniumStructureConfiguration.forParent(parentId).spawnedMobs(
 				LooniumMobSpawnData.entityWeight(EntityType.ENDERMAN, 30).build(),
 				getCreeperSpawnData(99, false, getCreeperEffects(false)),
@@ -188,7 +188,7 @@ public class LooniumStructureConfigurationProvider implements DataProvider {
 		).build();
 	}
 
-	public static LooniumStructureConfiguration getConfigDesertPyramid(ResourceLocation parentId) {
+	public static LooniumStructureConfiguration getConfigDesertPyramid(Identifier parentId) {
 		return LooniumStructureConfiguration.forParent(parentId).spawnedMobs(
 				LooniumMobSpawnData.entityWeight(EntityType.ENDERMAN, 50).build(),
 				getCreeperSpawnData(149, false, getCreeperEffects(false)),
@@ -204,7 +204,7 @@ public class LooniumStructureConfigurationProvider implements DataProvider {
 		).build();
 	}
 
-	public static LooniumStructureConfiguration getConfigEndCity(ResourceLocation parentId) {
+	public static LooniumStructureConfiguration getConfigEndCity(Identifier parentId) {
 		LooniumMobEffectToApply[] creeperEffects = {
 				LooniumMobEffectToApply.effect(MobEffects.FIRE_RESISTANCE).duration(100).build(),
 				LooniumMobEffectToApply.effect(MobEffects.REGENERATION).duration(100).build(),
@@ -228,7 +228,7 @@ public class LooniumStructureConfigurationProvider implements DataProvider {
 		).build();
 	}
 
-	public static LooniumStructureConfiguration getConfigFortress(ResourceLocation parentId) {
+	public static LooniumStructureConfiguration getConfigFortress(Identifier parentId) {
 		return LooniumStructureConfiguration.forParent(parentId).spawnedMobs(
 				LooniumMobSpawnData.entityWeight(EntityType.ENDERMAN, 30).build(),
 				getCreeperSpawnData(99, false, getCreeperEffects(false)),
@@ -246,7 +246,7 @@ public class LooniumStructureConfigurationProvider implements DataProvider {
 		).build();
 	}
 
-	public static LooniumStructureConfiguration getConfigJungleTemple(ResourceLocation parentId) {
+	public static LooniumStructureConfiguration getConfigJungleTemple(Identifier parentId) {
 		return LooniumStructureConfiguration.forParent(parentId).spawnedMobs(
 				LooniumMobSpawnData.entityWeight(EntityType.ENDERMAN, 30).build(),
 				getCreeperSpawnData(149, false, getCreeperEffects(false)),
@@ -262,7 +262,7 @@ public class LooniumStructureConfigurationProvider implements DataProvider {
 		).build();
 	}
 
-	public static LooniumStructureConfiguration getConfigOceanMonument(ResourceLocation parentId) {
+	public static LooniumStructureConfiguration getConfigOceanMonument(Identifier parentId) {
 		LooniumMobEffectToApply[] standardEffectsInWater = getStandardEffects(true, true);
 		return LooniumStructureConfiguration.forParent(parentId).spawnedMobs(
 				LooniumMobSpawnData.entityWeight(EntityType.GUARDIAN, 200).build(),
@@ -283,7 +283,7 @@ public class LooniumStructureConfigurationProvider implements DataProvider {
 		).build();
 	}
 
-	public static LooniumStructureConfiguration getConfigOceanRuinCold(ResourceLocation parentId) {
+	public static LooniumStructureConfiguration getConfigOceanRuinCold(Identifier parentId) {
 		LooniumMobEffectToApply[] standardEffectsInWater = getStandardEffects(true, true);
 		return LooniumStructureConfiguration.forParent(parentId).spawnedMobs(
 				getCreeperSpawnData(199, false, getCreeperEffects(true)),
@@ -303,7 +303,7 @@ public class LooniumStructureConfigurationProvider implements DataProvider {
 		).build();
 	}
 
-	public static LooniumStructureConfiguration getConfigOceanRuinWarm(ResourceLocation parentId) {
+	public static LooniumStructureConfiguration getConfigOceanRuinWarm(Identifier parentId) {
 		LooniumMobEffectToApply[] standardEffectsInWater = getStandardEffects(true, true);
 		return LooniumStructureConfiguration.forParent(parentId).spawnedMobs(
 				getCreeperSpawnData(199, false, getCreeperEffects(true)),
@@ -321,7 +321,7 @@ public class LooniumStructureConfigurationProvider implements DataProvider {
 		).build();
 	}
 
-	public static LooniumStructureConfiguration getConfigPillagerOutpost(ResourceLocation parentId) {
+	public static LooniumStructureConfiguration getConfigPillagerOutpost(Identifier parentId) {
 		return LooniumStructureConfiguration.forParent(parentId)
 				.boundingBoxType(StructureSpawnOverride.BoundingBoxType.STRUCTURE).spawnedMobs(
 						LooniumMobSpawnData.entityWeight(EntityType.ENDERMAN, 40).build(),
@@ -340,7 +340,7 @@ public class LooniumStructureConfigurationProvider implements DataProvider {
 				).build();
 	}
 
-	public static LooniumStructureConfiguration getConfigRuinedPortalDesert(ResourceLocation parentId) {
+	public static LooniumStructureConfiguration getConfigRuinedPortalDesert(Identifier parentId) {
 		return LooniumStructureConfiguration.forParent(parentId).spawnedMobs(
 				LooniumMobSpawnData.entityWeight(EntityType.ZOGLIN, 25)
 						.effectsToApply(getStandardEffects(false, false)).build(),
@@ -360,7 +360,7 @@ public class LooniumStructureConfigurationProvider implements DataProvider {
 		).build();
 	}
 
-	public static LooniumStructureConfiguration getConfigRuinedPortalJungle(ResourceLocation parentId) {
+	public static LooniumStructureConfiguration getConfigRuinedPortalJungle(Identifier parentId) {
 		return LooniumStructureConfiguration.forParent(parentId).spawnedMobs(
 				LooniumMobSpawnData.entityWeight(EntityType.ZOGLIN, 25)
 						.effectsToApply(getStandardEffects(false, false)).build(),
@@ -381,7 +381,7 @@ public class LooniumStructureConfigurationProvider implements DataProvider {
 		).build();
 	}
 
-	public static LooniumStructureConfiguration getConfigRuinedPortalMountain(ResourceLocation parentId) {
+	public static LooniumStructureConfiguration getConfigRuinedPortalMountain(Identifier parentId) {
 		return LooniumStructureConfiguration.forParent(parentId).spawnedMobs(
 				LooniumMobSpawnData.entityWeight(EntityType.ZOGLIN, 25)
 						.effectsToApply(getStandardEffects(false, false)).build(),
@@ -402,7 +402,7 @@ public class LooniumStructureConfigurationProvider implements DataProvider {
 		).build();
 	}
 
-	public static LooniumStructureConfiguration getConfigRuinedPortalNether(ResourceLocation parentId) {
+	public static LooniumStructureConfiguration getConfigRuinedPortalNether(Identifier parentId) {
 		return LooniumStructureConfiguration.forParent(parentId).spawnedMobs(
 				LooniumMobSpawnData.entityWeight(EntityType.ZOGLIN, 125)
 						.effectsToApply(getStandardEffects(false, false)).build(),
@@ -421,7 +421,7 @@ public class LooniumStructureConfigurationProvider implements DataProvider {
 		).build();
 	}
 
-	public static LooniumStructureConfiguration getConfigRuinedPortalOcean(ResourceLocation parentId) {
+	public static LooniumStructureConfiguration getConfigRuinedPortalOcean(Identifier parentId) {
 		LooniumMobEffectToApply[] standardEffectsInWater = getStandardEffects(true, true);
 		return LooniumStructureConfiguration.forParent(parentId).spawnedMobs(
 				LooniumMobSpawnData.entityWeight(EntityType.ZOGLIN, 25)
@@ -444,7 +444,7 @@ public class LooniumStructureConfigurationProvider implements DataProvider {
 		).build();
 	}
 
-	public static LooniumStructureConfiguration getConfigRuinedPortalStandard(ResourceLocation parentId) {
+	public static LooniumStructureConfiguration getConfigRuinedPortalStandard(Identifier parentId) {
 		return LooniumStructureConfiguration.forParent(parentId).spawnedMobs(
 				LooniumMobSpawnData.entityWeight(EntityType.ZOGLIN, 25)
 						.effectsToApply(getStandardEffects(false, false)).build(),
@@ -469,7 +469,7 @@ public class LooniumStructureConfigurationProvider implements DataProvider {
 		).build();
 	}
 
-	public static LooniumStructureConfiguration getConfigRuinedPortalSwamp(ResourceLocation parentId) {
+	public static LooniumStructureConfiguration getConfigRuinedPortalSwamp(Identifier parentId) {
 		return LooniumStructureConfiguration.forParent(parentId).spawnedMobs(
 				LooniumMobSpawnData.entityWeight(EntityType.ZOGLIN, 25)
 						.effectsToApply(getStandardEffects(false, false)).build(),
@@ -490,7 +490,7 @@ public class LooniumStructureConfigurationProvider implements DataProvider {
 		).build();
 	}
 
-	public static LooniumStructureConfiguration getConfigShipwreck(ResourceLocation parentId) {
+	public static LooniumStructureConfiguration getConfigShipwreck(Identifier parentId) {
 		LooniumMobEffectToApply[] standardEffectsInWater = getStandardEffects(true, true);
 		return LooniumStructureConfiguration.forParent(parentId).spawnedMobs(
 				getCreeperSpawnData(199, false, getCreeperEffects(true)),
@@ -510,7 +510,7 @@ public class LooniumStructureConfigurationProvider implements DataProvider {
 		).build();
 	}
 
-	public static LooniumStructureConfiguration getConfigStronghold(ResourceLocation parentId) {
+	public static LooniumStructureConfiguration getConfigStronghold(Identifier parentId) {
 		return LooniumStructureConfiguration.forParent(parentId).spawnedMobs(
 				LooniumMobSpawnData.entityWeight(EntityType.ENDERMAN, 80).build(),
 				getCreeperSpawnData(149, false, getCreeperEffects(false)),
@@ -531,7 +531,7 @@ public class LooniumStructureConfigurationProvider implements DataProvider {
 		).build();
 	}
 
-	public static LooniumStructureConfiguration getConfigTrailRuins(ResourceLocation parentId) {
+	public static LooniumStructureConfiguration getConfigTrailRuins(Identifier parentId) {
 		return LooniumStructureConfiguration.forParent(parentId).spawnedMobs(
 				LooniumMobSpawnData.entityWeight(EntityType.ENDERMAN, 40).build(),
 				getCreeperSpawnData(195, false, getCreeperEffects(false)),
@@ -551,7 +551,7 @@ public class LooniumStructureConfigurationProvider implements DataProvider {
 		).build();
 	}
 
-	public static LooniumStructureConfiguration getConfigVillageDesert(ResourceLocation parentId) {
+	public static LooniumStructureConfiguration getConfigVillageDesert(Identifier parentId) {
 		return LooniumStructureConfiguration.forParent(parentId).spawnedMobs(
 				LooniumMobSpawnData.entityWeight(EntityType.ENDERMAN, 40).build(),
 				getCreeperSpawnData(195, false, getCreeperEffects(false)),
@@ -569,7 +569,7 @@ public class LooniumStructureConfigurationProvider implements DataProvider {
 		).build();
 	}
 
-	public static LooniumStructureConfiguration getConfigVillagePlains(ResourceLocation parentId) {
+	public static LooniumStructureConfiguration getConfigVillagePlains(Identifier parentId) {
 		return LooniumStructureConfiguration.forParent(parentId).spawnedMobs(
 				LooniumMobSpawnData.entityWeight(EntityType.ENDERMAN, 40).build(),
 				getCreeperSpawnData(195, false, getCreeperEffects(false)),
@@ -587,7 +587,7 @@ public class LooniumStructureConfigurationProvider implements DataProvider {
 		).build();
 	}
 
-	public static LooniumStructureConfiguration getConfigVillageSavanna(ResourceLocation parentId) {
+	public static LooniumStructureConfiguration getConfigVillageSavanna(Identifier parentId) {
 		return LooniumStructureConfiguration.forParent(parentId).spawnedMobs(
 				LooniumMobSpawnData.entityWeight(EntityType.ENDERMAN, 40).build(),
 				getCreeperSpawnData(195, false, getCreeperEffects(false)),
@@ -607,7 +607,7 @@ public class LooniumStructureConfigurationProvider implements DataProvider {
 		).build();
 	}
 
-	public static LooniumStructureConfiguration getConfigVillageSnowy(ResourceLocation parentId) {
+	public static LooniumStructureConfiguration getConfigVillageSnowy(Identifier parentId) {
 		return LooniumStructureConfiguration.forParent(parentId).spawnedMobs(
 				LooniumMobSpawnData.entityWeight(EntityType.ENDERMAN, 40).build(),
 				getCreeperSpawnData(195, false, getCreeperEffects(false)),
@@ -627,7 +627,7 @@ public class LooniumStructureConfigurationProvider implements DataProvider {
 		).build();
 	}
 
-	public static LooniumStructureConfiguration getConfigVillageTaiga(ResourceLocation parentId) {
+	public static LooniumStructureConfiguration getConfigVillageTaiga(Identifier parentId) {
 		return LooniumStructureConfiguration.forParent(parentId).spawnedMobs(
 				LooniumMobSpawnData.entityWeight(EntityType.ENDERMAN, 40).build(),
 				getCreeperSpawnData(195, false, getCreeperEffects(false)),
@@ -647,7 +647,7 @@ public class LooniumStructureConfigurationProvider implements DataProvider {
 		).build();
 	}
 
-	public static LooniumStructureConfiguration getConfigWoodlandMansion(ResourceLocation parentId) {
+	public static LooniumStructureConfiguration getConfigWoodlandMansion(Identifier parentId) {
 		return LooniumStructureConfiguration.forParent(parentId).spawnedMobs(
 				LooniumMobSpawnData.entityWeight(EntityType.ENDERMAN, 40).build(),
 				getCreeperSpawnData(199, false, getCreeperEffects(false)),
@@ -719,7 +719,7 @@ public class LooniumStructureConfigurationProvider implements DataProvider {
 				.build();
 	}
 
-	public static LooniumMobSpawnData getPiglinSpawnData(int weight, ResourceLocation equipmentTable,
+	public static LooniumMobSpawnData getPiglinSpawnData(int weight, Identifier equipmentTable,
 			boolean needWaterBreathing, boolean zombificationImmune) {
 		CompoundTag piglinNbt = new CompoundTag();
 		if (zombificationImmune) {

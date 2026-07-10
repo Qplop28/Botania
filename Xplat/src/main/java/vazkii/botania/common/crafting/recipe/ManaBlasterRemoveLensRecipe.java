@@ -10,7 +10,7 @@ package vazkii.botania.common.crafting.recipe;
 
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
@@ -26,7 +26,7 @@ import vazkii.botania.common.item.ManaBlasterItem;
 public class ManaBlasterRemoveLensRecipe extends CustomRecipe {
 	public static final NoOpRecipeSerializer<ManaBlasterRemoveLensRecipe> SERIALIZER = new NoOpRecipeSerializer<>(ManaBlasterRemoveLensRecipe::new);
 
-	public ManaBlasterRemoveLensRecipe(ResourceLocation id) {
+	public ManaBlasterRemoveLensRecipe(Identifier id) {
 		super(id, CraftingBookCategory.EQUIPMENT);
 	}
 

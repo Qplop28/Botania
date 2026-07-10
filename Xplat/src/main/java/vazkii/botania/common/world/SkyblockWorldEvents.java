@@ -12,7 +12,7 @@ import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
@@ -51,8 +51,8 @@ public final class SkyblockWorldEvents {
 
 	private SkyblockWorldEvents() {}
 
-	private static final TagKey<Block> PEBBLE_SOURCES = TagKey.create(Registries.BLOCK, new ResourceLocation("gardenofglass:pebble_sources"));
-	private static final ResourceLocation PEBBLES_TABLE = new ResourceLocation(BotaniaAPI.GOG_MODID, "pebbles");
+	private static final TagKey<Block> PEBBLE_SOURCES = TagKey.create(Registries.BLOCK, new Identifier("gardenofglass:pebble_sources"));
+	private static final Identifier PEBBLES_TABLE = new Identifier(BotaniaAPI.GOG_MODID, "pebbles");
 
 	public static void syncGogStatus(ServerPlayer e) {
 		boolean isGog = SkyblockChunkGenerator.isWorldSkyblock(e.level());

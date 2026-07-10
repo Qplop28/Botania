@@ -16,7 +16,7 @@ import com.google.gson.JsonObject;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
@@ -34,12 +34,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class RunicAltarRecipe implements vazkii.botania.api.recipe.RunicAltarRecipe {
-	private final ResourceLocation id;
+	private final Identifier id;
 	private final ItemStack output;
 	private final NonNullList<Ingredient> inputs;
 	private final int mana;
 
-	public RunicAltarRecipe(ResourceLocation id, ItemStack output, int mana, Ingredient... inputs) {
+	public RunicAltarRecipe(Identifier id, ItemStack output, int mana, Ingredient... inputs) {
 		Preconditions.checkArgument(inputs.length <= 16, "Cannot have more than 16 ingredients");
 		this.id = id;
 		this.output = output;
@@ -78,7 +78,7 @@ public class RunicAltarRecipe implements vazkii.botania.api.recipe.RunicAltarRec
 
 	@NotNull
 	@Override
-	public ResourceLocation getId() {
+	public Identifier getId() {
 		return id;
 	}
 
@@ -96,7 +96,7 @@ public class RunicAltarRecipe implements vazkii.botania.api.recipe.RunicAltarRec
 	public static class Serializer implements RecipeSerializer<RunicAltarRecipe> {
 		@NotNull
 		@Override
-		public RunicAltarRecipe fromJson(@NotNull ResourceLocation id, @NotNull JsonObject json) {
+		public RunicAltarRecipe fromJson(@NotNull Identifier id, @NotNull JsonObject json) {
 			ItemStack output = ShapedRecipe.itemStackFromJson(GsonHelper.getAsJsonObject(json, "output"));
 			int mana = GsonHelper.getAsInt(json, "mana");
 			JsonArray ingrs = GsonHelper.getAsJsonArray(json, "ingredients");
@@ -108,7 +108,7 @@ public class RunicAltarRecipe implements vazkii.botania.api.recipe.RunicAltarRec
 		}
 
 		@Override
-		public RunicAltarRecipe fromNetwork(@NotNull ResourceLocation id, @NotNull FriendlyByteBuf buf) {
+		public RunicAltarRecipe fromNetwork(@NotNull Identifier id, @NotNull FriendlyByteBuf buf) {
 			Ingredient[] inputs = new Ingredient[buf.readVarInt()];
 			for (int i = 0; i < inputs.length; i++) {
 				inputs[i] = Ingredient.fromNetwork(buf);

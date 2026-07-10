@@ -14,7 +14,7 @@ import com.mojang.blaze3d.vertex.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.BossEvent;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -32,7 +32,7 @@ public final class BossBarHandler {
 
 	// Only access on the client thread!
 	public static final Set<GaiaGuardianEntity> bosses = Collections.newSetFromMap(new WeakHashMap<>());
-	private static final ResourceLocation BAR_TEXTURE = new ResourceLocation(ResourcesLib.GUI_BOSS_BAR);
+	private static final Identifier BAR_TEXTURE = new Identifier(ResourcesLib.GUI_BOSS_BAR);
 
 	public static OptionalInt onBarRender(GuiGraphics gui, int x, int y, BossEvent bossEvent, boolean drawName) {
 		for (GaiaGuardianEntity currentBoss : bosses) {

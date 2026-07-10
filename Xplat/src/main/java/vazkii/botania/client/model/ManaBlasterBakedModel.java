@@ -18,7 +18,7 @@ import net.minecraft.client.renderer.block.model.ItemOverrides;
 import net.minecraft.client.resources.model.*;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
@@ -45,7 +45,7 @@ public class ManaBlasterBakedModel extends DelegatedModel {
 	}
 
 	public static ManaBlasterBakedModel create(ModelBaker baker,
-			ResourceLocation gunNoClip, ResourceLocation gunClip,
+			Identifier gunNoClip, Identifier gunClip,
 			ModelState state) {
 		BakedModel gunNoClipModel = Preconditions.checkNotNull(baker.bake(gunNoClip, state));
 		BakedModel gunClipModel = Preconditions.checkNotNull(baker.bake(gunClip, state));
@@ -94,7 +94,7 @@ public class ManaBlasterBakedModel extends DelegatedModel {
 
 		CompositeBakedModel(ModelBaker baker, ItemStack lens, BakedModel gun) {
 			super(gun);
-			ResourceLocation lensId = BuiltInRegistries.ITEM.getKey(lens.getItem());
+			Identifier lensId = BuiltInRegistries.ITEM.getKey(lens.getItem());
 			ModelState transform = new ModelState() {
 				@Override
 				public Transformation getRotation() {

@@ -69,7 +69,7 @@ forked off, and includes such things as:
 - Removing uses of Forge's ~EventBusSubscriber~ in favor of explicit ~addListener~ calls
 - Reverting things to vanilla API's such as ~ITileEntityProvider~ over Forge's ~hasTileEntity~ and ~createTileEntity~, and ~IInventory~ over capabilities and ~IItemHandler~
 - When Forge gained support for Mixins, moving as many of our uses of reflection or access transformers to them as possible
-- Directing uses of very common types such as ~ResourceLocation~ and ~Identifier~ to helper methods to reduce the eventual diff between the MCP and Yarn versions of the same code
+- Directing uses of very common types such as ~Identifier~ and ~Identifier~ to helper methods to reduce the eventual diff between the MCP and Yarn versions of the same code
 
 There's more you can see from poring through the commit log, but this leads me to my first
 major learning when porting mods across loaders: *Do preparatory work in a workspace that

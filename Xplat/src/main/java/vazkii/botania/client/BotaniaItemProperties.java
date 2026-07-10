@@ -1,7 +1,7 @@
 package vazkii.botania.client;
 
 import net.minecraft.client.renderer.item.ClampedItemPropertyFunction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.level.ItemLike;
@@ -26,7 +26,7 @@ import java.util.Locale;
 import static vazkii.botania.common.lib.ResourceLocationHelper.prefix;
 
 public final class BotaniaItemProperties {
-	public static void init(TriConsumer<ItemLike, ResourceLocation, ClampedItemPropertyFunction> consumer) {
+	public static void init(TriConsumer<ItemLike, Identifier, ClampedItemPropertyFunction> consumer) {
 		consumer.accept(BotaniaItems.baubleBox, prefix("open"),
 				(stack, world, entity, seed) -> ItemNBTHelper.getBoolean(stack, BaubleBoxItem.TAG_OPEN, false) ? 1 : 0);
 		consumer.accept(BotaniaItems.blackHoleTalisman, prefix("active"),
@@ -38,7 +38,7 @@ public final class BotaniaItemProperties {
 					return swigsLeft == totalSwigs ? 0.0F : Math.nextUp((totalSwigs - swigsLeft) / (float) totalSwigs);
 				});
 
-		ResourceLocation vuvuzelaId = prefix("vuvuzela");
+		Identifier vuvuzelaId = prefix("vuvuzela");
 		ClampedItemPropertyFunction isVuvuzela = (stack, world, entity, seed) -> stack.getHoverName().getString().toLowerCase(Locale.ROOT).contains("vuvuzela") ? 1 : 0;
 		consumer.accept(BotaniaItems.grassHorn, vuvuzelaId, isVuvuzela);
 		consumer.accept(BotaniaItems.leavesHorn, vuvuzelaId, isVuvuzela);
@@ -60,7 +60,7 @@ public final class BotaniaItemProperties {
 		consumer.accept(BotaniaItems.autocraftingHalo, prefix("active"),
 				(stack, world, entity, seed) -> ItemNBTHelper.getBoolean(stack, ManufactoryHaloItem.TAG_ACTIVE, true) ? 1 : 0);
 
-		ResourceLocation poolFullId = prefix("full");
+		Identifier poolFullId = prefix("full");
 		ClampedItemPropertyFunction poolFull = (stack, world, entity, seed) -> {
 			Block block = ((BlockItem) stack.getItem()).getBlock();
 			boolean renderFull = ((ManaPoolBlock) block).variant == ManaPoolBlock.Variant.CREATIVE || stack.hasTag() && stack.getTag().getBoolean("RenderFull");
@@ -80,7 +80,7 @@ public final class BotaniaItemProperties {
 		consumer.accept(BotaniaItems.brewVial, prefix("swigs_taken"), brewGetter);
 		consumer.accept(BotaniaItems.brewFlask, prefix("swigs_taken"), brewGetter);
 
-		ResourceLocation holidayId = prefix("holiday");
+		Identifier holidayId = prefix("holiday");
 		ClampedItemPropertyFunction holidayGetter = (stack, worldIn, entityIn, seed) -> ClientProxy.jingleTheBells ? 1 : 0;
 		consumer.accept(BotaniaItems.manaweaveHelm, holidayId, holidayGetter);
 		consumer.accept(BotaniaItems.manaweaveChest, holidayId, holidayGetter);
@@ -118,10 +118,10 @@ public final class BotaniaItemProperties {
 						: (stack.getUseDuration() - entity.getUseItemRemainingTicks()) * item.chargeVelocityMultiplier() / 20.0F;
 			}
 		};
-		consumer.accept(BotaniaItems.livingwoodBow, new ResourceLocation("pulling"), pulling);
-		consumer.accept(BotaniaItems.livingwoodBow, new ResourceLocation("pull"), pull);
-		consumer.accept(BotaniaItems.crystalBow, new ResourceLocation("pulling"), pulling);
-		consumer.accept(BotaniaItems.crystalBow, new ResourceLocation("pull"), pull);
+		consumer.accept(BotaniaItems.livingwoodBow, new Identifier("pulling"), pulling);
+		consumer.accept(BotaniaItems.livingwoodBow, new Identifier("pull"), pull);
+		consumer.accept(BotaniaItems.crystalBow, new Identifier("pulling"), pulling);
+		consumer.accept(BotaniaItems.crystalBow, new Identifier("pull"), pull);
 	}
 
 	private BotaniaItemProperties() {}

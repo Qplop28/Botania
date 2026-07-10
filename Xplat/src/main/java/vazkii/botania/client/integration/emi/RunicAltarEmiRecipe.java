@@ -6,7 +6,7 @@ import dev.emi.emi.api.stack.EmiStack;
 import dev.emi.emi.api.widget.WidgetHolder;
 
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import vazkii.botania.api.recipe.RunicAltarRecipe;
 import vazkii.botania.common.block.BotaniaBlocks;
@@ -19,7 +19,7 @@ import java.util.stream.Stream;
 import static vazkii.botania.common.lib.ResourceLocationHelper.prefix;
 
 public class RunicAltarEmiRecipe extends BotaniaEmiRecipe {
-	private static final ResourceLocation TEXTURE = prefix("textures/gui/petal_overlay.png");
+	private static final Identifier TEXTURE = prefix("textures/gui/petal_overlay.png");
 	private static final EmiStack LIVINGROCK = EmiStack.of(BotaniaBlocks.livingrock);
 	private static final EmiStack ALTAR = EmiStack.of(BotaniaBlocks.runeAltar);
 	public static final int CENTER_X = 44;

@@ -15,7 +15,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -47,7 +47,7 @@ public abstract class SpecialFlowerBlockEntity extends BlockEntity implements Fl
 	private final FloatingFlower floatingData = new FloatingFlowerImpl() {
 		@Override
 		public ItemStack getDisplayStack() {
-			ResourceLocation id = BuiltInRegistries.BLOCK_ENTITY_TYPE.getKey(getType());
+			Identifier id = BuiltInRegistries.BLOCK_ENTITY_TYPE.getKey(getType());
 			return BuiltInRegistries.ITEM.getOptional(id).map(ItemStack::new).orElse(super.getDisplayStack());
 		}
 	};

@@ -5,7 +5,7 @@ import dev.emi.emi.api.stack.EmiStack;
 import dev.emi.emi.api.widget.WidgetHolder;
 
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import vazkii.botania.api.recipe.TerrestrialAgglomerationRecipe;
 import vazkii.botania.common.block.BotaniaBlocks;
@@ -16,7 +16,7 @@ import java.util.List;
 import static vazkii.botania.common.lib.ResourceLocationHelper.prefix;
 
 public class TerrestrialAgglomerationEmiRecipe extends BotaniaEmiRecipe {
-	private static final ResourceLocation TEXTURE = prefix("textures/gui/terrasteel_jei_overlay.png");
+	private static final Identifier TEXTURE = prefix("textures/gui/terrasteel_jei_overlay.png");
 	private static final EmiStack PLATE = EmiStack.of(BotaniaBlocks.terraPlate);
 	public static final int CENTER_X = 45;
 	public static final int CENTER_Y = 30;

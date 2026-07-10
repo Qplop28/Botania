@@ -12,7 +12,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.gson.annotations.SerializedName;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.level.Level;
@@ -37,7 +37,7 @@ public class RotatingRecipeComponent extends RotatingItemListComponentBase {
 	@Override
 	protected List<Ingredient> makeIngredients() {
 		Level world = Minecraft.getInstance().level;
-		Map<ResourceLocation, ? extends Recipe<?>> map;
+		Map<Identifier, ? extends Recipe<?>> map;
 		if ("runic_altar".equals(recipeType)) {
 			map = BotaniaRecipeTypes.getRecipes(world, BotaniaRecipeTypes.RUNE_TYPE);
 		} else if ("petal_apothecary".equals(recipeType)) {
@@ -45,7 +45,7 @@ public class RotatingRecipeComponent extends RotatingItemListComponentBase {
 		} else {
 			throw new IllegalArgumentException("Type must be 'runic_altar' or 'petal_apothecary'!");
 		}
-		Recipe<?> recipe = map.get(new ResourceLocation(recipeName));
+		Recipe<?> recipe = map.get(new Identifier(recipeName));
 		if (recipe == null) {
 			return ImmutableList.of();
 		}

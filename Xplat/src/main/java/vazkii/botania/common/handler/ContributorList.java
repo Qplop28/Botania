@@ -13,7 +13,7 @@ import com.google.common.collect.ImmutableMap;
 import net.minecraft.DefaultUncaughtExceptionHandler;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -108,7 +108,7 @@ public class ContributorList {
 		ItemStack stack = new ItemStack(item);
 		Map<Enchantment, Integer> ench = new HashMap<>();
 		ench.put(Enchantments.UNBREAKING, 1);
-		BuiltInRegistries.ENCHANTMENT.getOptional(new ResourceLocation("charm", "tinted")).ifPresent(e -> ench.put(e, 1));
+		BuiltInRegistries.ENCHANTMENT.getOptional(new Identifier("charm", "tinted")).ifPresent(e -> ench.put(e, 1));
 		EnchantmentHelper.setEnchantments(ench, stack);
 
 		stack.getTag().putBoolean(TAG_HEADFLOWER, true);

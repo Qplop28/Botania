@@ -23,7 +23,7 @@ import mezz.jei.api.recipe.category.IRecipeCategory;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec2;
@@ -49,7 +49,7 @@ public class TerrestrialAgglomerationRecipeCategory implements IRecipeCategory<T
 	private final IDrawable terraPlate;
 
 	public TerrestrialAgglomerationRecipeCategory(IGuiHelper guiHelper) {
-		ResourceLocation location = prefix("textures/gui/terrasteel_jei_overlay.png");
+		Identifier location = prefix("textures/gui/terrasteel_jei_overlay.png");
 		background = guiHelper.createBlankDrawable(114, 131);
 		overlay = guiHelper.createDrawable(location, 42, 29, 64, 64);
 		icon = guiHelper.createDrawableIngredient(VanillaTypes.ITEM_STACK, new ItemStack(BotaniaBlocks.terraPlate));

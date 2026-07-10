@@ -9,7 +9,7 @@
 package vazkii.botania.common.block.mana;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -22,14 +22,14 @@ import static vazkii.botania.common.lib.ResourceLocationHelper.prefix;
 
 public class ManaVoidBlock extends BotaniaBlock implements PoolOverlayProvider {
 	private static final int SPARKLE_EVENT = 0;
-	private static final ResourceLocation OVERLAY_ICON = prefix("block/mana_void_overlay");
+	private static final Identifier OVERLAY_ICON = prefix("block/mana_void_overlay");
 
 	public ManaVoidBlock(Properties builder) {
 		super(builder);
 	}
 
 	@Override
-	public ResourceLocation getIcon(Level world, BlockPos pos) {
+	public Identifier getIcon(Level world, BlockPos pos) {
 		return OVERLAY_ICON;
 	}
 

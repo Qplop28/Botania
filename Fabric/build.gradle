@@ -44,6 +44,10 @@ sourceSets.main.resources {
     srcDir 'src/generated/resources'
 }
 
+sourceSets.main.java {
+    exclude 'vazkii/botania/fabric/integration/rei/**'
+}
+
 repositories {
     maven {
         name = "Modmuss"
@@ -100,7 +104,7 @@ dependencies {
 
     implementation "net.fabricmc:fabric-loader:${loader_version}"
     implementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
-    
+
     implementation "org.ladysnake.cardinal-components-api:cardinal-components-base:8.0.1"
     implementation "org.ladysnake.cardinal-components-api:cardinal-components-entity:8.0.1"
 

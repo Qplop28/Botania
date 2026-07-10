@@ -1,7 +1,6 @@
 package vazkii.botania.fabric.xplat;
 
 import com.jamieswhiteshirt.reachentityattributes.ReachEntityAttributes;
-import com.redlimerl.speedrunigt.timer.InGameTimer;
 
 import dev.emi.stepheightentityattribute.StepHeightEntityAttributeMain;
 
@@ -109,7 +108,6 @@ import vazkii.botania.common.lib.BotaniaTags;
 import vazkii.botania.common.lib.LibMisc;
 import vazkii.botania.fabric.block.FabricSpecialFlowerBlock;
 import vazkii.botania.fabric.block_entity.FabricRedStringContainerBlockEntity;
-import vazkii.botania.fabric.integration.speedrunigt.BotaniaSpeedrunIGTPlugin;
 import vazkii.botania.fabric.integration.tr_energy.FluxfieldTRStorage;
 import vazkii.botania.fabric.internal_caps.CCAInternalEntityComponents;
 import vazkii.botania.fabric.mixin.AbstractFurnaceBlockEntityFabricAccessor;
@@ -689,13 +687,14 @@ public class FabricXplatImpl implements XplatAbstractions {
 
 	private final boolean speedrunIGTLoaded = isModLoaded("speedrunigt");
 
-	@Override
+		@Override
 	public boolean isRunningCategory(BotaniaSpeedrunCategory category) {
-		return speedrunIGTLoaded && BotaniaSpeedrunIGTPlugin.isRunningBotaniaCategory(category);
+		// SpeedRunIGT integration is disabled during the Minecraft 26.1 bootstrap.
+		return false;
 	}
 
 	@Override
 	public void completeSpeedrunTimer() {
-		InGameTimer.complete();
+		// SpeedRunIGT integration is disabled during the Minecraft 26.1 bootstrap.
 	}
 }

@@ -68,9 +68,6 @@
     ],
     "jei_mod_plugin": [
       "vazkii.botania.client.integration.jei.JEIBotaniaPlugin"
-    ],
-    "speedrunigt": [
-      "vazkii.botania.fabric.integration.speedrunigt.BotaniaSpeedrunIGTPlugin"
     ]
   },
   "mixins": [

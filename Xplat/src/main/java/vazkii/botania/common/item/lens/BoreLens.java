@@ -16,7 +16,7 @@ import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -99,7 +99,7 @@ public class BoreLens extends Lens {
 					dropPosition = Vec3.atCenterOf(collidePos);
 				}
 
-				if (level.getGameRules().getBoolean(GameRules.RULE_DOBLOCKDROPS)) {
+				if (level.getGameRules().get(GameRules.BLOCK_DROPS)) {
 					for (ItemStack stack_ : items) {
 						ItemEntity itemEntity = new ItemEntity(level, dropPosition.x, dropPosition.y, dropPosition.z, stack_);
 						itemEntity.setDefaultPickUpDelay();

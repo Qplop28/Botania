@@ -1,15 +1,24 @@
 plugins {
-    id 'com.diffplug.spotless' version '5.12.5' apply false
+    id 'com.diffplug.spotless' version '8.8.0' apply false
 }
 
 subprojects {
     apply plugin: 'java'
     apply plugin: 'pmd'
-    apply plugin: "com.diffplug.spotless"
+    apply plugin: 'com.diffplug.spotless'
     apply plugin: 'maven-publish'
-    java.toolchain.languageVersion = JavaLanguageVersion.of(17)
-    java.withSourcesJar()
-    archivesBaseName = "${mod_name}"
+
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(25)
+        }
+
+        withSourcesJar()
+    }
+
+    base {
+        archivesName = mod_name
+    }
 
     repositories {
         mavenCentral()
@@ -21,46 +30,39 @@ subprojects {
     }
 
     tasks.withType(JavaCompile).configureEach {
-        it.options.encoding = 'UTF-8'
-        it.options.release = 17
+        options.encoding = 'UTF-8'
+        options.release = 25
     }
 
     tasks.withType(GenerateModuleMetadata).configureEach {
-        it.enabled = false
+        enabled = false
     }
 
     pmd {
         toolVersion '6.35.0'
         incrementalAnalysis.set(true)
-        ruleSetFiles = rootProject.files("spotless/pmd-ruleset.xml")
+        ruleSetFiles = rootProject.files('spotless/pmd-ruleset.xml')
     }
 
     jar {
-        from "LICENSE"
+        from 'LICENSE'
 
-        exclude "**/*.bat"
-        exclude "**/*.psd"
-        exclude "**/*.ase"
-        exclude "**/*.exe"
-        exclude "**/unused"
-
-        exclude ".cache"
+        exclude '**/*.bat'
+        exclude '**/*.psd'
+        exclude '**/*.ase'
+        exclude '**/*.exe'
+        exclude '**/unused'
+        exclude '.cache'
     }
 
     spotless {
-        enforceCheck = false // workaround around jenkins having wrong line endings in some files
-        // we explicitly check in github actions builds
+        enforceCheck = false
+
         java {
-            toolchain {
-                languageVersion = JavaLanguageVersion.of(25)
-             }
-
-            withSourcesJar()
-}
-
-        tasks.withType(JavaCompile).configureEach {
-            options.encoding = "UTF-8"
-            options.release = 25
+            indentWithTabs()
+            eclipse().configFile rootProject.file('spotless/eclipseformat.xml')
+            removeUnusedImports()
+            importOrderFile rootProject.file('spotless/eclipse.importorder')
         }
     }
 }

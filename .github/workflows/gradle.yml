@@ -1,107 +1,45 @@
-name: Java CI
+name: Botania 26.1.2 Fabric Port
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - 26.1.2-fabric-port
+  pull_request:
+    branches:
+      - 26.1.2-fabric-port
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
-  build:
+  fabric-compile:
+    name: Compile Fabric
     runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v6
-    - name: Set up JDK
-      uses: actions/setup-java@v5
-      with:
-        distribution: 'temurin'
-        java-version: '17'
-    - name: Validate gradlew integrity
-      uses: gradle/actions/wrapper-validation@v5
-    - name: Cache
-      uses: actions/cache@v5
-      with:
-        path: |
-          ~/.gradle/caches
-          ~/.gradle/wrapper
-          ./.gradle/loom-cache/remapped-mods
-          ./Forge/build/moddev
-          ./Xplat/build/moddev
-        key: ${{ runner.os }}-gradle-${{ hashFiles('**/build.gradle', './gradle.properties', './settings.gradle', '**/gradle-wrapper.properties') }}
-    - name: Check lang files
-      run: ./scripts/check_lang.sh
-    - name: Calculate artifact names
-      id: calculate_artifact_names
-      run: |
-        # Check is backwards because "" is falsey, which wouldn't work for boolean punning
-        SNAPSHOT_SUFFIX=${{ !startsWith(github.ref, 'refs/tags/release-') && '-SNAPSHOT' || '' }}
-        MC=$(awk -F '=' '/minecraft_version/ { print $2; }' gradle.properties)
-        BUILD=$(awk -F '=' '/build_number/ { print $2; }' gradle.properties)
-        echo "forge=Forge/build/libs/Botania-${MC}-${BUILD}-FORGE${SNAPSHOT_SUFFIX}.jar" >> "$GITHUB_OUTPUT"
-        echo "fabric=Fabric/build/libs/Botania-${MC}-${BUILD}-FABRIC${SNAPSHOT_SUFFIX}.jar" >> "$GITHUB_OUTPUT"
-        
-        GOG_VER=$(awk -F '=' '/VERSION/ { print $2; }' garden_of_glass/Makefile)
-        echo "gog=garden_of_glass/gardenofglass-${GOG_VER}.jar" >> "$GITHUB_OUTPUT"
-    - name: Build GoG
-      run: |
-        make -C garden_of_glass jar
 
-        # This makes the jar file have uniform order and timestamps for reproducibility
-        sudo apt-get install strip-nondeterminism
-        strip-nondeterminism ${{ steps.calculate_artifact_names.outputs.gog }}
-    - name: Build with Gradle
-      run: |
-        RELEASE_MODE=${{ startsWith(github.ref, 'refs/tags/release-') && '1' || '0' }} \
-        ./gradlew pmdMain spotlessJavaCheck build
-    - name: PMD report
-      uses: pmd/pmd-github-action@v2
-      if: failure()
-      with:
-        rulesets: '**/reports/pmd/main.xml'
-    - name: Check generated files up to date
-      run: ./scripts/check_datagen.sh
-    - name: Run GameTests (Fabric)
-      run: ./gradlew :Fabric:runGameTest
-    - name: Stop Gradle
-      run: ./gradlew --stop
-    - name: Sign jars
-      env:
-        SIGNING_KEY: ${{ secrets.VIOLET_MOON_SIGNING_KEY }}
-      if: ${{ env.SIGNING_KEY != '' }}
-      run: |
-        echo "${SIGNING_KEY}" | gpg --import -
-        gpg --local-user "Violet Moon Signing Key" --armor \
-          --detach-sign ${{ steps.calculate_artifact_names.outputs.forge }}
-        gpg --local-user "Violet Moon Signing Key" --armor \
-          --detach-sign ${{ steps.calculate_artifact_names.outputs.fabric }}
-        gpg --local-user "Violet Moon Signing Key" --armor \
-          --detach-sign ${{ steps.calculate_artifact_names.outputs.gog }}
-    - name: Archive Fabric Artifacts
-      uses: actions/upload-artifact@v7
-      with:
-        name: Fabric
-        path: |
-          ${{ steps.calculate_artifact_names.outputs.fabric }}
-          ${{ steps.calculate_artifact_names.outputs.fabric }}.asc
-    - name: Archive Forge Artifacts
-      uses: actions/upload-artifact@v7
-      with:
-        name: Forge
-        path: |
-          ${{ steps.calculate_artifact_names.outputs.forge }}
-          ${{ steps.calculate_artifact_names.outputs.forge }}.asc
-    - name: Archive GoG Artifacts
-      uses: actions/upload-artifact@v7
-      with:
-        name: GoG
-        path: |
-          ${{ steps.calculate_artifact_names.outputs.gog }}
-          ${{ steps.calculate_artifact_names.outputs.gog }}.asc
-    - name: Upload Releases
-      if: startsWith(github.ref, 'refs/tags/release-')
-      env:
-        GH_TOKEN: ${{ github.token }}
-        GIT_REF: ${{ github.ref }}
-        FABRIC_JAR: ${{ steps.calculate_artifact_names.outputs.fabric }}
-        FORGE_JAR: ${{ steps.calculate_artifact_names.outputs.forge }}
-        GOG_JAR: ${{ steps.calculate_artifact_names.outputs.gog }}
-        CURSEFORGE_TOKEN: ${{ secrets.VAZKII_CURSEFORGE_TOKEN }}
-        MODRINTH_TOKEN: ${{ secrets.VAZKII_MODRINTH_TOKEN }}
-      run: |
-        scripts/upload_releases.sh
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Java 25
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "25"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x gradlew
+
+      - name: Show Java and Gradle versions
+        run: |
+          java -version
+          ./gradlew --version
+
+      - name: Resolve Fabric dependencies
+        run: ./gradlew :Fabric:dependencies --configuration compileClasspath --stacktrace
+
+      - name: Compile Fabric
+        run: ./gradlew :Fabric:compileJava --stacktrace

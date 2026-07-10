@@ -15,7 +15,6 @@
     "ExplosionFabricMixin",
     "HashCacheFabricMixin",
     "ItemEntityFabricMixin",
-    "ItemPredicateFabricMixin",
     "ItemStackFabricMixin",
     "LivingEntityFabricMixin",
     "PiglinAiFabricMixin",

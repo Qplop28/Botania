@@ -56,6 +56,8 @@ sourceSets.main.java {
     exclude 'vazkii/botania/fabric/client/FabricManaBlasterModel.java'
     exclude 'vazkii/botania/fabric/client/FabricPlatformModel.java'
     exclude 'vazkii/botania/fabric/mixin/client/BlockModelDeserializerFabricMixin.java'
+
+    exclude 'vazkii/botania/fabric/mixin/ItemPredicateFabricMixin.java'
 }
 repositories {
     maven {

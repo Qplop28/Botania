@@ -111,7 +111,6 @@ import vazkii.botania.fabric.block.FabricSpecialFlowerBlock;
 import vazkii.botania.fabric.block_entity.FabricRedStringContainerBlockEntity;
 import vazkii.botania.fabric.integration.speedrunigt.BotaniaSpeedrunIGTPlugin;
 import vazkii.botania.fabric.integration.tr_energy.FluxfieldTRStorage;
-import vazkii.botania.fabric.integration.trinkets.TrinketsIntegration;
 import vazkii.botania.fabric.internal_caps.CCAInternalEntityComponents;
 import vazkii.botania.fabric.mixin.AbstractFurnaceBlockEntityFabricAccessor;
 import vazkii.botania.network.BotaniaPacket;
@@ -555,10 +554,7 @@ public class FabricXplatImpl implements XplatAbstractions {
 	@Nullable
 	@Override
 	public EquipmentHandler tryCreateEquipmentHandler() {
-		if (isModLoaded("trinkets")) {
-			TrinketsIntegration.init();
-			return new TrinketsIntegration();
-		}
+		// Trinkets integration is disabled during the Minecraft 26.1 bootstrap.
 		return null;
 	}
 

@@ -84,8 +84,6 @@ import vazkii.botania.network.EffectType;
 import vazkii.botania.network.clientbound.BotaniaEffectPacket;
 import vazkii.botania.network.clientbound.SpawnGaiaGuardianPacket;
 import vazkii.botania.xplat.XplatAbstractions;
-import vazkii.patchouli.api.IMultiblock;
-import vazkii.patchouli.api.PatchouliAPI;
 
 import java.util.*;
 import java.util.function.Supplier;
@@ -99,51 +97,6 @@ public class GaiaGuardianEntity extends Mob {
 
 	private static final int SPAWN_TICKS = 160;
 	public static final float MAX_HP = 320F;
-	public static final Supplier<IMultiblock> ARENA_MULTIBLOCK = Suppliers.memoize(() -> {
-		var beaconBase = PatchouliAPI.get().predicateMatcher(Blocks.IRON_BLOCK,
-				state -> state.is(BlockTags.BEACON_BASE_BLOCKS));
-		return PatchouliAPI.get().makeMultiblock(
-				new String[][] {
-						{
-								"P_______P",
-								"_________",
-								"_________",
-								"_________",
-								"_________",
-								"_________",
-								"_________",
-								"_________",
-								"P_______P",
-						},
-						{
-								"_________",
-								"_________",
-								"_________",
-								"_________",
-								"____B____",
-								"_________",
-								"_________",
-								"_________",
-								"_________",
-						},
-						{
-								"_________",
-								"_________",
-								"_________",
-								"___III___",
-								"___I0I___",
-								"___III___",
-								"_________",
-								"_________",
-								"_________",
-						}
-				},
-				'P', BotaniaBlocks.gaiaPylon,
-				'B', Blocks.BEACON,
-				'I', beaconBase,
-				'0', beaconBase
-		);
-	});
 
 	private static final int MOB_SPAWN_START_TICKS = 20;
 	private static final int MOB_SPAWN_END_TICKS = 80;

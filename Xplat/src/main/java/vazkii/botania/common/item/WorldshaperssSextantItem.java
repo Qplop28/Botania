@@ -30,8 +30,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemUtils;
 import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.Rotation;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
@@ -45,14 +44,11 @@ import vazkii.botania.common.helper.MathHelper;
 import vazkii.botania.common.helper.VecHelper;
 import vazkii.botania.common.item.equipment.tool.ToolCommons;
 import vazkii.botania.common.proxy.Proxy;
-import vazkii.patchouli.api.IMultiblock;
-import vazkii.patchouli.api.IStateMatcher;
-import vazkii.patchouli.api.PatchouliAPI;
 
 import java.math.RoundingMode;
 import java.text.NumberFormat;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.function.Predicate;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -116,7 +112,7 @@ public class WorldshaperssSextantItem extends Item {
 		world.addParticle(data, x + cosR + 0.5, y + 1, z + sinR + 0.5, 0, 0.01, 0);
 	}
 
-	private static void makeSphere(IStateMatcher matcher, double radius, Map<BlockPos, IStateMatcher> map) {
+	private static void makeSphere(Predicate<BlockState> matcher, double radius, Map<BlockPos, Predicate<BlockState>> map) {
 		// 3D version of Midpoint circle algorithm, based on https://stackoverflow.com/a/41666156/1331011
 		// This algorithm generates all combinations of X, Y, and Z components, where:
 		// - the X/Y/Z position is inside the sphere,
@@ -149,7 +145,7 @@ public class WorldshaperssSextantItem extends Item {
 		}
 	}
 
-	private static void generateMirroredPositions(int x, int y, int z, Map<BlockPos, IStateMatcher> map, IStateMatcher matcher) {
+	private static void generateMirroredPositions(int x, int y, int z, Map<BlockPos, Predicate<BlockState>> map, Predicate<BlockState> matcher) {
 		Stream.of(
 				new BlockPos(x, y, z), new BlockPos(-x, y, z),
 				new BlockPos(x, -y, z), new BlockPos(-x, -y, z),
@@ -160,27 +156,10 @@ public class WorldshaperssSextantItem extends Item {
 
 	@Override
 	public void releaseUsing(ItemStack stack, Level world, LivingEntity living, int time) {
-		if (!(living instanceof Player)) {
-			return;
-		}
-
-		double radius = calculateRadius(stack, living);
-		if (1 < radius && radius <= MAX_RADIUS) {
-			IStateMatcher matcher = PatchouliAPI.get().predicateMatcher(Blocks.COBBLESTONE, s -> !s.isAir());
-			int x = ItemNBTHelper.getInt(stack, TAG_SOURCE_X, 0);
-			int y = ItemNBTHelper.getInt(stack, TAG_SOURCE_Y, Integer.MIN_VALUE);
-			int z = ItemNBTHelper.getInt(stack, TAG_SOURCE_Z, 0);
-			if (y != Integer.MIN_VALUE) {
-				Map<BlockPos, IStateMatcher> map = new HashMap<>();
-				getMode(stack).getCreator().create(matcher, radius + 0.5, map);
-				IMultiblock sparse = PatchouliAPI.get().makeSparseMultiblock(map).setId(MULTIBLOCK_ID);
-				Proxy.INSTANCE.showMultiblock(sparse, Component.literal("r = " + getRadiusString(radius)),
-						new BlockPos(x, y, z), Rotation.NONE);
-			}
-		}
+		// Patchouli multiblock previews are disabled during the Minecraft 26.1 bootstrap.
 	}
 
-	private static void makeCircle(IStateMatcher matcher, double radius, Map<BlockPos, IStateMatcher> map) {
+	private static void makeCircle(Predicate<BlockState> matcher, double radius, Map<BlockPos, Predicate<BlockState>> map) {
 		// 2D version of makeSphere, assuming y=0 at all times
 		final int maxR2 = (int) Math.floor(radius * radius);
 		int z = (int) Math.floor(radius);
@@ -196,7 +175,7 @@ public class WorldshaperssSextantItem extends Item {
 		}
 	}
 
-	private static void generateMirroredPositions(int x, int z, Map<BlockPos, IStateMatcher> map, IStateMatcher matcher) {
+	private static void generateMirroredPositions(int x, int z, Map<BlockPos, Predicate<BlockState>> map, Predicate<BlockState> matcher) {
 		Stream.of(
 				new BlockPos(x, 0, z), new BlockPos(-x, 0, z),
 				new BlockPos(x, 0, -z), new BlockPos(-x, 0, -z)
@@ -336,7 +315,7 @@ public class WorldshaperssSextantItem extends Item {
 
 	@FunctionalInterface
 	private interface ShapeCreator {
-		void create(IStateMatcher matcher, double radius, Map<BlockPos, IStateMatcher> map);
+		void create(Predicate<BlockState> matcher, double radius, Map<BlockPos, Predicate<BlockState>> map);
 	}
 
 	@FunctionalInterface

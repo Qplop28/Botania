@@ -8,12 +8,9 @@
  */
 package vazkii.botania.common.proxy;
 
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleOptions;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 
@@ -23,7 +20,6 @@ import org.jetbrains.annotations.Nullable;
 import vazkii.botania.client.core.proxy.ClientProxy;
 import vazkii.botania.common.entity.GaiaGuardianEntity;
 import vazkii.botania.xplat.XplatAbstractions;
-import vazkii.patchouli.api.IMultiblock;
 
 import java.util.Locale;
 import java.util.function.Supplier;
@@ -68,8 +64,6 @@ public interface Proxy {
 
 	/** Same as {@code world.addParticle(data, true, ...)}, but culls particles below 32 block distances. */
 	default void addParticleForceNear(Level world, ParticleOptions particleData, double x, double y, double z, double xSpeed, double ySpeed, double zSpeed) {}
-
-	default void showMultiblock(IMultiblock mb, Component name, BlockPos anchor, Rotation rot) {}
 
 	default void clearSextantMultiblock() {}
 

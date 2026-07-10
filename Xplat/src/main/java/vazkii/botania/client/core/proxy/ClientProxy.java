@@ -11,12 +11,9 @@ package vazkii.botania.client.core.proxy;
 import net.minecraft.client.Camera;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleOptions;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 
@@ -32,8 +29,6 @@ import vazkii.botania.common.item.*;
 import vazkii.botania.common.lib.LibMisc;
 import vazkii.botania.common.proxy.Proxy;
 import vazkii.botania.xplat.BotaniaConfig;
-import vazkii.patchouli.api.IMultiblock;
-import vazkii.patchouli.api.PatchouliAPI;
 
 import java.time.LocalDateTime;
 import java.time.Month;
@@ -105,16 +100,8 @@ public class ClientProxy implements Proxy {
 	}
 
 	@Override
-	public void showMultiblock(IMultiblock mb, Component name, BlockPos anchor, Rotation rot) {
-		PatchouliAPI.get().showMultiblock(mb, name, anchor, rot);
-	}
-
-	@Override
 	public void clearSextantMultiblock() {
-		IMultiblock mb = PatchouliAPI.get().getCurrentMultiblock();
-		if (mb != null && mb.getID().equals(WorldshaperssSextantItem.MULTIBLOCK_ID)) {
-			PatchouliAPI.get().clearMultiblock();
-		}
+		// Patchouli multiblock previews are disabled during the Minecraft 26.1 bootstrap.
 	}
 
 	@Nullable

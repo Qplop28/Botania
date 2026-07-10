@@ -49,6 +49,7 @@ sourceSets.main.java {
     exclude 'vazkii/botania/fabric/integration/trinkets/**'
     exclude 'vazkii/botania/fabric/integration/speedrunigt/**'
     exclude 'vazkii/botania/fabric/integration/tr_energy/**'
+    exclude 'vazkii/botania/fabric/integration/sodium/**'
     exclude 'vazkii/botania/fabric/data/**'
 }
 repositories {

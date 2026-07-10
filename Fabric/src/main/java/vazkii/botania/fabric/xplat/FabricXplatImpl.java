@@ -1,7 +1,6 @@
 package vazkii.botania.fabric.xplat;
 
 import net.fabricmc.api.EnvType;
-import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
@@ -100,7 +99,6 @@ import vazkii.botania.api.recipe.ElvenPortalUpdateCallback;
 import vazkii.botania.common.block.block_entity.red_string.RedStringContainerBlockEntity;
 import vazkii.botania.common.handler.EquipmentHandler;
 import vazkii.botania.common.internal_caps.*;
-import vazkii.botania.common.item.equipment.CustomDamageItem;
 import vazkii.botania.common.lib.BotaniaTags;
 import vazkii.botania.common.lib.LibMisc;
 import vazkii.botania.fabric.block.FabricSpecialFlowerBlock;
@@ -525,19 +523,8 @@ public class FabricXplatImpl implements XplatAbstractions {
 	}
 
 	@Override
-	public FabricItemSettings defaultItemBuilder() {
-		return new FabricItemSettings();
-	}
-
-	@Override
-	public Item.Properties defaultItemBuilderWithCustomDamageOnFabric() {
-		return defaultItemBuilder().customDamage((stack, amount, entity, breakCallback) -> {
-			var item = stack.getItem();
-			if (item instanceof CustomDamageItem cd) {
-				return cd.damageItem(stack, amount, entity, breakCallback);
-			}
-			return amount;
-		});
+	public Item.Properties defaultItemBuilder() {
+		return new Item.Properties();
 	}
 
 	@Override

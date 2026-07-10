@@ -13,7 +13,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
@@ -58,9 +58,9 @@ public class LexicaBotaniaItem extends Item implements ItemWithBannerPattern, Cu
 
 	@NotNull
 	@Override
-	public InteractionResultHolder<ItemStack> use(Level worldIn, Player playerIn, InteractionHand handIn) {
+	public InteractionResult use(Level worldIn, Player playerIn, InteractionHand handIn) {
 		// Patchouli integration is disabled during the Minecraft 26.1 bootstrap.
-		return InteractionResultHolder.pass(playerIn.getItemInHand(handIn));
+		return InteractionResult.PASS;
 	}
 
 	public static Component getEdition() {

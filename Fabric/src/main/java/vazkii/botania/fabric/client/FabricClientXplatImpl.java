@@ -76,7 +76,4 @@ public class FabricClientXplatImpl implements ClientXplatAbstractions {
 	public void markSpriteActive(TextureAtlasSprite sprite) {
 		// Sodium integration is disabled during the Minecraft 26.1 bootstrap.
 	}
-
-	private final Supplier<Boolean> sodiumLoaded = Suppliers.memoize(() -> XplatAbstractions.INSTANCE.isModLoaded("sodium")
-			|| XplatAbstractions.INSTANCE.isModLoaded("embeddium"));
 }

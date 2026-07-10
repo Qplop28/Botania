@@ -48,7 +48,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
 import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
@@ -222,7 +222,13 @@ public class GaiaGuardianEntity extends Mob {
 			}
 
 			e.playSound(BotaniaSounds.gaiaSummon, 1F, 1F);
-			e.finalizeSpawn((ServerLevelAccessor) world, world.getCurrentDifficultyAt(e.blockPosition()), MobSpawnType.EVENT, null, null);
+			e.finalizeSpawn(
+				(ServerLevelAccessor) world,
+				world.getCurrentDifficultyAt(e.blockPosition()),
+				EntitySpawnReason.EVENT,
+				null
+			);
+			
 			world.addFreshEntity(e);
 
 			for (Player nearbyPlayer : playersAround) {

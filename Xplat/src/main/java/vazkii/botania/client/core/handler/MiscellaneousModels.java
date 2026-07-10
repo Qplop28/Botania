@@ -35,7 +35,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static vazkii.botania.common.lib.ResourceLocationHelper.modelResourceLocation;
 import static vazkii.botania.common.lib.ResourceLocationHelper.prefix;
 
 public class MiscellaneousModels {
@@ -152,10 +151,10 @@ public class MiscellaneousModels {
 
 	private MiscellaneousModels() {
 		afterBakeModifiers = new HashMap<>();
-		afterBakeModifiers.put(modelResourceLocation(LibBlockNames.PLATFORM_ABSTRUSE, ""), ClientXplatAbstractions.INSTANCE::wrapPlatformModel);
-		afterBakeModifiers.put(modelResourceLocation(LibBlockNames.PLATFORM_SPECTRAL, ""), ClientXplatAbstractions.INSTANCE::wrapPlatformModel);
-		afterBakeModifiers.put(modelResourceLocation(LibBlockNames.PLATFORM_INFRANGIBLE, ""), ClientXplatAbstractions.INSTANCE::wrapPlatformModel);
-		afterBakeModifiers.put(modelResourceLocation(LibBlockNames.TINY_POTATO, "inventory"), TinyPotatoModel::new);
+		afterBakeModifiers.put(prefix(LibBlockNames.PLATFORM_ABSTRUSE), ClientXplatAbstractions.INSTANCE::wrapPlatformModel);
+		afterBakeModifiers.put(prefix(LibBlockNames.PLATFORM_SPECTRAL), ClientXplatAbstractions.INSTANCE::wrapPlatformModel);
+		afterBakeModifiers.put(prefix(LibBlockNames.PLATFORM_INFRANGIBLE), ClientXplatAbstractions.INSTANCE::wrapPlatformModel);
+		afterBakeModifiers.put(prefix(LibBlockNames.TINY_POTATO), TinyPotatoModel::new);
 
 		modelConsumers = new HashMap<>();
 		modelConsumers.put(elvenSpreaderCoreId, bakedModel -> this.elvenSpreaderCore = bakedModel);

@@ -8,7 +8,7 @@
  */
 package vazkii.botania.common.handler;
 
-import net.minecraft.Util;
+import net.minecraft.util.Util;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;

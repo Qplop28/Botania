@@ -9,10 +9,8 @@
 package vazkii.botania.common.item;
 
 import net.minecraft.ChatFormatting;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
@@ -28,10 +26,7 @@ import net.minecraft.world.phys.BlockHitResult;
 
 import org.jetbrains.annotations.NotNull;
 
-import vazkii.botania.common.advancements.UseItemSuccessTrigger;
-import vazkii.botania.common.handler.BotaniaSounds;
 import vazkii.botania.common.lib.BotaniaTags;
-import vazkii.patchouli.api.PatchouliAPI;
 
 import java.util.List;
 
@@ -44,7 +39,8 @@ public class LexicaBotaniaItem extends Item implements ItemWithBannerPattern, Cu
 	}
 
 	public static boolean isOpen() {
-		return BuiltInRegistries.ITEM.getKey(BotaniaItems.lexicon).equals(PatchouliAPI.get().getOpenBookGui());
+		// Patchouli integration is disabled during the Minecraft 26.1 bootstrap.
+		return false;
 	}
 
 	@Override
@@ -63,23 +59,13 @@ public class LexicaBotaniaItem extends Item implements ItemWithBannerPattern, Cu
 	@NotNull
 	@Override
 	public InteractionResultHolder<ItemStack> use(Level worldIn, Player playerIn, InteractionHand handIn) {
-		ItemStack stack = playerIn.getItemInHand(handIn);
-
-		if (playerIn instanceof ServerPlayer player) {
-			UseItemSuccessTrigger.INSTANCE.trigger(player, stack, player.serverLevel(), player.getX(), player.getY(), player.getZ());
-			PatchouliAPI.get().openBookGUI(player, BuiltInRegistries.ITEM.getKey(this));
-			playerIn.playSound(BotaniaSounds.lexiconOpen, 1F, (float) (0.7 + Math.random() * 0.4));
-		}
-
-		return InteractionResultHolder.sidedSuccess(stack, worldIn.isClientSide());
+		// Patchouli integration is disabled during the Minecraft 26.1 bootstrap.
+		return InteractionResultHolder.pass(playerIn.getItemInHand(handIn));
 	}
 
 	public static Component getEdition() {
-		try {
-			return PatchouliAPI.get().getSubtitle(BuiltInRegistries.ITEM.getKey(BotaniaItems.lexicon));
-		} catch (IllegalArgumentException e) {
-			return Component.literal(""); // TODO Adjust Patchouli because first search tree creation is too early to get the edition
-		}
+		// Patchouli integration is disabled during the Minecraft 26.1 bootstrap.
+		return Component.literal("");
 	}
 
 	public static Component getTitle(ItemStack stack) {

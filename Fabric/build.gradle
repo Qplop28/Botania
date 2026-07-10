@@ -118,6 +118,7 @@ compileJava {
 	source(project(":Xplat").sourceSets.main.allSource)
 
 	exclude 'vazkii/botania/data/**'
+	exclude 'vazkii/botania/client/patchouli/**'
 
 	options.compilerArgs << "-Xlint:all,-classfile,-processing,-deprecation,-serial" << "-Werror"
 }

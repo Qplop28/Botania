@@ -59,7 +59,6 @@ import vazkii.botania.common.lib.LibMisc;
 import vazkii.botania.fabric.network.FabricPacketHandler;
 import vazkii.botania.xplat.ClientXplatAbstractions;
 import vazkii.botania.xplat.XplatAbstractions;
-import vazkii.patchouli.api.BookDrawScreenCallback;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -114,7 +113,6 @@ public class FabricClientInitializer implements ClientModInitializer {
 		});
 
 		// Events
-		BookDrawScreenCallback.EVENT.register(KonamiHandler::renderBook);
 		ClientLifecycleEvents.CLIENT_STARTED.register(this::loadComplete);
 		ClientTickEvents.END_CLIENT_TICK.register(ClientTickHandler::clientTickEnd);
 		ClientTickEvents.END_CLIENT_TICK.register(KonamiHandler::clientTick);

@@ -116,7 +116,6 @@ import vazkii.botania.fabric.integration.corporea.FabricTransferCorporeaNodeDete
 import vazkii.botania.fabric.internal_caps.RedStringContainerStorage;
 import vazkii.botania.fabric.network.FabricPacketHandler;
 import vazkii.botania.xplat.XplatAbstractions;
-import vazkii.patchouli.api.PatchouliAPI;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -135,11 +134,6 @@ public class FabricCommonInitializer implements ModInitializer {
 		CompostingData.init(CompostingChanceRegistry.INSTANCE::add);
 		DefaultCorporeaMatchers.init();
 		PlayerHelper.setFakePlayerClass(FakePlayer.class);
-
-		PatchouliAPI.get().registerMultiblock(BuiltInRegistries.BLOCK.getKey(BotaniaBlocks.alfPortal), AlfheimPortalBlockEntity.MULTIBLOCK.get());
-		PatchouliAPI.get().registerMultiblock(BuiltInRegistries.BLOCK.getKey(BotaniaBlocks.terraPlate), TerrestrialAgglomerationPlateBlockEntity.MULTIBLOCK.get());
-		PatchouliAPI.get().registerMultiblock(BuiltInRegistries.BLOCK.getKey(BotaniaBlocks.enchanter), ManaEnchanterBlockEntity.MULTIBLOCK.get());
-		PatchouliAPI.get().registerMultiblock(prefix("gaia_ritual"), GaiaGuardianEntity.ARENA_MULTIBLOCK.get());
 
 		OrechidManager.registerListener();
 		ConfigDataManagerImpl.registerListener();

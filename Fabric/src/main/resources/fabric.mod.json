@@ -60,9 +60,6 @@
       "vazkii.botania.test.item.lens.PaintslingerLensTest",
       "vazkii.botania.test.item.lens.WarpForceTest"
     ],
-    "fabric-datagen": [
-      "vazkii.botania.fabric.data.FabricDatagenInitializer"
-    ],
     "cardinal-components-entity": [
       "vazkii.botania.fabric.internal_caps.CCAInternalEntityComponents"
     ],

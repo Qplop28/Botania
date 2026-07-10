@@ -46,6 +46,7 @@ sourceSets.main.resources {
 
 sourceSets.main.java {
     exclude 'vazkii/botania/fabric/integration/rei/**'
+    exclude 'vazkii/botania/fabric/data/**'
 }
 
 repositories {
@@ -112,8 +113,10 @@ dependencies {
 
 compileJava {
 	source(project(":Xplat").sourceSets.main.allSource)
-	options.compilerArgs << "-Xlint:all,-classfile,-processing,-deprecation,-serial" << "-Werror"
 
+	exclude 'vazkii/botania/data/**'
+
+	options.compilerArgs << "-Xlint:all,-classfile,-processing,-deprecation,-serial" << "-Werror"
 }
 
 sourcesJar {

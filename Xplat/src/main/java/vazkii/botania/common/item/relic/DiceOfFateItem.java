@@ -59,13 +59,13 @@ public class DiceOfFateItem extends RelicItem {
 
 	@NotNull
 	@Override
-	public InteractionResultHolder<ItemStack> use(Level world, Player player, @NotNull InteractionHand hand) {
+	public InteractionResult use(Level world, Player player, @NotNull InteractionHand hand) {
 		ItemStack stack = player.getItemInHand(hand);
 		var relic = XplatAbstractions.INSTANCE.findRelic(stack);
 
 		if (relic != null && relic.isRightPlayer(player)) {
 			if (world.isClientSide) {
-				return InteractionResultHolder.success(stack);
+				return InteractionResult.SUCCESS;
 			}
 
 			world.playSound(null, player.getX(), player.getY(), player.getZ(), BotaniaSounds.diceOfFate, SoundSource.PLAYERS, 1F, 0.4F / (world.random.nextFloat() * 0.4F + 0.8F));
@@ -81,7 +81,7 @@ public class DiceOfFateItem extends RelicItem {
 				int relicIdx = possible.get(world.random.nextInt(possible.size()));
 				player.sendSystemMessage(Component.translatable("botaniamisc.diceRoll", relicIdx + 1).withStyle(ChatFormatting.DARK_GREEN));
 				var toGive = RELIC_STACKS.get().get(relicIdx).copy();
-				return InteractionResultHolder.consume(toGive);
+				return InteractionResult.CONSUME.heldItemTransformedTo(toGive);
 			} else {
 				int roll = world.random.nextInt(6) + 1;
 				Identifier tableId = ResourceLocationHelper.prefix("dice/roll_" + roll);
@@ -100,11 +100,11 @@ public class DiceOfFateItem extends RelicItem {
 				player.sendSystemMessage(Component.translatable(langKey, roll).withStyle(ChatFormatting.DARK_GREEN));
 
 				stack.shrink(1);
-				return InteractionResultHolder.consume(stack);
+				return InteractionResult.CONSUME;
 			}
 		}
 
-		return InteractionResultHolder.pass(stack);
+		return InteractionResult.PASS;
 	}
 
 	@Override

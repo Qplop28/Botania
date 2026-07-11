@@ -60,7 +60,7 @@ public class CrystalBowItem extends LivingwoodBowItem {
 			boolean canMaterializeArrow = canFire(stack, player); // Botania - custom check
 			ItemStack arrowStack = player.getProjectile(stack);
 
-			int i = (int) ((getUseDuration(stack) - timeLeft) * chargeVelocityMultiplier()); // Botania - velocity multiplier
+			int i = (getUseDuration(stack) - timeLeft) * chargeVelocityMultiplier(); // Botania - velocity multiplier
 			if (i < 0) {
 				return;
 			}

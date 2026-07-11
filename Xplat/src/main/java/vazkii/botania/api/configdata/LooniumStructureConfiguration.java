@@ -162,7 +162,7 @@ public class LooniumStructureConfiguration {
 
 		@SafeVarargs
 		public final Builder spawnedMobs(Weighted<LooniumMobSpawnData>... spawnedMobs) {
-			this.spawnedMobs = WeightedList.of(spawnedMobs);
+			this.spawnedMobs = WeightedList.of(java.util.Arrays.asList(spawnedMobs));
 			return this;
 		}
 

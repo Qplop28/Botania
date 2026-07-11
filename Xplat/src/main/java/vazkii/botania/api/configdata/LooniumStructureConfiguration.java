@@ -7,7 +7,8 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.ExtraCodecs;
-import net.minecraft.util.random.WeightedRandomList;
+import net.minecraft.util.random.Weighted;
+import net.minecraft.util.random.WeightedList;
 import net.minecraft.world.level.levelgen.structure.StructureSpawnOverride;
 
 import vazkii.botania.api.BotaniaAPI;
@@ -31,7 +32,7 @@ public class LooniumStructureConfiguration {
 							StructureSpawnOverride.BoundingBoxType.CODEC
 									.optionalFieldOf("boundingBoxType")
 									.forGetter(lsc -> Optional.ofNullable(lsc.boundingBoxType)),
-							WeightedRandomList.codec(LooniumMobSpawnData.CODEC)
+							WeightedList.codec(LooniumMobSpawnData.CODEC)
 									.optionalFieldOf("spawnedMobs")
 									.forGetter(lsc -> Optional.ofNullable(lsc.spawnedMobs)),
 							Codec.list(LooniumMobAttributeModifier.CODEC)
@@ -59,13 +60,13 @@ public class LooniumStructureConfiguration {
 	public final Integer manaCost;
 	public final Integer maxNearbyMobs;
 	public final StructureSpawnOverride.BoundingBoxType boundingBoxType;
-	public final WeightedRandomList<LooniumMobSpawnData> spawnedMobs;
+	public final WeightedList<LooniumMobSpawnData> spawnedMobs;
 	public final List<LooniumMobAttributeModifier> attributeModifiers;
 	public final List<LooniumMobEffectToApply> effectsToApply;
 	public final Identifier parent;
 
 	private LooniumStructureConfiguration(Identifier parent, Integer manaCost, Integer maxNearbyMobs,
-			StructureSpawnOverride.BoundingBoxType boundingBoxType, WeightedRandomList<LooniumMobSpawnData> spawnedMobs,
+			StructureSpawnOverride.BoundingBoxType boundingBoxType, WeightedList<LooniumMobSpawnData> spawnedMobs,
 			List<LooniumMobAttributeModifier> attributeModifiers, List<LooniumMobEffectToApply> effectsToApply) {
 		this.manaCost = manaCost;
 		this.maxNearbyMobs = maxNearbyMobs;
@@ -119,7 +120,7 @@ public class LooniumStructureConfiguration {
 	private static LooniumStructureConfiguration create(Optional<Identifier> parent,
 			Optional<Integer> manaCost, Optional<Integer> maxNearbyMobs,
 			Optional<StructureSpawnOverride.BoundingBoxType> boundingBoxType,
-			Optional<WeightedRandomList<LooniumMobSpawnData>> spawnedMobs,
+			Optional<WeightedList<LooniumMobSpawnData>> spawnedMobs,
 			Optional<List<LooniumMobAttributeModifier>> attributeModifiers,
 			Optional<List<LooniumMobEffectToApply>> effectsToApply) {
 		return new LooniumStructureConfiguration(
@@ -133,7 +134,7 @@ public class LooniumStructureConfiguration {
 		private Integer manaCost;
 		private Integer maxNearbyMobs;
 		private StructureSpawnOverride.BoundingBoxType boundingBoxType;
-		private WeightedRandomList<LooniumMobSpawnData> spawnedMobs;
+		private WeightedList<LooniumMobSpawnData> spawnedMobs;
 		private List<LooniumMobAttributeModifier> attributeModifiers;
 		private List<LooniumMobEffectToApply> effectsToApply;
 
@@ -159,8 +160,9 @@ public class LooniumStructureConfiguration {
 			return this;
 		}
 
-		public Builder spawnedMobs(LooniumMobSpawnData... spawnedMobs) {
-			this.spawnedMobs = WeightedRandomList.create(spawnedMobs);
+		@SafeVarargs
+		public final Builder spawnedMobs(Weighted<LooniumMobSpawnData>... spawnedMobs) {
+			this.spawnedMobs = WeightedList.of(spawnedMobs);
 			return this;
 		}
 

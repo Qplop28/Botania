@@ -26,6 +26,7 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
+import net.minecraft.util.random.Weighted;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.*;
@@ -310,7 +311,9 @@ public class LooniumBlockEntity extends FunctionalFlowerBlockEntity {
 				}
 
 				Optional<LooniumMobSpawnData> mobType = pickedConfig.spawnedMobs.unwrap().stream()
-						.filter(mobSpawnData -> mobSpawnData.type.tryCast(otherMob) != null).findFirst();
+					.map(Weighted::value)
+					.filter(mobSpawnData -> mobSpawnData.type.tryCast(otherMob) != null)
+					.findFirst();
 
 				ItemStack bonusLoot;
 				if (mobType.isPresent()) {
@@ -365,7 +368,10 @@ public class LooniumBlockEntity extends FunctionalFlowerBlockEntity {
 	}
 
 	private int countNearbyMobs(ServerLevel world, LooniumStructureConfiguration pickedConfig) {
-		var setOfMobTypes = pickedConfig.spawnedMobs.unwrap().stream().map(msd -> msd.type).collect(Collectors.toSet());
+		var setOfMobTypes = pickedConfig.spawnedMobs.unwrap().stream()
+			.map(Weighted::value)
+			.map(msd -> msd.type)
+			.collect(Collectors.toSet());
 		return world.getEntitiesOfClass(Mob.class, new AABB(getEffectivePos()).inflate(CHECK_RANGE),
 				m -> setOfMobTypes.contains(m.getType())).size();
 	}

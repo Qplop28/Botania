@@ -2,13 +2,13 @@ package vazkii.botania.api.configdata;
 
 import com.google.common.collect.ImmutableList;
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.Identifier;
-import net.minecraft.util.random.Weight;
-import net.minecraft.util.random.WeightedEntry;
+import net.minecraft.util.random.Weighted;
 import net.minecraft.world.entity.EntityType;
 
 import org.jetbrains.annotations.Nullable;
@@ -16,22 +16,21 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Optional;
 
-public class LooniumMobSpawnData extends WeightedEntry.IntrusiveBase {
-	public static final Codec<LooniumMobSpawnData> CODEC = RecordCodecBuilder.create(
-			instance -> instance.group(
-					BuiltInRegistries.ENTITY_TYPE.byNameCodec().fieldOf("type").forGetter(msd -> msd.type),
-					Weight.CODEC.fieldOf("weight").forGetter(IntrusiveBase::getWeight),
-					Codec.BOOL.optionalFieldOf("spawnAsBaby").forGetter(msd -> Optional.ofNullable(msd.spawnAsBaby)),
-					CompoundTag.CODEC.optionalFieldOf("nbt").forGetter(msd -> Optional.ofNullable(msd.nbt)),
-					Identifier.CODEC.optionalFieldOf("equipmentTable")
-							.forGetter(msd -> Optional.ofNullable(msd.equipmentTable)),
-					Codec.list(LooniumMobEffectToApply.CODEC)
-							.optionalFieldOf("effectsToApply")
-							.forGetter(msd -> Optional.ofNullable(msd.effectsToApply)),
-					Codec.list(LooniumMobAttributeModifier.CODEC)
-							.optionalFieldOf("attributeModifiers")
-							.forGetter(msd -> Optional.ofNullable(msd.attributeModifiers))
-			).apply(instance, LooniumMobSpawnData::create)
+public class LooniumMobSpawnData {
+	public static final MapCodec<LooniumMobSpawnData> CODEC = RecordCodecBuilder.mapCodec(
+		instance -> instance.group(
+				BuiltInRegistries.ENTITY_TYPE.byNameCodec().fieldOf("type").forGetter(msd -> msd.type),
+				Codec.BOOL.optionalFieldOf("spawnAsBaby").forGetter(msd -> Optional.ofNullable(msd.spawnAsBaby)),
+				CompoundTag.CODEC.optionalFieldOf("nbt").forGetter(msd -> Optional.ofNullable(msd.nbt)),
+				Identifier.CODEC.optionalFieldOf("equipmentTable")
+						.forGetter(msd -> Optional.ofNullable(msd.equipmentTable)),
+				Codec.list(LooniumMobEffectToApply.CODEC)
+						.optionalFieldOf("effectsToApply")
+						.forGetter(msd -> Optional.ofNullable(msd.effectsToApply)),
+				Codec.list(LooniumMobAttributeModifier.CODEC)
+						.optionalFieldOf("attributeModifiers")
+						.forGetter(msd -> Optional.ofNullable(msd.attributeModifiers))
+		).apply(instance, LooniumMobSpawnData::create)
 	);
 
 	public final EntityType<?> type;
@@ -41,11 +40,10 @@ public class LooniumMobSpawnData extends WeightedEntry.IntrusiveBase {
 	public final List<LooniumMobEffectToApply> effectsToApply;
 	public final List<LooniumMobAttributeModifier> attributeModifiers;
 
-	private LooniumMobSpawnData(EntityType<?> type, Weight weight, Boolean spawnAsBaby, @Nullable CompoundTag nbt,
+	private LooniumMobSpawnData(EntityType<?> type, Boolean spawnAsBaby, @Nullable CompoundTag nbt,
 			@Nullable Identifier equipmentTable,
 			@Nullable List<LooniumMobEffectToApply> effectsToApply,
 			@Nullable List<LooniumMobAttributeModifier> attributeModifiers) {
-		super(weight);
 		this.type = type;
 		this.spawnAsBaby = spawnAsBaby;
 		this.nbt = nbt != null ? nbt.copy() : null;
@@ -73,18 +71,20 @@ public class LooniumMobSpawnData extends WeightedEntry.IntrusiveBase {
 	// Codecs don't support setting null as intentional default value for optional fields, so we do this.
 	// (blame com.mojang.datafixers.util.Either::getLeft using Optional::of instead Optional.ofNullable)
 	@SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-	private static LooniumMobSpawnData create(EntityType<?> type, Weight weight,
-			Optional<Boolean> spawnAsBaby,
-			Optional<CompoundTag> nbt,
-			Optional<Identifier> equipmentTable,
-			Optional<List<LooniumMobEffectToApply>> effectsToApply,
-			Optional<List<LooniumMobAttributeModifier>> attributeModifiers) {
-		return new LooniumMobSpawnData(type, weight,
-				spawnAsBaby.orElse(null),
-				nbt.orElse(null),
-				equipmentTable.orElse(null),
-				effectsToApply.orElse(null),
-				attributeModifiers.orElse(null));
+	private static LooniumMobSpawnData create(EntityType<?> type,
+		Optional<Boolean> spawnAsBaby,
+		Optional<CompoundTag> nbt,
+		Optional<Identifier> equipmentTable,
+		Optional<List<LooniumMobEffectToApply>> effectsToApply,
+		Optional<List<LooniumMobAttributeModifier>> attributeModifiers) {
+	return new LooniumMobSpawnData(
+			type,
+			spawnAsBaby.orElse(null),
+			nbt.orElse(null),
+			equipmentTable.orElse(null),
+			effectsToApply.orElse(null),
+			attributeModifiers.orElse(null)
+		);
 	}
 
 	public static class Builder {
@@ -153,9 +153,18 @@ public class LooniumMobSpawnData extends WeightedEntry.IntrusiveBase {
 			return this;
 		}
 
-		public LooniumMobSpawnData build() {
-			return new LooniumMobSpawnData(type, Weight.of(weight), spawnAsBaby, nbt, equipmentTable,
-					effectsToApply, attributeModifiers);
+		public Weighted<LooniumMobSpawnData> build() {
+			return new Weighted<>(
+				new LooniumMobSpawnData(
+					type,
+					spawnAsBaby,
+					nbt,
+					equipmentTable,
+					effectsToApply,
+					attributeModifiers
+				),
+				weight
+			);
 		}
 	}
 }

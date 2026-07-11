@@ -133,38 +133,7 @@ public interface BotaniaAPI {
 		}
 	};
 
-	Tier DUMMY_ITEM_TIER = new Tier() {
-		@Override
-		public int getUses() {
-			return 0;
-		}
-
-		@Override
-		public float getSpeed() {
-			return 0;
-		}
-
-		@Override
-		public float getAttackDamageBonus() {
-			return 0;
-		}
-
-		@Override
-		public int getLevel() {
-			return 0;
-		}
-
-		@Override
-		public int getEnchantmentValue() {
-			return 0;
-		}
-
-		@NotNull
-		@Override
-		public Ingredient getRepairIngredient() {
-			return Ingredient.EMPTY;
-		}
-	};
+	ToolMaterial DUMMY_TOOL_MATERIAL = ToolMaterial.WOOD;
 
 	default ArmorMaterial getManasteelArmorMaterial() {
 		return DUMMY_ARMOR_MATERIAL;
@@ -182,16 +151,16 @@ public interface BotaniaAPI {
 		return DUMMY_ARMOR_MATERIAL;
 	}
 
-	default Tier getManasteelItemTier() {
-		return DUMMY_ITEM_TIER;
+	default ToolMaterial getManasteelItemTier() {
+		return DUMMY_TOOL_MATERIAL;
 	}
 
-	default Tier getElementiumItemTier() {
-		return DUMMY_ITEM_TIER;
+	default ToolMaterial getElementiumItemTier() {
+		return DUMMY_TOOL_MATERIAL;
 	}
 
-	default Tier getTerrasteelItemTier() {
-		return DUMMY_ITEM_TIER;
+	default ToolMaterial getTerrasteelItemTier() {
+		return DUMMY_TOOL_MATERIAL;
 	}
 
 	default ManaNetwork getManaNetworkInstance() {

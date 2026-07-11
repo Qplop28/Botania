@@ -14,6 +14,7 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
@@ -40,6 +41,7 @@ import vazkii.botania.common.handler.ManaNetworkHandler;
 import vazkii.botania.common.integration.corporea.CorporeaNodeDetectors;
 import vazkii.botania.common.item.BotaniaItems;
 import vazkii.botania.common.item.relic.RingOfLokiItem;
+import vazkii.botania.common.lib.BotaniaTags;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -152,57 +154,32 @@ public class BotaniaAPIImpl implements BotaniaAPI {
 		}
 	}
 
-	private enum ItemTier implements Tier {
-		MANASTEEL(300, 6.2F, 2, 3, 20, () -> BotaniaItems.manaSteel),
-		ELEMENTIUM(720, 6.2F, 2, 3, 20, () -> BotaniaItems.elementium),
-		TERRASTEEL(2300, 9, 4, 4, 26, () -> BotaniaItems.terrasteel);
+	private static final ToolMaterial MANASTEEL_ITEM_MATERIAL = new ToolMaterial(
+			BlockTags.INCORRECT_FOR_DIAMOND_TOOL,
+			300,
+			6.2F,
+			2,
+			20,
+			BotaniaTags.Items.INGOTS_MANASTEEL
+	);
 
-		private final int maxUses;
-		private final float efficiency;
-		private final float attackDamage;
-		private final int harvestLevel;
-		private final int enchantability;
-		private final Supplier<Item> repairItem;
+	private static final ToolMaterial ELEMENTIUM_ITEM_MATERIAL = new ToolMaterial(
+			BlockTags.INCORRECT_FOR_DIAMOND_TOOL,
+			720,
+			6.2F,
+			2,
+			20,
+			BotaniaTags.Items.INGOTS_ELEMENTIUM
+	);
 
-		ItemTier(int maxUses, float efficiency, float attackDamage, int harvestLevel, int enchantability, Supplier<Item> repairItem) {
-			this.maxUses = maxUses;
-			this.efficiency = efficiency;
-			this.attackDamage = attackDamage;
-			this.harvestLevel = harvestLevel;
-			this.enchantability = enchantability;
-			this.repairItem = repairItem;
-		}
-
-		@Override
-		public int getUses() {
-			return maxUses;
-		}
-
-		@Override
-		public float getSpeed() {
-			return efficiency;
-		}
-
-		@Override
-		public float getAttackDamageBonus() {
-			return attackDamage;
-		}
-
-		@Override
-		public int getLevel() {
-			return harvestLevel;
-		}
-
-		@Override
-		public int getEnchantmentValue() {
-			return enchantability;
-		}
-
-		@Override
-		public Ingredient getRepairIngredient() {
-			return Ingredient.of(repairItem.get());
-		}
-	}
+	private static final ToolMaterial TERRASTEEL_ITEM_MATERIAL = new ToolMaterial(
+			BlockTags.INCORRECT_FOR_NETHERITE_TOOL,
+			2300,
+			9F,
+			4,
+			26,
+			BotaniaTags.Items.INGOTS_TERRASTEEL
+	);
 
 	private ConfigDataManager configDataManager = new ConfigDataManagerImpl();
 
@@ -239,18 +216,18 @@ public class BotaniaAPIImpl implements BotaniaAPI {
 	}
 
 	@Override
-	public Tier getManasteelItemTier() {
-		return ItemTier.MANASTEEL;
+	public ToolMaterial getManasteelItemTier() {
+		return MANASTEEL_ITEM_MATERIAL;
 	}
 
 	@Override
-	public Tier getElementiumItemTier() {
-		return ItemTier.ELEMENTIUM;
+	public ToolMaterial getElementiumItemTier() {
+		return ELEMENTIUM_ITEM_MATERIAL;
 	}
 
 	@Override
-	public Tier getTerrasteelItemTier() {
-		return ItemTier.TERRASTEEL;
+	public ToolMaterial getTerrasteelItemTier() {
+		return TERRASTEEL_ITEM_MATERIAL;
 	}
 
 	@Override

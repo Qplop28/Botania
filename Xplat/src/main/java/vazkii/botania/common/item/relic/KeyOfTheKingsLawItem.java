@@ -15,7 +15,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemUtils;
-import net.minecraft.world.item.UseAnim;
+import net.minecraft.world.item.ItemUseAnimation;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
@@ -43,26 +43,27 @@ public class KeyOfTheKingsLawItem extends RelicItem {
 
 	@NotNull
 	@Override
-	public InteractionResultHolder<ItemStack> use(Level world, Player player, @NotNull InteractionHand hand) {
+	public InteractionResult use(Level world, Player player, @NotNull InteractionHand hand) {
 		ItemStack stack = player.getItemInHand(hand);
 		setCharging(stack, true);
 		return ItemUtils.startUsingInstantly(world, player, hand);
 	}
 
 	@Override
-	public void releaseUsing(ItemStack stack, Level world, LivingEntity living, int time) {
+	public boolean releaseUsing(ItemStack stack, Level world, LivingEntity living, int time) {
 		int spawned = getWeaponsSpawned(stack);
 		if (spawned == 20) {
 			setCharging(stack, false);
 			setWeaponsSpawned(stack, 0);
 		}
+		return true;
 	}
 
 	@Override
 	public void onUseTick(Level world, LivingEntity living, ItemStack stack, int count) {
 		int spawned = getWeaponsSpawned(stack);
 
-		if (count != getUseDuration(stack) && spawned < 20 && !world.isClientSide && (!(living instanceof Player player) || ManaItemHandler.instance().requestManaExact(stack, player, 150, true))) {
+		if (count != getUseDuration(stack, living) && spawned < 20 && !world.isClientSide && (!(living instanceof Player player) || ManaItemHandler.instance().requestManaExact(stack, player, 150, true))) {
 			Vec3 look = living.getLookAngle().multiply(1, 0, 1);
 
 			double playerRot = Math.toRadians(living.getYRot() + 90);
@@ -104,12 +105,12 @@ public class KeyOfTheKingsLawItem extends RelicItem {
 
 	@NotNull
 	@Override
-	public UseAnim getUseAnimation(ItemStack stack) {
-		return UseAnim.BOW;
+	public ItemUseAnimation getUseAnimation(ItemStack stack) {
+		return ItemUseAnimation.BOW;
 	}
 
 	@Override
-	public int getUseDuration(ItemStack stack) {
+	public int getUseDuration(ItemStack stack, LivingEntity user) {
 		return 72000;
 	}
 

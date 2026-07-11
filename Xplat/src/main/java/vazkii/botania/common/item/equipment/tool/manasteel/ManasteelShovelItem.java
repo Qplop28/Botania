@@ -13,7 +13,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ShovelItem;
-import net.minecraft.world.item.Tier;
+import net.minecraft.world.item.ToolMaterial;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -33,7 +33,7 @@ public class ManasteelShovelItem extends ShovelItem implements CustomDamageItem,
 		this(BotaniaAPI.instance().getManasteelItemTier(), props);
 	}
 
-	public ManasteelShovelItem(Tier mat, Properties props) {
+	public ManasteelShovelItem(ToolMaterial mat, Properties props) {
 		super(mat, 1.5F, -3.0F, props);
 	}
 

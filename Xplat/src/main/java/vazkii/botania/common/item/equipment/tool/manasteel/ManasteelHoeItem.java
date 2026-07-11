@@ -13,7 +13,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.HoeItem;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Tier;
+import net.minecraft.world.item.ToolMaterial;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -32,8 +32,8 @@ public class ManasteelHoeItem extends HoeItem implements CustomDamageItem, Sorta
 		this(BotaniaAPI.instance().getManasteelItemTier(), props, -1f);
 	}
 
-	public ManasteelHoeItem(Tier mat, Properties properties, float attackSpeed) {
-		super(mat, (int) -mat.getAttackDamageBonus(), attackSpeed, properties);
+	public ManasteelHoeItem(ToolMaterial mat, Properties properties, float attackSpeed) {
+		super(mat, -mat.attackDamageBonus(), attackSpeed, properties);
 	}
 
 	@Override

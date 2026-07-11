@@ -13,6 +13,7 @@ import net.minecraft.world.level.levelgen.structure.StructureSpawnOverride;
 
 import vazkii.botania.api.BotaniaAPI;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -162,7 +163,11 @@ public class LooniumStructureConfiguration {
 
 		@SafeVarargs
 		public final Builder spawnedMobs(Weighted<LooniumMobSpawnData>... spawnedMobs) {
-			this.spawnedMobs = WeightedList.of(java.util.Arrays.asList(spawnedMobs));
+			List<Weighted<LooniumMobSpawnData>> entries = new ArrayList<>(spawnedMobs.length);
+			for (Weighted<LooniumMobSpawnData> spawnedMob : spawnedMobs) {
+				entries.add(spawnedMob);
+			}
+			this.spawnedMobs = WeightedList.of(entries);
 			return this;
 		}
 

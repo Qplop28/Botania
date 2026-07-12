@@ -93,7 +93,7 @@ public class AstrolabeItem extends Item {
 			playerIn.playSound(BotaniaSounds.astrolabeConfigure, 1F, 1F);
 			if (!worldIn.isClientSide) {
 				int size = getSize(stack);
-				int newSize = size == 11	int newSize = size == 11 ? 3 : size + 2;
+				int newSize = size == 11 ? 3 : size + 2;
 				setSize(stack, newSize);
 				ItemsRemainingRenderHandler.send(playerIn, stack, 0, Component.literal(newSize + "x" + newSize));
 			}

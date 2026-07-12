@@ -34,7 +34,7 @@ public class FabricClientXplatImpl implements ClientXplatAbstractions {
 
 	@Override
 	public void sendToServer(BotaniaPacket packet) {
-		ClientPlayNetworking.send(packet.getFabricId(), packet.toBuf());
+		ClientPlayNetworking.send(packet);
 	}
 
 	@Nullable

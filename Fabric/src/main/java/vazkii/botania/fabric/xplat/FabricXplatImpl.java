@@ -485,36 +485,45 @@ import static vazkii.botania.integration.speedrunigt.BotaniaSpeedrunCategories.B
 	}
 
 	@Override
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public Packet<ClientGamePacketListener> toVanillaClientboundPacket(BotaniaPacket packet) {
-		return ServerPlayNetworking.createS2CPacket(packet.getFabricId(), packet.toBuf());
+		return (Packet) ServerPlayNetworking.createClientboundPacket(packet);
 	}
 
 	@Override
 	public void sendToPlayer(Player player, BotaniaPacket packet) {
 		if (player instanceof ServerPlayer serverPlayer) {
-			ServerPlayNetworking.send(serverPlayer, packet.getFabricId(), packet.toBuf());
+			ServerPlayNetworking.send(serverPlayer, packet);
 		}
 	}
 
 	@Override
 	public void sendToNear(Level level, BlockPos pos, BotaniaPacket packet) {
-		var pkt = ServerPlayNetworking.createS2CPacket(packet.getFabricId(), packet.toBuf());
+		var vanillaPacket = ServerPlayNetworking.createClientboundPacket(packet);
+
 		for (var player : PlayerLookup.tracking((ServerLevel) level, pos)) {
-			if (player.distanceToSqr(pos.getX(), pos.getY(), pos.getZ()) < 64 * 64) {
-				player.connection.send(pkt);
+			if (player.distanceToSqr(
+					pos.getX(),
+					pos.getY(),
+					pos.getZ()
+			) < 64 * 64) {
+				player.connection.send(vanillaPacket);
 			}
 		}
 	}
 
 	@Override
-	public void sendToTracking(Entity e, BotaniaPacket packet) {
-		var pkt = ServerPlayNetworking.createS2CPacket(packet.getFabricId(), packet.toBuf());
-		PlayerLookup.tracking(e).forEach(p -> p.connection.send(pkt));
-		if (e instanceof ServerPlayer) {
-			((ServerPlayer) e).connection.send(pkt);
+	public void sendToTracking(Entity entity, BotaniaPacket packet) {
+		var vanillaPacket = ServerPlayNetworking.createClientboundPacket(packet);
+
+		PlayerLookup.tracking(entity).forEach(player ->
+				player.connection.send(vanillaPacket)
+		);
+
+		if (entity instanceof ServerPlayer player) {
+			player.connection.send(vanillaPacket);
 		}
 	}
-
 	@Override
 	public boolean isSpecialFlowerBlock(Block b) {
 		return b instanceof FabricSpecialFlowerBlock;

@@ -15,7 +15,7 @@ import net.minecraft.core.cauldron.CauldronInteraction;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.SlotAccess;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ClickAction;
@@ -50,56 +50,125 @@ public class SeasRodItem extends Item {
 	// [VanillaCopy] BucketItem, placement case
 	@NotNull
 	@Override
-	public InteractionResultHolder<ItemStack> use(Level level, Player player, @NotNull InteractionHand interactionHand) {
-		ItemStack itemStack = player.getItemInHand(interactionHand);
-		BlockHitResult blockHitResult = getPlayerPOVHitResult(level, player, ClipContext.Fluid.NONE);
+	public InteractionResult use(
+			Level level,
+			Player player,
+			@NotNull InteractionHand interactionHand) {
+		ItemStack itemStack =
+				player.getItemInHand(interactionHand);
+
+		BlockHitResult blockHitResult =
+				getPlayerPOVHitResult(
+						level,
+						player,
+						ClipContext.Fluid.NONE
+				);
+
 		if (blockHitResult.getType() == HitResult.Type.MISS) {
-			return InteractionResultHolder.pass(itemStack);
-		} else if (blockHitResult.getType() != HitResult.Type.BLOCK) {
-			return InteractionResultHolder.pass(itemStack);
-		} else {
-			BlockPos blockPos = blockHitResult.getBlockPos();
-			Direction direction = blockHitResult.getDirection();
-			BlockPos blockPos2 = blockPos.relative(direction);
-			if (level.mayInteract(player, blockPos) && player.mayUseItemAt(blockPos2, direction, itemStack)) {
-				BlockState blockState;
-				blockState = level.getBlockState(blockPos);
-				// Botania - consume mana, check for fillable cauldron
-				boolean manaSuccess = ManaItemHandler.instance().requestManaExactForTool(itemStack, player, COST, true);
-				if (manaSuccess && !player.isShiftKeyDown() && blockState.getBlock() instanceof AbstractCauldronBlock cauldronBlock) {
-					// try filling cauldron with water (note: this can replace existing contents)
-					CauldronInteraction interaction = ((AbstractCauldronBlockAccessor) cauldronBlock)
-							.botania_getInteractions().get(Items.WATER_BUCKET);
-					if (interaction != null) {
-						var result = interaction.interact(blockState, level, blockPos, player, interactionHand, itemStack.copy());
-						if (!ItemStack.matches(player.getItemInHand(interactionHand), itemStack)) {
-							// don't replace with an empty bucket
-							player.setItemInHand(interactionHand, itemStack);
-						}
-						if (result.consumesAction()) {
-							spawnParticles(player, blockPos);
-						}
-						return new InteractionResultHolder<>(result, itemStack);
-					}
-				}
-
-				BlockPos blockPos3 = blockState.getBlock() instanceof LiquidBlockContainer ? blockPos : blockPos2;
-				boolean success = manaSuccess && ((BucketItem) Items.WATER_BUCKET)
-						.emptyContents(player, level, blockPos3, blockHitResult);
-				if (success) {
-					// No extra content for water buckets - this.checkExtraContent(player, level, itemStack, blockPos3);
-					if (player instanceof ServerPlayer serverPlayer) {
-						CriteriaTriggers.PLACED_BLOCK.trigger(serverPlayer, blockPos3, itemStack);
-					}
-
-					player.awardStat(Stats.ITEM_USED.get(this));
-					// Botania - particles
-					spawnParticles(player, blockPos3);
-					return InteractionResultHolder.sidedSuccess(itemStack, level.isClientSide());
-				}
-			}
-			return InteractionResultHolder.fail(itemStack);
+			return InteractionResult.PASS;
 		}
+
+		if (blockHitResult.getType() != HitResult.Type.BLOCK) {
+			return InteractionResult.PASS;
+		}
+
+		BlockPos blockPos = blockHitResult.getBlockPos();
+		Direction direction = blockHitResult.getDirection();
+		BlockPos adjacentPos = blockPos.relative(direction);
+
+		if (!level.mayInteract(player, blockPos)
+				|| !player.mayUseItemAt(
+						adjacentPos,
+						direction,
+						itemStack
+				)) {
+			return InteractionResult.FAIL;
+		}
+
+		BlockState blockState =
+				level.getBlockState(blockPos);
+
+		boolean manaSuccess =
+				ManaItemHandler.instance()
+						.requestManaExactForTool(
+								itemStack,
+								player,
+								COST,
+								true
+						);
+
+		if (manaSuccess
+				&& !player.isShiftKeyDown()
+				&& blockState.getBlock()
+						instanceof AbstractCauldronBlock cauldronBlock) {
+			CauldronInteraction interaction =
+					((AbstractCauldronBlockAccessor) cauldronBlock)
+							.botania_getInteractions()
+							.get(Items.WATER_BUCKET);
+
+			if (interaction != null) {
+				InteractionResult result =
+						interaction.interact(
+								blockState,
+								level,
+								blockPos,
+								player,
+								interactionHand,
+								itemStack.copy()
+						);
+
+				if (!ItemStack.matches(
+						player.getItemInHand(interactionHand),
+						itemStack
+				)) {
+					player.setItemInHand(
+							interactionHand,
+							itemStack
+					);
+				}
+
+				if (result.consumesAction()) {
+					spawnParticles(player, blockPos);
+				}
+
+				return result;
+			}
+		}
+
+		BlockPos placementPos =
+				blockState.getBlock()
+						instanceof LiquidBlockContainer
+						? blockPos
+						: adjacentPos;
+
+		boolean success =
+				manaSuccess
+						&& ((BucketItem) Items.WATER_BUCKET)
+								.emptyContents(
+										player,
+										level,
+										placementPos,
+										blockHitResult
+								);
+
+		if (success) {
+			if (player instanceof ServerPlayer serverPlayer) {
+				CriteriaTriggers.PLACED_BLOCK.trigger(
+						serverPlayer,
+						placementPos,
+						itemStack
+				);
+			}
+
+			player.awardStat(Stats.ITEM_USED.get(this));
+			spawnParticles(player, placementPos);
+
+			return level.isClientSide()
+					? InteractionResult.SUCCESS
+					: InteractionResult.SUCCESS_SERVER;
+		}
+
+		return InteractionResult.FAIL;
 	}
 
 	private static void spawnParticles(Player player, BlockPos blockPos3) {

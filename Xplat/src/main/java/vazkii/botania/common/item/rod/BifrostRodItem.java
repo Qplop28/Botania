@@ -13,7 +13,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -54,42 +54,76 @@ public class BifrostRodItem extends SelfReturningItem {
 
 	@NotNull
 	@Override
-	public InteractionResultHolder<ItemStack> use(Level world, Player player, @NotNull InteractionHand hand) {
+	public InteractionResult use(
+			Level world,
+			Player player,
+			@NotNull InteractionHand hand) {
 		ItemStack stack = player.getItemInHand(hand);
-		if (!world.isClientSide && ManaItemHandler.instance().requestManaExactForTool(stack, player, MANA_COST, false)) {
-			BlockState bifrost = BotaniaBlocks.bifrost.defaultBlockState();
+
+		if (!world.isClientSide()
+				&& ManaItemHandler.instance()
+						.requestManaExactForTool(
+								stack,
+								player,
+								MANA_COST,
+								false
+						)) {
+			BlockState bifrost =
+					BotaniaBlocks.bifrost.defaultBlockState();
+
 			Vec3 vector = player.getLookAngle().normalize();
 
 			double x = player.getX();
 			double y = player.getY() - 1;
 			double z = player.getZ();
-			BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos((int) x, (int) y, (int) z);
+
+			BlockPos.MutableBlockPos pos =
+					new BlockPos.MutableBlockPos(
+							(int) x,
+							(int) y,
+							(int) z
+					);
 
 			double lastX = 0;
 			double lastY = -1;
 			double lastZ = 0;
-			BlockPos.MutableBlockPos previousPos = new BlockPos.MutableBlockPos();
+
+			BlockPos.MutableBlockPos previousPos =
+					new BlockPos.MutableBlockPos();
 
 			int count = 0;
 			boolean placedAny = false;
 
-			boolean prof = ManaItemHandler.instance().hasProficiency(player, stack);
-			int maxlen = prof ? 160 : 100;
-			int time = prof ? (int) (TIME * 1.6) : TIME;
+			boolean proficient =
+					ManaItemHandler.instance()
+							.hasProficiency(player, stack);
 
-			BlockPos.MutableBlockPos placePos = new BlockPos.MutableBlockPos();
+			int maxLength = proficient ? 160 : 100;
+			int time = proficient ? (int) (TIME * 1.6) : TIME;
 
-			while (count < maxlen) {
+			BlockPos.MutableBlockPos placePos =
+					new BlockPos.MutableBlockPos();
+
+			while (count < maxLength) {
 				previousPos.set(lastX, lastY, lastZ);
 
-				if (!previousPos.equals(pos)) { // Occasionally moving to the next segment stays on the same location, skip it
-					if (!world.isEmptyBlock(pos) && world.getBlockState(pos) != bifrost && count >= 4) {
-						break; // Stop placing if you hit a wall (bifrost blocks are fine), but only after 4 segments.
+				if (!previousPos.equals(pos)) {
+					if (!world.isEmptyBlock(pos)
+							&& world.getBlockState(pos) != bifrost
+							&& count >= 4) {
+						break;
 					}
+
 					if (world.isOutsideBuildHeight(pos.getY())) {
 						break;
 					}
-					if (placeBridgeSegment(world, pos, placePos, time)) {
+
+					if (placeBridgeSegment(
+							world,
+							pos,
+							placePos,
+							time
+					)) {
 						placedAny = true;
 					}
 				}
@@ -103,18 +137,43 @@ public class BifrostRodItem extends SelfReturningItem {
 				x += vector.x;
 				y += vector.y;
 				z += vector.z;
+
 				pos.set(x, y, z);
 			}
 
 			if (placedAny) {
-				world.playSound(null, player.getX(), player.getY(), player.getZ(), BotaniaSounds.bifrostRod, SoundSource.PLAYERS, 1F, 1F);
+				world.playSound(
+						null,
+						player.getX(),
+						player.getY(),
+						player.getZ(),
+						BotaniaSounds.bifrostRod,
+						SoundSource.PLAYERS,
+						1.0F,
+						1.0F
+				);
+
 				player.gameEvent(GameEvent.ITEM_INTERACT_FINISH);
-				ManaItemHandler.instance().requestManaExactForTool(stack, player, MANA_COST, true);
-				player.getCooldowns().addCooldown(this, player.isCreative() ? 10 : TIME);
+
+				ManaItemHandler.instance()
+						.requestManaExactForTool(
+								stack,
+								player,
+								MANA_COST,
+								true
+						);
+
+				player.getCooldowns()
+						.addCooldown(
+								this,
+								player.isCreative() ? 10 : TIME
+						);
 			}
 		}
 
-		return InteractionResultHolder.sidedSuccess(stack, world.isClientSide());
+		return world.isClientSide()
+				? InteractionResult.SUCCESS
+				: InteractionResult.SUCCESS_SERVER;
 	}
 
 	private static boolean placeBridgeSegment(Level world, BlockPos center, BlockPos.MutableBlockPos placePos, int time) {

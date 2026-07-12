@@ -13,7 +13,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -48,21 +48,55 @@ public class PlentifulMantleRodItem extends Item {
 
 	@NotNull
 	@Override
-	public InteractionResultHolder<ItemStack> use(Level world, Player p, @NotNull InteractionHand hand) {
-		ItemStack stack = p.getItemInHand(hand);
-		if (ManaItemHandler.instance().requestManaExactForTool(stack, p, COST, true)) {
-			if (world.isClientSide) {
-				int range = ManaItemHandler.instance().hasProficiency(p, stack) ? 20 : 15;
-				long seedxor = world.random.nextLong();
-				doHighlight(world, p.blockPosition(), range, seedxor);
+	public InteractionResult use(
+			Level world,
+			Player player,
+			@NotNull InteractionHand hand) {
+		ItemStack stack = player.getItemInHand(hand);
+
+		if (ManaItemHandler.instance()
+				.requestManaExactForTool(
+						stack,
+						player,
+						COST,
+						true
+				)) {
+			if (world.isClientSide()) {
+				int range =
+						ManaItemHandler.instance()
+								.hasProficiency(player, stack)
+								? 20
+								: 15;
+
+				long seedXor = world.random.nextLong();
+
+				doHighlight(
+						world,
+						player.blockPosition(),
+						range,
+						seedXor
+				);
 			} else {
-				world.playSound(null, p.getX(), p.getY(), p.getZ(), BotaniaSounds.divinationRod, SoundSource.PLAYERS, 1F, 1F);
-				p.gameEvent(GameEvent.ITEM_INTERACT_FINISH);
+				world.playSound(
+						null,
+						player.getX(),
+						player.getY(),
+						player.getZ(),
+						BotaniaSounds.divinationRod,
+						SoundSource.PLAYERS,
+						1.0F,
+						1.0F
+				);
+
+				player.gameEvent(GameEvent.ITEM_INTERACT_FINISH);
 			}
-			return InteractionResultHolder.sidedSuccess(stack, world.isClientSide);
+
+			return world.isClientSide()
+					? InteractionResult.SUCCESS
+					: InteractionResult.SUCCESS_SERVER;
 		}
 
-		return InteractionResultHolder.pass(stack);
+		return InteractionResult.PASS;
 	}
 
 	private static void doHighlight(Level world, BlockPos pos, int range, long seedxor) {

@@ -13,7 +13,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -39,9 +38,19 @@ public class HighlandsRodItem extends LandsRodItem {
 
 	@NotNull
 	@Override
-	public InteractionResultHolder<ItemStack> use(Level world, Player player, @NotNull InteractionHand hand) {
+	public InteractionResult use(
+			Level world,
+			Player player,
+			@NotNull InteractionHand hand) {
 		ItemStack stack = player.getItemInHand(hand);
-		if (ManaItemHandler.instance().requestManaExactForTool(stack, player, COST * 2, false)) {
+
+		if (ManaItemHandler.instance()
+				.requestManaExactForTool(
+						stack,
+						player,
+						COST * 2,
+						false
+				)) {
 			Vec3 playerVec = VecHelper.fromEntityCenter(player);
 			Vec3 lookVec = player.getLookAngle().scale(3);
 			Vec3 placeVec = playerVec.add(lookVec);
@@ -50,25 +59,79 @@ public class HighlandsRodItem extends LandsRodItem {
 			int y = Mth.floor(placeVec.y) + 1;
 			int z = Mth.floor(placeVec.z);
 
-			int entities = world.getEntitiesOfClass(LivingEntity.class, new AABB(x, y, z, x + 1, y + 1, z + 1)).size();
+			AABB placementArea =
+					new AABB(
+							x,
+							y,
+							z,
+							x + 1,
+							y + 1,
+							z + 1
+					);
+
+			int entities =
+					world.getEntitiesOfClass(
+							LivingEntity.class,
+							placementArea
+					).size();
 
 			if (entities == 0) {
-				BlockHitResult hit = new BlockHitResult(Vec3.ZERO, Direction.DOWN, new BlockPos(x, y, z), false);
-				InteractionResult result = PlayerHelper.substituteUse(new UseOnContext(player, hand, hit), new ItemStack(Blocks.DIRT));
+				BlockHitResult hit =
+						new BlockHitResult(
+								Vec3.ZERO,
+								Direction.DOWN,
+								new BlockPos(x, y, z),
+								false
+						);
+
+				InteractionResult result =
+						PlayerHelper.substituteUse(
+								new UseOnContext(
+										player,
+										hand,
+										hit
+								),
+								new ItemStack(Blocks.DIRT)
+						);
 
 				if (result.consumesAction()) {
-					if (!world.isClientSide) {
-						ManaItemHandler.instance().requestManaExactForTool(stack, player, COST * 2, true);
+					if (!world.isClientSide()) {
+						ManaItemHandler.instance()
+								.requestManaExactForTool(
+										stack,
+										player,
+										COST * 2,
+										true
+								);
 					}
-					SparkleParticleData data = SparkleParticleData.sparkle(1F, 0.35F, 0.2F, 0.05F, 5);
+
+					SparkleParticleData data =
+							SparkleParticleData.sparkle(
+									1.0F,
+									0.35F,
+									0.2F,
+									0.05F,
+									5
+							);
+
 					for (int i = 0; i < 6; i++) {
-						world.addParticle(data, x + Math.random(), y + Math.random(), z + Math.random(), 0, 0, 0);
+						world.addParticle(
+								data,
+								x + Math.random(),
+								y + Math.random(),
+								z + Math.random(),
+								0,
+								0,
+								0
+						);
 					}
 				}
 			}
 		}
 
-		return InteractionResultHolder.sidedSuccess(stack, world.isClientSide);
+		return world.isClientSide()
+				? InteractionResult.SUCCESS
+				: InteractionResult.SUCCESS_SERVER;
 	}
 
 }

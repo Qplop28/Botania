@@ -8,7 +8,7 @@
  */
 package vazkii.botania.common.integration.corporea;
 
-import net.minecraft.Util;
+import net.minecraft.util.Util;
 import net.minecraft.world.level.Level;
 
 import vazkii.botania.api.corporea.CorporeaNode;

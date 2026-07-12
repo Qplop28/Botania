@@ -18,7 +18,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffectUtil;
@@ -62,26 +62,26 @@ public class BaseBrewItem extends Item implements BrewItem, CustomCreativeTabCon
 	}
 
 	@Override
-	public int getUseDuration(ItemStack stack) {
+	public int getUseDuration(ItemStack stack, LivingEntity user) {
 		return drinkSpeed;
 	}
 
 	@NotNull
 	@Override
-	public UseAnim getUseAnimation(ItemStack stack) {
-		return UseAnim.DRINK;
+	public ItemUseAnimation getUseAnimation(ItemStack stack) {
+		return ItemUseAnimation.DRINK;
 	}
 
 	@NotNull
 	@Override
-	public InteractionResultHolder<ItemStack> use(Level world, Player player, @NotNull InteractionHand hand) {
+	public InteractionResult use(Level world, Player player, @NotNull InteractionHand hand) {
 		return ItemUtils.startUsingInstantly(world, player, hand);
 	}
 
 	@NotNull
 	@Override
 	public ItemStack finishUsingItem(@NotNull ItemStack stack, Level world, LivingEntity living) {
-		if (!world.isClientSide) {
+		if (!world.isClientSide()) {
 			for (MobEffectInstance effect : getBrew(stack).getPotionEffects(stack)) {
 				MobEffectInstance newEffect = new MobEffectInstance(effect.getEffect(), effect.getDuration(), effect.getAmplifier(), true, true);
 				if (effect.getEffect().isInstantenous()) {

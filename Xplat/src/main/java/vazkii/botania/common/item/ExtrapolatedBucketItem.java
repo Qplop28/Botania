@@ -16,7 +16,7 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -44,61 +44,118 @@ public class ExtrapolatedBucketItem extends Item {
 	// [VanillaCopy] BucketItem, only the empty cases
 	@NotNull
 	@Override
-	public InteractionResultHolder<ItemStack> use(Level level, Player player, @NotNull InteractionHand interactionHand) {
+	public InteractionResult use(
+			Level level,
+			Player player,
+			@NotNull InteractionHand interactionHand) {
 		ItemStack itemStack = player.getItemInHand(interactionHand);
-		BlockHitResult blockHitResult = getPlayerPOVHitResult(level, player, ClipContext.Fluid.SOURCE_ONLY);
-		if (blockHitResult.getType() == HitResult.Type.MISS) {
-			return InteractionResultHolder.pass(itemStack);
-		} else if (blockHitResult.getType() != HitResult.Type.BLOCK) {
-			return InteractionResultHolder.pass(itemStack);
-		} else {
-			BlockPos blockPos = blockHitResult.getBlockPos();
-			Direction direction = blockHitResult.getDirection();
-			BlockPos blockPos2 = blockPos.relative(direction);
-			if (level.mayInteract(player, blockPos) && player.mayUseItemAt(blockPos2, direction, itemStack)) {
-				BlockState blockState;
-				blockState = level.getBlockState(blockPos);
-				if (blockState.getBlock() instanceof BucketPickup bucketPickup) {
-					ItemStack itemStack2 = bucketPickup.pickupBlock(level, blockPos, blockState);
-					if (!itemStack2.isEmpty()) {
-						player.awardStat(Stats.ITEM_USED.get(this));
-						bucketPickup.getPickupSound().ifPresent((soundEvent) -> {
-							player.playSound(soundEvent, 1.0F, 1.0F);
-						});
-						// Botania: some particles
-						spawnParticles(level, blockPos);
-						level.gameEvent(player, GameEvent.FLUID_PICKUP, blockPos);
-						ItemStack itemStack3 = itemStack; // Botania: don't overwrite ourselves
-						if (!level.isClientSide) {
-							CriteriaTriggers.FILLED_BUCKET.trigger((ServerPlayer) player, itemStack2);
-						}
+		BlockHitResult blockHitResult = getPlayerPOVHitResult(
+				level,
+				player,
+				ClipContext.Fluid.SOURCE_ONLY
+		);
 
-						return InteractionResultHolder.sidedSuccess(itemStack3, level.isClientSide());
-					}
-				} else if (blockState.getBlock() instanceof AbstractCauldronBlock cauldronBlock) {
-					CauldronInteraction interaction = ((AbstractCauldronBlockAccessor) cauldronBlock)
-							.botania_getInteractions().get(Items.BUCKET);
-					if (interaction != null) {
-						// pretend the cauldron is full, as otherwise the interaction might not empty it
-						BlockState fullState = blockState.hasProperty(LayeredCauldronBlock.LEVEL)
-								? blockState.setValue(LayeredCauldronBlock.LEVEL, LayeredCauldronBlock.MAX_FILL_LEVEL)
-								: blockState;
-						var result = interaction.interact(fullState, level, blockPos, player, interactionHand, itemStack.copy());
-						if (result.consumesAction()) {
-							// Botania: some particles
-							spawnParticles(level, blockPos);
-						}
-						if (!ItemStack.matches(player.getItemInHand(interactionHand), itemStack)) {
-							// don't replace with a filled bucket
-							player.setItemInHand(interactionHand, itemStack);
-						}
-						return new InteractionResultHolder<>(result, itemStack);
-					}
+		if (blockHitResult.getType() == HitResult.Type.MISS) {
+			return InteractionResult.PASS;
+		}
+
+		if (blockHitResult.getType() != HitResult.Type.BLOCK) {
+			return InteractionResult.PASS;
+		}
+
+		BlockPos blockPos = blockHitResult.getBlockPos();
+		Direction direction = blockHitResult.getDirection();
+		BlockPos relativePos = blockPos.relative(direction);
+
+		if (!level.mayInteract(player, blockPos)
+				|| !player.mayUseItemAt(
+						relativePos,
+						direction,
+						itemStack
+				)) {
+			return InteractionResult.FAIL;
+		}
+
+		BlockState blockState = level.getBlockState(blockPos);
+
+		if (blockState.getBlock() instanceof BucketPickup bucketPickup) {
+			ItemStack pickedUp = bucketPickup.pickupBlock(
+					player,
+					level,
+					blockPos,
+					blockState
+			);
+
+			if (!pickedUp.isEmpty()) {
+				player.awardStat(Stats.ITEM_USED.get(this));
+
+				bucketPickup.getPickupSound().ifPresent(soundEvent ->
+						player.playSound(soundEvent, 1.0F, 1.0F)
+				);
+
+				spawnParticles(level, blockPos);
+				level.gameEvent(player, GameEvent.FLUID_PICKUP, blockPos);
+
+				if (!level.isClientSide()) {
+					CriteriaTriggers.FILLED_BUCKET.trigger(
+							(ServerPlayer) player,
+							pickedUp
+					);
 				}
 
+				// The extrapolated bucket deliberately remains unchanged.
+				return level.isClientSide()
+						? InteractionResult.SUCCESS
+						: InteractionResult.CONSUME;
 			}
-			return InteractionResultHolder.fail(itemStack);
+		} else if (blockState.getBlock()
+				instanceof AbstractCauldronBlock cauldronBlock) {
+			CauldronInteraction interaction =
+					((AbstractCauldronBlockAccessor) cauldronBlock)
+							.botania_getInteractions()
+							.get(new ItemStack(Items.BUCKET));
+
+			BlockState fullState =
+					blockState.hasProperty(LayeredCauldronBlock.LEVEL)
+							? blockState.setValue(
+									LayeredCauldronBlock.LEVEL,
+									LayeredCauldronBlock.MAX_FILL_LEVEL
+							)
+							: blockState;
+
+			InteractionResult result = interaction.interact(
+					fullState,
+					level,
+					blockPos,
+					player,
+					interactionHand,
+					itemStack.copy()
+			);
+
+			if (result instanceof InteractionResult.Success success) {
+				spawnParticles(level, blockPos);
+
+				if (!ItemStack.matches(
+						player.getItemInHand(interactionHand),
+						itemStack
+				)) {
+					// Do not replace the extrapolated bucket with a filled bucket.
+					player.setItemInHand(interactionHand, itemStack);
+				}
+
+				// Remove any held-item transformation supplied by the vanilla
+				// cauldron result while retaining its swing behavior.
+				return switch (success.swingSource()) {
+					case CLIENT -> InteractionResult.SUCCESS;
+					case SERVER -> InteractionResult.SUCCESS_SERVER;
+					case NONE -> InteractionResult.CONSUME;
+				};
+			}
+
+			return result;
 		}
+
+		return InteractionResult.FAIL;
 	}
 
 	private static void spawnParticles(Level level, BlockPos blockPos) {

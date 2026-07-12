@@ -15,7 +15,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.SlotAccess;
@@ -126,22 +125,42 @@ public class FlowerPouchItem extends Item {
 
 	@NotNull
 	@Override
-	public InteractionResultHolder<ItemStack> use(Level world, Player player, @NotNull InteractionHand hand) {
-		if (!world.isClientSide) {
+	public InteractionResult use(
+			Level world,
+			Player player,
+			@NotNull InteractionHand hand) {
+		if (!world.isClientSide()) {
 			ItemStack stack = player.getItemInHand(hand);
-			XplatAbstractions.INSTANCE.openMenu((ServerPlayer) player, new MenuProvider() {
-				@Override
-				public Component getDisplayName() {
-					return stack.getHoverName();
-				}
 
-				@Override
-				public AbstractContainerMenu createMenu(int syncId, Inventory inv, Player player) {
-					return new FlowerPouchContainer(syncId, inv, stack);
-				}
-			}, buf -> buf.writeBoolean(hand == InteractionHand.MAIN_HAND));
+			XplatAbstractions.INSTANCE.openMenu(
+					(ServerPlayer) player,
+					new MenuProvider() {
+						@Override
+						public Component getDisplayName() {
+							return stack.getHoverName();
+						}
+
+						@Override
+						public AbstractContainerMenu createMenu(
+								int syncId,
+								Inventory inventory,
+								Player menuPlayer) {
+							return new FlowerPouchContainer(
+									syncId,
+									inventory,
+									stack
+							);
+						}
+					},
+					buf -> buf.writeBoolean(
+							hand == InteractionHand.MAIN_HAND
+					)
+			);
 		}
-		return InteractionResultHolder.sidedSuccess(player.getItemInHand(hand), world.isClientSide());
+
+		return world.isClientSide()
+				? InteractionResult.SUCCESS
+				: InteractionResult.CONSUME;
 	}
 
 	@NotNull
@@ -164,7 +183,9 @@ public class FlowerPouchItem extends Item {
 
 			}
 
-			return InteractionResult.sidedSuccess(world.isClientSide());
+			return world.isClientSide()
+					? InteractionResult.SUCCESS
+					: InteractionResult.CONSUME;
 		}
 		return InteractionResult.PASS;
 	}

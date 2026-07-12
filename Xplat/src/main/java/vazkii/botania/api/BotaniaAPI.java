@@ -13,14 +13,13 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
-import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
-import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.equipment.ArmorMaterial;
+import net.minecraft.world.item.equipment.ArmorMaterials;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 
@@ -89,10 +88,7 @@ public interface BotaniaAPI {
 
 	}
 
-	ArmorMaterial DUMMY_ARMOR_MATERIAL = new ArmorMaterial() {
-		@Override
-		public int getDurabilityForType(@NotNull ArmorItem.Type type) {
-			return 0;
+	ArmorMaterial DUMMY_ARMOR_MATERIAL = ArmorMaterials.LEATHER;
 		}
 
 		@Override

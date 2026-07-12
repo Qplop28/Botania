@@ -23,6 +23,7 @@ import static vazkii.botania.common.lib.ResourceLocationHelper.prefix;
 public class BotaniaTags {
 	public static class Items {
 		public static final TagKey<Item> DUSTS_MANA = tag("mana_dusts");
+		public static final TagKey<Item> MANAWEAVE_CLOTH = tag("manaweave_cloth");
 
 		public static final TagKey<Item> GEMS_DRAGONSTONE = tag("dragonstone_gems");
 		public static final TagKey<Item> GEMS_MANA_DIAMOND = tag("mana_diamond_gems");

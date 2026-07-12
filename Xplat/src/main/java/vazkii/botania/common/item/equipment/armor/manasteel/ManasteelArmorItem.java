@@ -13,17 +13,20 @@ import com.google.common.base.Suppliers;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ArmorItem;
-import net.minecraft.world.item.ArmorMaterial;
+import net.minecraft.world.item.component.TooltipDisplay;
+import net.minecraft.world.item.equipment.ArmorMaterial;
+import net.minecraft.world.item.equipment.ArmorType;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.level.Level;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import vazkii.botania.api.BotaniaAPI;
 import vazkii.botania.api.item.PhantomInkable;
@@ -37,31 +40,83 @@ import vazkii.botania.common.item.equipment.CustomDamageItem;
 import vazkii.botania.common.item.equipment.tool.ToolCommons;
 import vazkii.botania.common.proxy.Proxy;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public class ManasteelArmorItem extends ArmorItem implements CustomDamageItem, PhantomInkable {
+public class ManasteelArmorItem extends Item implements CustomDamageItem, PhantomInkable {
 
 	private static final String TAG_PHANTOM_INK = "phantomInk";
 
+	private final ArmorMaterial material;
 	public final Type type;
 
 	public ManasteelArmorItem(Type type, Properties props) {
-		this(type, BotaniaAPI.instance().getManasteelArmorMaterial(), props);
+		this(
+				type,
+				BotaniaAPI.instance().getManasteelArmorMaterial(),
+				props
+		);
 	}
 
-	public ManasteelArmorItem(Type type, ArmorMaterial mat, Properties props) {
-		super(mat, type, props);
+	public ManasteelArmorItem(
+			Type type,
+			ArmorMaterial material,
+			Properties props) {
+		super(props.humanoidArmor(material, type.vanillaType()));
 		this.type = type;
+		this.material = material;
+	}
+
+	public Type getType() {
+		return type;
+	}
+
+	public ArmorMaterial getMaterial() {
+		return material;
+	}
+
+	public EquipmentSlot getEquipmentSlot() {
+		return type.getSlot();
+	}
+
+	public enum Type {
+		HELMET(ArmorType.HELMET),
+		CHESTPLATE(ArmorType.CHESTPLATE),
+		LEGGINGS(ArmorType.LEGGINGS),
+		BOOTS(ArmorType.BOOTS);
+
+		private final ArmorType vanillaType;
+
+		Type(ArmorType vanillaType) {
+			this.vanillaType = vanillaType;
+		}
+
+		public ArmorType vanillaType() {
+			return vanillaType;
+		}
+
+		public EquipmentSlot getSlot() {
+			return vanillaType.getSlot();
+		}
 	}
 
 	@Override
-	public void inventoryTick(ItemStack stack, Level world, Entity entity, int slot, boolean selected) {
-		if (entity instanceof Player player) {
-			if (!world.isClientSide && stack.getDamageValue() > 0 && ManaItemHandler.instance().requestManaExact(stack, player, getManaPerDamage() * 2, true)) {
-				stack.setDamageValue(stack.getDamageValue() - 1);
-			}
+	public void inventoryTick(
+			ItemStack stack,
+			ServerLevel world,
+			Entity entity,
+			@Nullable EquipmentSlot slot) {
+		if (entity instanceof Player player
+				&& stack.getDamageValue() > 0
+				&& ManaItemHandler.instance().requestManaExact(
+						stack,
+						player,
+						getManaPerDamage() * 2,
+						true
+				)) {
+			stack.setDamageValue(stack.getDamageValue() - 1);
 		}
 	}
 
@@ -85,25 +140,26 @@ public class ManasteelArmorItem extends ArmorItem implements CustomDamageItem, P
 	}
 
 	@Override
-	public void appendHoverText(ItemStack stack, Level world, List<Component> list, TooltipFlag flags) {
-		TooltipHandler.addOnShift(list, () -> addInformationAfterShift(stack, world, list, flags));
+	public void appendHoverText(
+			ItemStack stack,
+			Item.TooltipContext context,
+			TooltipDisplay display,
+			Consumer<Component> tooltip,
+			TooltipFlag flags) {
+		List<Component> lines = new ArrayList<>();
+
+		TooltipHandler.addOnShift(
+				lines,
+				() -> addInformationAfterShift(stack, lines, flags)
+		);
+
+		lines.forEach(tooltip);
 	}
 
-	public void addInformationAfterShift(ItemStack stack, Level world, List<Component> list, TooltipFlag flags) {
-		Player player = Proxy.INSTANCE.getClientPlayer();
-		list.add(getArmorSetTitle(player));
-		addArmorSetDescription(stack, list);
-		ItemStack[] stacks = getArmorSetStacks();
-		for (ItemStack armor : stacks) {
-			MutableComponent cmp = Component.literal(" - ").append(armor.getHoverName());
-			EquipmentSlot slot = ((ArmorItem) armor.getItem()).getEquipmentSlot();
-			cmp.withStyle(hasArmorSetItem(player, slot) ? ChatFormatting.GREEN : ChatFormatting.GRAY);
-			list.add(cmp);
-		}
-		if (hasPhantomInk(stack)) {
-			list.add(Component.translatable("botaniamisc.hasPhantomInk").withStyle(ChatFormatting.GRAY));
-		}
-	}
+	public void addInformationAfterShift(
+			ItemStack stack,
+			List<Component> list,
+			TooltipFlag flags) {
 
 	private static final Supplier<ItemStack[]> armorSet = Suppliers.memoize(() -> new ItemStack[] {
 			new ItemStack(BotaniaItems.manasteelHelm),
@@ -142,8 +198,8 @@ public class ManasteelArmorItem extends ArmorItem implements CustomDamageItem, P
 
 	private int getSetPiecesEquipped(Player player) {
 		int pieces = 0;
-		for (EquipmentSlot slot : EquipmentSlot.values()) {
-			if (slot.getType() == EquipmentSlot.Type.ARMOR && hasArmorSetItem(player, slot)) {
+		for EquipmentSlot slot = ((ManasteelArmorItem) armor.getItem()).getEquipmentSlot();
+			if (slot.getType() == EquipmentSlot.Type.HUMANOID_ARMOR && hasArmorSetItem(player, slot)) {
 				pieces++;
 			}
 		}

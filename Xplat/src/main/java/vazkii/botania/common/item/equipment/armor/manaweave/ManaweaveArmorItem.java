@@ -18,7 +18,6 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.level.Level;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -46,12 +45,18 @@ public class ManaweaveArmorItem extends ManasteelArmorItem {
 
 	@NotNull
 	@Override
-	public String getDescriptionId(ItemStack stack) {
-		String name = super.getDescriptionId(stack);
-		if (XplatAbstractions.INSTANCE.isPhysicalClient() && ClientProxy.jingleTheBells) {
-			name = name.replaceAll("manaweave", "santaweave");
+	public Component getName(ItemStack stack) {
+		if (XplatAbstractions.INSTANCE.isPhysicalClient()
+				&& ClientProxy.jingleTheBells) {
+			return Component.translatable(
+					getDescriptionId().replace(
+							"manaweave",
+							"santaweave"
+					)
+			);
 		}
-		return name;
+
+		return super.getName(stack);
 	}
 
 	private static final Supplier<ItemStack[]> armorSet = Suppliers.memoize(() -> new ItemStack[] {
@@ -93,13 +98,14 @@ public class ManaweaveArmorItem extends ManasteelArmorItem {
 	}
 
 	@Override
-	public void addInformationAfterShift(ItemStack stack, Level world, List<Component> list, TooltipFlag flags) {
+	@Override
+	public void addInformationAfterShift(ItemStack stack, List<Component> list, TooltipFlag flags) {
 		if (XplatAbstractions.INSTANCE.isPhysicalClient() && ClientProxy.jingleTheBells) {
 			list.add(Component.translatable("botaniamisc.santaweaveInfo"));
 			list.add(Component.literal(""));
 		}
 
-		super.addInformationAfterShift(stack, world, list, flags);
+		super.addInformationAfterShift(stack, list, flags);
 	}
 
 	@Override

@@ -13,6 +13,8 @@ import com.mojang.brigadier.CommandDispatcher;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.biome.v1.BiomeModifications;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents;
+import net.fabricmc.fabric.api.creativetab.v1.FabricCreativeModeTab;
 import net.fabricmc.fabric.api.entity.FakePlayer;
 import net.fabricmc.fabric.api.entity.event.v1.EntitySleepEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
@@ -24,16 +26,14 @@ import net.fabricmc.fabric.api.event.player.AttackEntityCallback;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.event.player.UseItemCallback;
 import net.fabricmc.fabric.api.event.registry.FabricRegistryBuilder;
-import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
-import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
-import net.fabricmc.fabric.api.loot.v2.LootTableEvents;
+import net.fabricmc.fabric.api.loot.v3.LootTableEvents;
 import net.fabricmc.fabric.api.networking.v1.EntityTrackingEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
 import net.fabricmc.fabric.api.object.builder.v1.entity.MinecartComparatorLogicRegistry;
-import net.fabricmc.fabric.api.registry.CompostingChanceRegistry;
+import net.fabricmc.fabric.api.registry.CompostableRegistry;
 import net.fabricmc.fabric.api.registry.FlattenableBlockRegistry;
-import net.fabricmc.fabric.api.registry.FuelRegistry;
+import net.fabricmc.fabric.api.registry.FuelValueEvents;
 import net.fabricmc.fabric.api.registry.TillableBlockRegistry;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidConstants;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
@@ -131,7 +131,7 @@ public class FabricCommonInitializer implements ModInitializer {
 		registryInit();
 
 		PaintableData.init();
-		CompostingData.init(CompostingChanceRegistry.INSTANCE::add);
+		CompostingData.init(CompostableRegistry.INSTANCE::add);
 		DefaultCorporeaMatchers.init();
 		PlayerHelper.setFakePlayerClass(FakePlayer.class);
 
@@ -177,7 +177,12 @@ public class FabricCommonInitializer implements ModInitializer {
 		}
 
 		int blazeTime = 2400;
-		FuelRegistry.INSTANCE.add(BotaniaBlocks.blazeBlock.asItem(), blazeTime * (XplatAbstractions.INSTANCE.gogLoaded() ? 5 : 10));
+		FuelValueEvents.BUILD.register((builder, context) ->
+				builder.add(
+						BotaniaBlocks.blazeBlock.asItem(),
+						blazeTime * (XplatAbstractions.INSTANCE.gogLoaded() ? 5 : 10)
+				)
+		);
 
 		// GUI and Recipe
 		BotaniaItems.registerMenuTypes(bind(BuiltInRegistries.MENU));
@@ -220,18 +225,22 @@ public class FabricCommonInitializer implements ModInitializer {
 		Registry.register(
 				BuiltInRegistries.CREATIVE_MODE_TAB,
 				BotaniaRegistries.BOTANIA_TAB_KEY,
-				FabricItemGroup.builder()
-						.title(Component.translatable("itemGroup.botania").withStyle((style -> style.withColor(ChatFormatting.WHITE))))
+				FabricCreativeModeTab.builder()
+						.title(Component.translatable("itemGroup.botania")
+								.withStyle(style -> style.withColor(ChatFormatting.WHITE)))
 						.icon(() -> new ItemStack(BotaniaItems.lexicon))
-						.backgroundSuffix("botania.png")
+						.backgroundTexture(prefix(
+								"textures/gui/container/creative_inventory/tab_botania.png"
+						))
 						.build()
 		);
-		ItemGroupEvents.modifyEntriesEvent(BotaniaRegistries.BOTANIA_TAB_KEY)
+		CreativeModeTabEvents.modifyOutputEvent(BotaniaRegistries.BOTANIA_TAB_KEY)
 				.register(entries -> {
 					for (Item item : this.itemsToAddToCreativeTab) {
 						if (item instanceof CustomCreativeTabContents cc) {
 							cc.addToCreativeTab(item, entries);
-						} else if (item instanceof BlockItem bi && bi.getBlock() instanceof CustomCreativeTabContents cc) {
+						} else if (item instanceof BlockItem bi
+								&& bi.getBlock() instanceof CustomCreativeTabContents cc) {
 							cc.addToCreativeTab(item, entries);
 						} else {
 							entries.accept(item);
@@ -250,7 +259,7 @@ public class FabricCommonInitializer implements ModInitializer {
 		CommandRegistrationCallback.EVENT.register(this::registerCommands);
 		EntitySleepEvents.ALLOW_SLEEPING.register(SleepingHandler::trySleep);
 		EntityTrackingEvents.START_TRACKING.register(DaffomillBlockEntity::onItemTrack);
-		LootTableEvents.MODIFY.register((resourceManager, manager, id, tableBuilder, lootTableSource) -> LootHandler.lootLoad(id, tableBuilder::withPool));
+		LootTableEvents.MODIFY.register((key, tableBuilder, source, registries) -> LootHandler.lootLoad(key.identifier(), tableBuilder::withPool));
 		ManaNetworkCallback.EVENT.register(ManaNetworkHandler.instance::onNetworkEvent);
 		ServerEntityEvents.ENTITY_LOAD.register(TigerseyeBlockEntity::pacifyAfterLoad);
 		ServerLifecycleEvents.SERVER_STARTED.register(this::serverAboutToStart);

@@ -23,7 +23,6 @@ import net.minecraft.world.item.equipment.ArmorMaterials;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,45 +88,6 @@ public interface BotaniaAPI {
 	}
 
 	ArmorMaterial DUMMY_ARMOR_MATERIAL = ArmorMaterials.LEATHER;
-		}
-
-		@Override
-		public int getDefenseForType(@NotNull ArmorItem.Type type) {
-			return 0;
-		}
-
-		@Override
-		public int getEnchantmentValue() {
-			return 0;
-		}
-
-		@NotNull
-		@Override
-		public SoundEvent getEquipSound() {
-			return SoundEvents.ARMOR_EQUIP_LEATHER;
-		}
-
-		@NotNull
-		@Override
-		public Ingredient getRepairIngredient() {
-			return Ingredient.EMPTY;
-		}
-
-		@Override
-		public String getName() {
-			return "missingno";
-		}
-
-		@Override
-		public float getToughness() {
-			return 0;
-		}
-
-		@Override
-		public float getKnockbackResistance() {
-			return 0;
-		}
-	};
 
 	ToolMaterial DUMMY_TOOL_MATERIAL = ToolMaterial.WOOD;
 

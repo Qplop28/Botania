@@ -98,7 +98,6 @@ public class ManaweaveArmorItem extends ManasteelArmorItem {
 	}
 
 	@Override
-	@Override
 	public void addInformationAfterShift(ItemStack stack, List<Component> list, TooltipFlag flags) {
 		if (XplatAbstractions.INSTANCE.isPhysicalClient() && ClientProxy.jingleTheBells) {
 			list.add(Component.translatable("botaniamisc.santaweaveInfo"));

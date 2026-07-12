@@ -160,6 +160,37 @@ public class ManasteelArmorItem extends Item implements CustomDamageItem, Phanto
 			ItemStack stack,
 			List<Component> list,
 			TooltipFlag flags) {
+		Player player = Proxy.INSTANCE.getClientPlayer();
+
+		list.add(getArmorSetTitle(player));
+		addArmorSetDescription(stack, list);
+
+		ItemStack[] stacks = getArmorSetStacks();
+		for (ItemStack armor : stacks) {
+			MutableComponent component =
+					Component.literal(" - ")
+							.append(armor.getHoverName());
+
+			EquipmentSlot slot =
+					((ManasteelArmorItem) armor.getItem())
+							.getEquipmentSlot();
+
+			component.withStyle(
+					hasArmorSetItem(player, slot)
+							? ChatFormatting.GREEN
+							: ChatFormatting.GRAY
+			);
+
+			list.add(component);
+		}
+
+		if (hasPhantomInk(stack)) {
+			list.add(
+					Component.translatable("botaniamisc.hasPhantomInk")
+							.withStyle(ChatFormatting.GRAY)
+			);
+		}
+	}
 
 	private static final Supplier<ItemStack[]> armorSet = Suppliers.memoize(() -> new ItemStack[] {
 			new ItemStack(BotaniaItems.manasteelHelm),
@@ -198,8 +229,10 @@ public class ManasteelArmorItem extends Item implements CustomDamageItem, Phanto
 
 	private int getSetPiecesEquipped(Player player) {
 		int pieces = 0;
-		for EquipmentSlot slot = ((ManasteelArmorItem) armor.getItem()).getEquipmentSlot();
-			if (slot.getType() == EquipmentSlot.Type.HUMANOID_ARMOR && hasArmorSetItem(player, slot)) {
+
+		for (EquipmentSlot slot : EquipmentSlot.values()) {
+			if (slot.getType() == EquipmentSlot.Type.HUMANOID_ARMOR
+					&& hasArmorSetItem(player, slot)) {
 				pieces++;
 			}
 		}

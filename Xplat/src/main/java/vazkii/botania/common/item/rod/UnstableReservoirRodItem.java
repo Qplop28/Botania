@@ -11,13 +11,13 @@ package vazkii.botania.common.item.rod;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemUtils;
-import net.minecraft.world.item.UseAnim;
+import net.minecraft.world.item.ItemUseAnimation;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
@@ -47,28 +47,79 @@ public class UnstableReservoirRodItem extends Item {
 
 	@NotNull
 	@Override
-	public UseAnim getUseAnimation(ItemStack stack) {
-		return UseAnim.BOW;
+	public ItemUseAnimation getUseAnimation(ItemStack stack) {
+		return ItemUseAnimation.BOW;
 	}
 
 	@Override
-	public int getUseDuration(ItemStack stack) {
+	public int getUseDuration(
+			ItemStack stack,
+			LivingEntity user) {
 		return 72000;
 	}
 
 	@Override
-	public void onUseTick(Level world, LivingEntity living, ItemStack stack, int count) {
+	public void onUseTick(
+			Level world,
+			LivingEntity living,
+			ItemStack stack,
+			int count) {
 		if (!(living instanceof Player player)) {
 			return;
 		}
 
-		if (count != getUseDuration(stack) && count % (ManaItemHandler.instance().hasProficiency(player, stack) ? 1 : 2) == 0 && ManaItemHandler.instance().requestManaExactForTool(stack, player, COST_PER, false)) {
-			if (!world.isClientSide && spawnMissile(world, player, player.getX() + (Math.random() - 0.5 * 0.1), player.getY() + 2.4 + (Math.random() - 0.5 * 0.1), player.getZ() + (Math.random() - 0.5 * 0.1))) {
-				ManaItemHandler.instance().requestManaExactForTool(stack, player, COST_PER, true);
+		boolean proficient =
+				ManaItemHandler.instance()
+						.hasProficiency(player, stack);
+
+		if (count != getUseDuration(stack, living)
+				&& count % (proficient ? 1 : 2) == 0
+				&& ManaItemHandler.instance()
+						.requestManaExactForTool(
+								stack,
+								player,
+								COST_PER,
+								false
+						)) {
+			if (!world.isClientSide()
+					&& spawnMissile(
+							world,
+							player,
+							player.getX()
+									+ (Math.random() - 0.5 * 0.1),
+							player.getY()
+									+ 2.4
+									+ (Math.random() - 0.5 * 0.1),
+							player.getZ()
+									+ (Math.random() - 0.5 * 0.1)
+					)) {
+				ManaItemHandler.instance()
+						.requestManaExactForTool(
+								stack,
+								player,
+								COST_PER,
+								true
+						);
 			}
 
-			SparkleParticleData data = SparkleParticleData.sparkle(6F, 1F, 0.4F, 1F, 6);
-			world.addParticle(data, player.getX(), player.getY() + 2.4, player.getZ(), 0, 0, 0);
+			SparkleParticleData data =
+					SparkleParticleData.sparkle(
+							6.0F,
+							1.0F,
+							0.4F,
+							1.0F,
+							6
+					);
+
+			world.addParticle(
+					data,
+					player.getX(),
+					player.getY() + 2.4,
+					player.getZ(),
+					0,
+					0,
+					0
+			);
 		}
 	}
 
@@ -82,7 +133,7 @@ public class UnstableReservoirRodItem extends Item {
 
 		missile.setPos(x, y, z);
 		if (missile.findTarget()) {
-			if (!world.isClientSide) {
+			if (!world.isClientSide()) {
 				missile.playSound(world.random.nextInt(100) == 0 ? BotaniaSounds.missileFunny : BotaniaSounds.missile, 1F, 0.8F + (float) Math.random() * 0.2F);
 				world.addFreshEntity(missile);
 			}
@@ -94,7 +145,10 @@ public class UnstableReservoirRodItem extends Item {
 
 	@NotNull
 	@Override
-	public InteractionResultHolder<ItemStack> use(Level world, Player player, @NotNull InteractionHand hand) {
+	public InteractionResult use(
+			Level world,
+			Player player,
+			@NotNull InteractionHand hand) {
 		return ItemUtils.startUsingInstantly(world, player, hand);
 	}
 
@@ -107,7 +161,7 @@ public class UnstableReservoirRodItem extends Item {
 			ManaReceiver receiver = XplatAbstractions.INSTANCE.findManaReceiver(world, te.getBlockPos(), te.getBlockState(), te, null);
 			if (receiver != null && receiver.getCurrentMana() >= COST_AVATAR && tile.getElapsedFunctionalTicks() % 3 == 0 && tile.isEnabled()) {
 				if (spawnMissile(world, null, pos.getX() + 0.5 + (Math.random() - 0.5 * 0.1), pos.getY() + 2.5 + (Math.random() - 0.5 * 0.1), pos.getZ() + (Math.random() - 0.5 * 0.1))) {
-					if (!world.isClientSide) {
+					if (!world.isClientSide()) {
 						receiver.receiveMana(-COST_AVATAR);
 					}
 					SparkleParticleData data = SparkleParticleData.sparkle(6F, 1F, 0.4F, 1F, 6);

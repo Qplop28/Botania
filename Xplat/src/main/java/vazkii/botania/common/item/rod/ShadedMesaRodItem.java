@@ -10,10 +10,11 @@ package vazkii.botania.common.item.rod;
 
 import net.minecraft.network.protocol.game.ClientboundSetEntityMotionPacket;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
@@ -75,17 +76,41 @@ public class ShadedMesaRodItem extends Item {
 	}
 
 	@Override
-	public void inventoryTick(ItemStack stack, Level world, Entity entity, int slot, boolean held) {
+	public void inventoryTick(
+			ItemStack stack,
+			ServerLevel world,
+			Entity entity,
+			@Nullable EquipmentSlot slot) {
 		if (!(entity instanceof Player)) {
 			return;
 		}
 
-		int ticksTillExpire = ItemNBTHelper.getInt(stack, TAG_TICKS_TILL_EXPIRE, 0);
-		int ticksCooldown = ItemNBTHelper.getInt(stack, TAG_TICKS_COOLDOWN, 0);
+		int ticksTillExpire =
+				ItemNBTHelper.getInt(
+						stack,
+						TAG_TICKS_TILL_EXPIRE,
+						0
+				);
+
+		int ticksCooldown =
+				ItemNBTHelper.getInt(
+						stack,
+						TAG_TICKS_COOLDOWN,
+						0
+				);
 
 		if (ticksTillExpire == 0) {
-			ItemNBTHelper.setInt(stack, TAG_TARGET, -1);
-			ItemNBTHelper.setDouble(stack, TAG_DIST, -1);
+			ItemNBTHelper.setInt(
+					stack,
+					TAG_TARGET,
+					-1
+			);
+
+			ItemNBTHelper.setDouble(
+					stack,
+					TAG_DIST,
+					-1
+			);
 		}
 
 		if (ticksCooldown > 0) {
@@ -95,8 +120,18 @@ public class ShadedMesaRodItem extends Item {
 		if (ticksTillExpire >= 0) {
 			ticksTillExpire--;
 		}
-		ItemNBTHelper.setInt(stack, TAG_TICKS_TILL_EXPIRE, ticksTillExpire);
-		ItemNBTHelper.setInt(stack, TAG_TICKS_COOLDOWN, ticksCooldown);
+
+		ItemNBTHelper.setInt(
+				stack,
+				TAG_TICKS_TILL_EXPIRE,
+				ticksTillExpire
+		);
+
+		ItemNBTHelper.setInt(
+				stack,
+				TAG_TICKS_COOLDOWN,
+				ticksCooldown
+		);
 	}
 
 	@SoftImplement("IForgeItem")
@@ -124,7 +159,7 @@ public class ShadedMesaRodItem extends Item {
 
 	@NotNull
 	@Override
-	public InteractionResultHolder<ItemStack> use(Level world, Player player, @NotNull InteractionHand hand) {
+	public InteractionResult use(Level world, Player player, @NotNull InteractionHand hand) {
 		ItemStack stack = player.getItemInHand(hand);
 		int targetID = ItemNBTHelper.getInt(stack, TAG_TARGET, -1);
 		int ticksCooldown = ItemNBTHelper.getInt(stack, TAG_TICKS_COOLDOWN, 0);
@@ -174,7 +209,7 @@ public class ShadedMesaRodItem extends Item {
 
 			if (target != null) {
 				if (target.getType().is(BLACKLIST)) {
-					return InteractionResultHolder.fail(stack);
+					return InteractionResult.FAIL;
 				}
 
 				if (ManaItemHandler.instance().requestManaExactForTool(stack, player, COST, true)) {
@@ -220,10 +255,10 @@ public class ShadedMesaRodItem extends Item {
 				}
 
 				ItemNBTHelper.setInt(stack, TAG_TICKS_TILL_EXPIRE, 5);
-				return InteractionResultHolder.consume(stack);
+				return InteractionResult.CONSUME;
 			}
 		}
-		return InteractionResultHolder.pass(stack);
+		return InteractionResult.PASS;
 	}
 
 	private static void leftClick(Player player) {
@@ -256,7 +291,7 @@ public class ShadedMesaRodItem extends Item {
 						item.setPickUpDelay(20);
 						float mot = ManaItemHandler.instance().hasProficiency(player, stack) ? 2.25F : 1.5F;
 						item.setDeltaMovement(moveVector.x * mot, moveVector.y, moveVector.z * mot);
-						if (!player.level().isClientSide) {
+						if (!player.level().isClientSide()) {
 							ThrownItemEntity thrown = new ThrownItemEntity(item.level(), item.getX(), item.getY(), item.getZ(), item);
 							item.level().addFreshEntity(thrown);
 						}

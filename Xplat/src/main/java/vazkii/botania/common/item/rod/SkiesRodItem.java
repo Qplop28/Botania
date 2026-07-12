@@ -9,12 +9,14 @@
 package vazkii.botania.common.item.rod;
 
 import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -25,6 +27,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import vazkii.botania.api.block.Avatar;
 import vazkii.botania.api.item.AvatarWieldable;
@@ -62,55 +65,118 @@ public class SkiesRodItem extends Item {
 	}
 
 	@Override
-	public void inventoryTick(ItemStack stack, Level world, Entity ent, int slot, boolean active) {
-		if (ent instanceof Player player) {
-			boolean damaged = getFlyCounter(stack) > 0;
-			boolean held = player.getMainHandItem() == stack || player.getOffhandItem() == stack;
+	public void inventoryTick(
+			ItemStack stack,
+			ServerLevel world,
+			Entity entity,
+			@Nullable EquipmentSlot slot) {
+		if (!(entity instanceof Player player)) {
+			return;
+		}
 
-			if (damaged && !isFlying(stack)) {
-				setFlyCounter(stack, getFlyCounter(stack) - 1);
+		boolean damaged = getFlyCounter(stack) > 0;
+
+		boolean held =
+				slot == EquipmentSlot.MAINHAND
+						|| slot == EquipmentSlot.OFFHAND;
+
+		if (damaged && !isFlying(stack)) {
+			setFlyCounter(
+					stack,
+					getFlyCounter(stack) - 1
+			);
+		}
+
+		if (getFlyCounter(stack) >= MAX_COUNTER) {
+			setFlying(stack, false);
+		} else if (isFlying(stack)) {
+			if (held) {
+				player.fallDistance = 0.0F;
+
+				double verticalMotion =
+						ManaItemHandler.instance()
+								.hasProficiency(player, stack)
+								? 1.6
+								: 1.25;
+
+				Vec3 oldMotion = player.getDeltaMovement();
+
+				if (player.isFallFlying()) {
+					double boost = verticalMotion * 1.2;
+					Vec3 lookDirection = player.getLookAngle();
+
+					player.setDeltaMovement(
+							oldMotion.add(
+									lookDirection.x * 0.1
+											+ (lookDirection.x * boost
+													- oldMotion.x) * 0.5,
+									lookDirection.y * 0.1
+											+ (lookDirection.y * boost
+													- oldMotion.y) * 0.5,
+									lookDirection.z * 0.1
+											+ (lookDirection.z * boost
+													- oldMotion.z) * 0.5
+							)
+					);
+				} else {
+					player.setDeltaMovement(
+							new Vec3(
+									oldMotion.x(),
+									verticalMotion,
+									oldMotion.z()
+							)
+					);
+				}
+
+				player.playSound(
+						BotaniaSounds.airRod,
+						1.0F,
+						1.0F
+				);
+
+				if (getFlyCounter(stack) % 3 == 0) {
+					player.gameEvent(GameEvent.FLAP);
+				}
+
+				for (int i = 0; i < 5; i++) {
+					WispParticleData data =
+							WispParticleData.wisp(
+									0.35F
+											+ (float) Math.random()
+											* 0.1F,
+									0.25F,
+									0.25F,
+									0.25F
+							);
+
+					world.sendParticles(
+							data,
+							player.getX(),
+							player.getY(),
+							player.getZ(),
+							0,
+							0.2F
+									* (Math.random() - 0.5),
+							-0.01F * Math.random(),
+							0.2F
+									* (Math.random() - 0.5),
+							1.0
+					);
+				}
 			}
 
-			if (getFlyCounter(stack) >= MAX_COUNTER) {
+			setFlyCounter(
+					stack,
+					getFlyCounter(stack) + FALL_MULTIPLIER
+			);
+
+			if (getFlyCounter(stack) == MAX_COUNTER) {
 				setFlying(stack, false);
-			} else if (isFlying(stack)) {
-				if (held) {
-					player.fallDistance = 0F;
-					double my = ManaItemHandler.instance().hasProficiency(player, stack) ? 1.6 : 1.25;
-					Vec3 oldMot = player.getDeltaMovement();
-					if (player.isFallFlying()) {
-						double boost = my * 1.2;
-						Vec3 lookDir = player.getLookAngle();
-						player.setDeltaMovement(oldMot.add(
-								lookDir.x * 0.1 + (lookDir.x * boost - oldMot.x) * 0.5,
-								lookDir.y * 0.1 + (lookDir.y * boost - oldMot.y) * 0.5,
-								lookDir.z * 0.1 + (lookDir.z * boost - oldMot.z) * 0.5));
-					} else {
-						player.setDeltaMovement(new Vec3(oldMot.x(), my, oldMot.z()));
-					}
-
-					player.playSound(BotaniaSounds.airRod, 1F, 1F);
-					if (getFlyCounter(stack) % 3 == 0) {
-						player.gameEvent(GameEvent.FLAP);
-					}
-					for (int i = 0; i < 5; i++) {
-						WispParticleData data = WispParticleData.wisp(0.35F + (float) Math.random() * 0.1F, 0.25F, 0.25F, 0.25F);
-						world.addParticle(data, player.getX(), player.getY(), player.getZ(),
-								0.2F * (float) (Math.random() - 0.5),
-								-0.01F * (float) Math.random(),
-								0.2F * (float) (Math.random() - 0.5));
-					}
-				}
-
-				setFlyCounter(stack, getFlyCounter(stack) + FALL_MULTIPLIER);
-				if (getFlyCounter(stack) == MAX_COUNTER) {
-					setFlying(stack, false);
-				}
 			}
+		}
 
-			if (damaged) {
-				player.fallDistance = 0;
-			}
+		if (damaged) {
+			player.fallDistance = 0.0F;
 		}
 	}
 
@@ -133,17 +199,38 @@ public class SkiesRodItem extends Item {
 
 	@NotNull
 	@Override
-	public InteractionResultHolder<ItemStack> use(Level world, Player player, @NotNull InteractionHand hand) {
+	public InteractionResult use(
+			Level world,
+			Player player,
+			@NotNull InteractionHand hand) {
 		ItemStack stack = player.getItemInHand(hand);
-		int fly = getFlyCounter(stack);
-		if (fly == 0 && ManaItemHandler.instance().requestManaExactForTool(stack, player, COST, false)) {
-			ManaItemHandler.instance().requestManaExactForTool(stack, player, COST, true);
+		int flyCounter = getFlyCounter(stack);
+
+		if (flyCounter == 0
+				&& ManaItemHandler.instance()
+						.requestManaExactForTool(
+								stack,
+								player,
+								COST,
+								false
+						)) {
+			ManaItemHandler.instance()
+					.requestManaExactForTool(
+							stack,
+							player,
+							COST,
+							true
+					);
+
 			setFlying(stack, true);
 			player.gameEvent(GameEvent.ITEM_INTERACT_FINISH);
-			return InteractionResultHolder.sidedSuccess(stack, world.isClientSide());
+
+			return world.isClientSide()
+					? InteractionResult.SUCCESS
+					: InteractionResult.SUCCESS_SERVER;
 		}
 
-		return InteractionResultHolder.pass(stack);
+		return InteractionResult.PASS;
 	}
 
 	public static boolean isFlying(ItemStack stack) {
@@ -155,11 +242,21 @@ public class SkiesRodItem extends Item {
 	}
 
 	private int getFlyCounter(ItemStack stack) {
-		return stack.getOrCreateTag().getInt(TAG_FLYCOUNTER);
+		return ItemNBTHelper.getInt(
+				stack,
+				TAG_FLYCOUNTER,
+				0
+		);
 	}
 
-	private void setFlyCounter(ItemStack stack, int counter) {
-		stack.getOrCreateTag().putInt(TAG_FLYCOUNTER, counter);
+	private void setFlyCounter(
+			ItemStack stack,
+			int counter) {
+		ItemNBTHelper.setInt(
+				stack,
+				TAG_FLYCOUNTER,
+				counter
+		);
 	}
 
 	public static class AvatarBehavior implements AvatarWieldable {
@@ -170,10 +267,10 @@ public class SkiesRodItem extends Item {
 			Map<UUID, Integer> cooldowns = tile.getBoostCooldowns();
 			ManaReceiver receiver = XplatAbstractions.INSTANCE.findManaReceiver(world, te.getBlockPos(), te.getBlockState(), te, null);
 
-			if (!world.isClientSide) {
+			if (!world.isClientSide()) {
 				decAvatarCooldowns(cooldowns);
 			}
-			if (!world.isClientSide && receiver.getCurrentMana() >= COST && tile.isEnabled()) {
+			if (!world.isClientSide() && receiver.getCurrentMana() >= COST && tile.isEnabled()) {
 				double range = 5.5;
 				double rangeY = 3.5;
 				List<Player> players = world.getEntitiesOfClass(Player.class, new AABB(
@@ -213,7 +310,7 @@ public class SkiesRodItem extends Item {
 				p.getDeltaMovement().y() + lookDir.y() * mult,
 				p.getDeltaMovement().z() + lookDir.z() * mult);
 
-		if (!world.isClientSide) {
+		if (!world.isClientSide()) {
 			XplatAbstractions.INSTANCE.sendToPlayer(p, new AvatarSkiesRodPacket(true));
 			XplatAbstractions.INSTANCE.sendToTracking(p,
 					new BotaniaEffectPacket(EffectType.AVATAR_TORNADO_BOOST,
@@ -225,7 +322,7 @@ public class SkiesRodItem extends Item {
 	public static void doAvatarJump(Player p, Level world) {
 		p.setDeltaMovement(p.getDeltaMovement().x(), 2.8, p.getDeltaMovement().z());
 
-		if (!world.isClientSide) {
+		if (!world.isClientSide()) {
 			XplatAbstractions.INSTANCE.sendToPlayer(p, new AvatarSkiesRodPacket(false));
 			XplatAbstractions.INSTANCE.sendToTracking(p,
 					new BotaniaEffectPacket(EffectType.AVATAR_TORNADO_JUMP,

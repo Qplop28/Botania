@@ -8,10 +8,23 @@
  */
 package vazkii.botania.common.block.decor;
 
-import net.minecraft.world.level.block.AbstractGlassBlock;
+import com.mojang.serialization.MapCodec;
 
-public class BotaniaGlassBlock extends AbstractGlassBlock {
-	public BotaniaGlassBlock(Properties props) {
-		super(props);
+import net.minecraft.world.level.block.TransparentBlock;
+import net.minecraft.world.level.block.state.BlockBehaviour;
+
+public class BotaniaGlassBlock
+		extends TransparentBlock {
+	public static final MapCodec<BotaniaGlassBlock> CODEC =
+			simpleCodec(BotaniaGlassBlock::new);
+
+	public BotaniaGlassBlock(
+			BlockBehaviour.Properties properties) {
+		super(properties);
+	}
+
+	@Override
+	public MapCodec<BotaniaGlassBlock> codec() {
+		return CODEC;
 	}
 }

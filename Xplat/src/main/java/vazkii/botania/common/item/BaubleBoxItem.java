@@ -50,25 +50,118 @@ public class BaubleBoxItem extends Item {
 		};
 	}
 
+	@Override
+		public static InteractionResult onPlayerInteract(
+			Player player,
+			Level world,
+			InteractionHand hand) {
+		ItemStack stack = player.getItemInHand(hand);
+
+		if (stack.isEmpty()
+				|| !stack.is(Items.GLASS_BOTTLE)) {
+			return InteractionResult.PASS;
+		}
+
+		boolean canCollectAmbientAir =
+				world.dimension() == Level.END
+						&& isClearFromDragonBreath(
+								world,
+								player.getBoundingBox()
+										.inflate(3.5)
+						)
+						&& notAimingAtFluid(world, player);
+
+		boolean canCollectEntityAir =
+				pickupFromEntity(
+						world,
+						player.getBoundingBox()
+								.inflate(1.0)
+				);
+
+		if (canCollectAmbientAir || canCollectEntityAir) {
+			if (!world.isClientSide()) {
+				ItemStack enderAir =
+						new ItemStack(
+								BotaniaItems.enderAirBottle
+						);
+
+				player.getInventory()
+						.placeItemBackInInventory(enderAir);
+
+				stack.shrink(1);
+
+				world.playSound(
+						null,
+						player.blockPosition(),
+						SoundEvents.ITEM_PICKUP,
+						SoundSource.NEUTRAL,
+						0.5F,
+						1.0F
+				);
+
+				world.gameEvent(
+						player,
+						GameEvent.FLUID_PICKUP,
+						player.position()
+				);
+			}
+
+			return world.isClientSide()
+					? InteractionResult.SUCCESS
+					: InteractionResult.SUCCESS_SERVER;
+		}
+
+		return InteractionResult.PASS;
+	}
+
 	@NotNull
 	@Override
-	public InteractionResultHolder<ItemStack> use(Level world, Player player, @NotNull InteractionHand hand) {
-		if (!world.isClientSide) {
-			ItemStack stack = player.getItemInHand(hand);
-			ItemNBTHelper.setBoolean(stack, TAG_OPEN, true);
-			XplatAbstractions.INSTANCE.openMenu((ServerPlayer) player, new MenuProvider() {
-				@Override
-				public Component getDisplayName() {
-					return stack.getHoverName();
-				}
+	public InteractionResult use(
+			Level world,
+			Player player,
+			@NotNull InteractionHand hand) {
+		ItemStack stack = player.getItemInHand(hand);
 
-				@Override
-				public AbstractContainerMenu createMenu(int syncId, Inventory inv, Player player) {
-					return new BaubleBoxContainer(syncId, inv, stack);
-				}
-			}, buf -> buf.writeBoolean(hand == InteractionHand.MAIN_HAND));
+		if (!player.getAbilities().instabuild) {
+			stack.shrink(1);
 		}
-		return InteractionResultHolder.sidedSuccess(player.getItemInHand(hand), world.isClientSide());
+
+		world.playSound(
+				null,
+				player.getX(),
+				player.getY(),
+				player.getZ(),
+				BotaniaSounds.enderAirThrow,
+				SoundSource.PLAYERS,
+				1.0F,
+				0.4F
+						/ (player.getRandom().nextFloat()
+								* 0.4F
+								+ 0.8F)
+		);
+
+		if (!world.isClientSide()) {
+			EnderAirBottleEntity bottle =
+					new EnderAirBottleEntity(
+							player,
+							world
+					);
+
+			bottle.shootFromRotation(
+					player,
+					player.getXRot(),
+					player.getYRot(),
+					0.0F,
+					1.5F,
+					1.0F
+			);
+
+			world.addFreshEntity(bottle);
+		}
+
+		return world.isClientSide()
+				? InteractionResult.SUCCESS
+				: InteractionResult.SUCCESS_SERVER;
 	}
 
 	@Override

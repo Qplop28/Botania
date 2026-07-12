@@ -12,11 +12,12 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Container;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.SlotAccess;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ClickAction;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
@@ -27,7 +28,7 @@ import org.jetbrains.annotations.NotNull;
 import vazkii.botania.common.handler.BotaniaSounds;
 import vazkii.botania.common.helper.ItemNBTHelper;
 
-import java.util.List;
+import java.util.function.Consumer;
 
 public class StoneOfTemperanceItem extends Item {
 	public static final String TAG_ACTIVE = "active";
@@ -38,19 +39,38 @@ public class StoneOfTemperanceItem extends Item {
 
 	@NotNull
 	@Override
-	public InteractionResultHolder<ItemStack> use(Level world, Player player, @NotNull InteractionHand hand) {
+	public InteractionResult use(
+			Level world,
+			Player player,
+			@NotNull InteractionHand hand) {
 		ItemStack stack = player.getItemInHand(hand);
+
 		toggleActive(stack, player, world);
-		return InteractionResultHolder.sidedSuccess(stack, world.isClientSide());
+
+		return world.isClientSide()
+				? InteractionResult.SUCCESS
+				: InteractionResult.SUCCESS_SERVER;
 	}
 
 	@Override
-	public void appendHoverText(ItemStack stack, Level world, List<Component> stacks, TooltipFlag flags) {
-		if (ItemNBTHelper.getBoolean(stack, TAG_ACTIVE, false)) {
-			stacks.add(Component.translatable("botaniamisc.active"));
-		} else {
-			stacks.add(Component.translatable("botaniamisc.inactive"));
-		}
+	public void appendHoverText(
+			ItemStack stack,
+			Item.TooltipContext context,
+			TooltipDisplay display,
+			Consumer<Component> tooltip,
+			TooltipFlag flags) {
+		String translationKey =
+				ItemNBTHelper.getBoolean(
+						stack,
+						TAG_ACTIVE,
+						false
+				)
+						? "botaniamisc.active"
+						: "botaniamisc.inactive";
+
+		tooltip.accept(
+				Component.translatable(translationKey)
+		);
 	}
 
 	public static boolean hasTemperanceActive(Player player) {

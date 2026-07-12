@@ -11,7 +11,6 @@ package vazkii.botania.common.item;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -40,30 +39,103 @@ public class EnderHandItem extends Item {
 
 	@NotNull
 	@Override
-	public InteractionResultHolder<ItemStack> use(Level world, Player player, @NotNull InteractionHand hand) {
+	public InteractionResult use(
+			Level world,
+			Player player,
+			@NotNull InteractionHand hand) {
 		ItemStack stack = player.getItemInHand(hand);
-		if (ManaItemHandler.instance().requestManaExact(stack, player, COST_SELF, false)) {
-			if (!player.level().isClientSide) {
-				player.openMenu(new SimpleMenuProvider((windowId, playerInv, p) -> {
-					return ChestMenu.threeRows(windowId, playerInv, p.getEnderChestInventory());
-				}, stack.getHoverName()));
-				ManaItemHandler.instance().requestManaExact(stack, player, COST_SELF, true);
+
+		if (ManaItemHandler.instance()
+				.requestManaExact(
+						stack,
+						player,
+						COST_SELF,
+						false
+				)) {
+			if (!player.level().isClientSide()) {
+				player.openMenu(
+						new SimpleMenuProvider(
+								(windowId, playerInventory, menuPlayer) ->
+										ChestMenu.threeRows(
+												windowId,
+												playerInventory,
+												menuPlayer.getEnderChestInventory()
+										),
+								stack.getHoverName()
+						)
+				);
+
+				ManaItemHandler.instance()
+						.requestManaExact(
+								stack,
+								player,
+								COST_SELF,
+								true
+						);
 			}
-			player.playSound(SoundEvents.ENDER_CHEST_OPEN, 1F, 1F);
-			return InteractionResultHolder.sidedSuccess(stack, world.isClientSide());
+
+			player.playSound(
+					SoundEvents.ENDER_CHEST_OPEN,
+					1.0F,
+					1.0F
+			);
+
+			return world.isClientSide()
+					? InteractionResult.SUCCESS
+					: InteractionResult.SUCCESS_SERVER;
 		}
-		return InteractionResultHolder.pass(stack);
+
+		return InteractionResult.PASS;
 	}
 
 	@Override
-	public InteractionResult interactLivingEntity(ItemStack stack, Player player, LivingEntity entity, InteractionHand hand) {
-		if (entity.isAlive() && BotaniaConfig.common().enderPickpocketEnabled() && entity instanceof Player other && ManaItemHandler.instance().requestManaExact(stack, player, COST_OTHER, false)) {
-			if (!player.level().isClientSide) {
-				player.openMenu(new SimpleMenuProvider((windowId, playerInv, p) -> ChestMenu.threeRows(windowId, playerInv, other.getEnderChestInventory()), stack.getHoverName()));
-				ManaItemHandler.instance().requestManaExact(stack, player, COST_OTHER, true);
+	public InteractionResult interactLivingEntity(
+			ItemStack stack,
+			Player player,
+			LivingEntity entity,
+			InteractionHand hand) {
+		if (entity.isAlive()
+				&& BotaniaConfig.common()
+						.enderPickpocketEnabled()
+				&& entity instanceof Player other
+				&& ManaItemHandler.instance()
+						.requestManaExact(
+								stack,
+								player,
+								COST_OTHER,
+								false
+						)) {
+			if (!player.level().isClientSide()) {
+				player.openMenu(
+						new SimpleMenuProvider(
+								(windowId, playerInventory, menuPlayer) ->
+										ChestMenu.threeRows(
+												windowId,
+												playerInventory,
+												other.getEnderChestInventory()
+										),
+								stack.getHoverName()
+						)
+				);
+
+				ManaItemHandler.instance()
+						.requestManaExact(
+								stack,
+								player,
+								COST_OTHER,
+								true
+						);
 			}
-			player.playSound(SoundEvents.ENDER_CHEST_OPEN, 1F, 1F);
-			return InteractionResult.sidedSuccess(player.level().isClientSide());
+
+			player.playSound(
+					SoundEvents.ENDER_CHEST_OPEN,
+					1.0F,
+					1.0F
+			);
+
+			return player.level().isClientSide()
+					? InteractionResult.SUCCESS
+					: InteractionResult.SUCCESS_SERVER;
 		}
 
 		return InteractionResult.PASS;

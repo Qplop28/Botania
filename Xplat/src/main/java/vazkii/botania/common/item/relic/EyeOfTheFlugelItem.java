@@ -140,7 +140,8 @@ public class EyeOfTheFlugelItem extends RelicItem {
 	}
 
 	@Override
-	public int getUseDuration(ItemStack strn 40;
+	public int getUseDuration(ItemStack stack, LivingEntity user) {
+		return 40;
 	}
 
 	@NotNull

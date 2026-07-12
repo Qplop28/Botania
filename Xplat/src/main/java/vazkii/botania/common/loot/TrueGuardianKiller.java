@@ -8,42 +8,36 @@
  */
 package vazkii.botania.common.loot;
 
-import com.google.gson.JsonDeserializationContext;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonSerializationContext;
+import com.mojang.serialization.MapCodec;
 
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
-import net.minecraft.world.level.storage.loot.predicates.LootItemConditionType;
 
 import org.jetbrains.annotations.NotNull;
 
 import vazkii.botania.common.entity.GaiaGuardianEntity;
 
 public class TrueGuardianKiller implements LootItemCondition {
+	public static final MapCodec<TrueGuardianKiller> MAP_CODEC =
+			MapCodec.unit(new TrueGuardianKiller());
 
 	@Override
 	public boolean test(@NotNull LootContext context) {
-		Entity victim = context.getParamOrNull(LootContextParams.THIS_ENTITY);
-		return victim instanceof GaiaGuardianEntity gg
-				&& context.getParamOrNull(LootContextParams.KILLER_ENTITY) == gg.trueKiller;
+		Entity victim =
+				context.getOptionalParameter(
+						LootContextParams.THIS_ENTITY
+				);
+
+		return victim instanceof GaiaGuardianEntity guardian
+				&& context.getOptionalParameter(
+						LootContextParams.ATTACKING_ENTITY
+				) == guardian.trueKiller;
 	}
 
 	@Override
-	public LootItemConditionType getType() {
-		return BotaniaLootModifiers.TRUE_GUARDIAN_KILLER;
+	public MapCodec<TrueGuardianKiller> codec() {
+		return MAP_CODEC;
 	}
-
-	public static class Serializer implements net.minecraft.world.level.storage.loot.Serializer<TrueGuardianKiller> {
-		@Override
-		public void serialize(JsonObject json, TrueGuardianKiller condition, JsonSerializationContext ctx) {}
-
-		@Override
-		public TrueGuardianKiller deserialize(JsonObject json, JsonDeserializationContext ctx) {
-			return new TrueGuardianKiller();
-		}
-	}
-
 }

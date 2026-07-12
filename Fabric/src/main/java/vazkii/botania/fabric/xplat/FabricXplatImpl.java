@@ -1,17 +1,20 @@
 package vazkii.botania.fabric.xplat;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufUtil;
+import io.netty.buffer.Unpooled;
+
 import net.fabricmc.api.EnvType;
+import net.fabricmc.fabric.api.menu.v1.ExtendedMenuProvider;
+import net.fabricmc.fabric.api.menu.v1.ExtendedMenuType;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
-import net.fabricmc.fabric.api.object.builder.v1.block.type.BlockSetTypeRegistry;
-import net.fabricmc.fabric.api.object.builder.v1.block.type.WoodTypeRegistry;
-import net.fabricmc.fabric.api.registry.FuelRegistry;
+import net.fabricmc.fabric.api.object.builder.v1.block.type.BlockSetTypeBuilder;
+import net.fabricmc.fabric.api.object.builder.v1.block.type.WoodTypeBuilder;
 import net.fabricmc.fabric.api.registry.StrippableBlockRegistry;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
-import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
-import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
 import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidConstants;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
@@ -29,6 +32,8 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.resources.Identifier;
@@ -120,7 +125,26 @@ import java.util.function.Supplier;
 import static vazkii.botania.common.lib.ResourceLocationHelper.prefix;
 import static vazkii.botania.integration.speedrunigt.BotaniaSpeedrunCategories.BotaniaSpeedrunCategory;
 
-public class FabricXplatImpl implements XplatAbstractions {
+	public class FabricXplatImpl implements XplatAbstractions {
+	private record MenuOpeningData(byte[] bytes) {
+		private static final StreamCodec<ByteBuf, MenuOpeningData> STREAM_CODEC =
+				ByteBufCodecs.BYTE_ARRAY.map(MenuOpeningData::new, MenuOpeningData::bytes);
+
+		private FriendlyByteBuf createBuffer() {
+			return new FriendlyByteBuf(Unpooled.wrappedBuffer(bytes));
+		}
+
+		private static MenuOpeningData write(Consumer<FriendlyByteBuf> writer) {
+			FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
+
+			try {
+				writer.accept(buf);
+				return new MenuOpeningData(ByteBufUtil.getBytes(buf));
+			} finally {
+				buf.release();
+			}
+		}
+	}
 	@Override
 	public boolean isFabric() {
 		return true;
@@ -528,8 +552,17 @@ public class FabricXplatImpl implements XplatAbstractions {
 	}
 
 	@Override
-	public <T extends AbstractContainerMenu> MenuType<T> createMenuType(TriFunction<Integer, Inventory, FriendlyByteBuf, T> constructor) {
-		return new ExtendedScreenHandlerType<>(constructor::apply);
+	public <T extends AbstractContainerMenu> MenuType<T> createMenuType(
+			TriFunction<Integer, Inventory, FriendlyByteBuf, T> constructor) {
+		return new ExtendedMenuType<T, MenuOpeningData>((id, inventory, data) -> {
+			FriendlyByteBuf buf = data.createBuffer();
+
+			try {
+				return constructor.apply(id, inventory, buf);
+			} finally {
+				buf.release();
+			}
+		}, MenuOpeningData.STREAM_CODEC);
 	}
 
 	@Nullable
@@ -540,8 +573,9 @@ public class FabricXplatImpl implements XplatAbstractions {
 	}
 
 	@Override
-	public void openMenu(ServerPlayer player, MenuProvider menu, Consumer<FriendlyByteBuf> writeInitialData) {
-		var menuProvider = new ExtendedScreenHandlerFactory() {
+	public void openMenu(ServerPlayer player, MenuProvider menu,
+			Consumer<FriendlyByteBuf> writeInitialData) {
+		var menuProvider = new ExtendedMenuProvider<MenuOpeningData>() {
 			@Nullable
 			@Override
 			public AbstractContainerMenu createMenu(int id, Inventory inventory, Player player) {
@@ -554,10 +588,11 @@ public class FabricXplatImpl implements XplatAbstractions {
 			}
 
 			@Override
-			public void writeScreenOpeningData(ServerPlayer player, FriendlyByteBuf buf) {
-				writeInitialData.accept(buf);
+			public MenuOpeningData getScreenOpeningData(ServerPlayer player) {
+				return MenuOpeningData.write(writeInitialData);
 			}
 		};
+
 		player.openMenu(menuProvider);
 	}
 
@@ -598,9 +633,8 @@ public class FabricXplatImpl implements XplatAbstractions {
 	}
 
 	@Override
-	public int getSmeltingBurnTime(ItemStack stack) {
-		Integer v = FuelRegistry.INSTANCE.get(stack.getItem());
-		return v == null ? 0 : v;
+	public int getSmeltingBurnTime(Level level, ItemStack stack) {
+		return level.fuelValues().burnDuration(stack);
 	}
 
 	@Override
@@ -656,13 +690,35 @@ public class FabricXplatImpl implements XplatAbstractions {
 	}
 
 	@Override
-	public BlockSetType registerBlockSetType(String name, boolean canOpenByHand, SoundType soundType, SoundEvent doorClose, SoundEvent doorOpen, SoundEvent trapdoorClose, SoundEvent trapdoorOpen, SoundEvent pressurePlateClickOff, SoundEvent pressurePlateClickOn, SoundEvent buttonClickOff, SoundEvent buttonClickOn) {
-		return BlockSetTypeRegistry.register(prefix(name), canOpenByHand, soundType, doorClose, doorOpen, trapdoorClose, trapdoorOpen, pressurePlateClickOff, pressurePlateClickOn, buttonClickOff, buttonClickOn);
+	public BlockSetType registerBlockSetType(String name, boolean canOpenByHand,
+			SoundType soundType, SoundEvent doorClose, SoundEvent doorOpen,
+			SoundEvent trapdoorClose, SoundEvent trapdoorOpen,
+			SoundEvent pressurePlateClickOff, SoundEvent pressurePlateClickOn,
+			SoundEvent buttonClickOff, SoundEvent buttonClickOn) {
+		return new BlockSetTypeBuilder()
+				.openableByHand(canOpenByHand)
+				.soundType(soundType)
+				.doorCloseSound(doorClose)
+				.doorOpenSound(doorOpen)
+				.trapdoorCloseSound(trapdoorClose)
+				.trapdoorOpenSound(trapdoorOpen)
+				.pressurePlateClickOffSound(pressurePlateClickOff)
+				.pressurePlateClickOnSound(pressurePlateClickOn)
+				.buttonClickOffSound(buttonClickOff)
+				.buttonClickOnSound(buttonClickOn)
+				.register(prefix(name));
 	}
 
 	@Override
-	public WoodType registerWoodType(String name, BlockSetType setType, SoundType soundType, SoundType hangingSignSoundType, SoundEvent fenceGateClose, SoundEvent fenceGateOpen) {
-		return WoodTypeRegistry.register(prefix(name), setType, soundType, hangingSignSoundType, fenceGateClose, fenceGateOpen);
+	public WoodType registerWoodType(String name, BlockSetType setType,
+			SoundType soundType, SoundType hangingSignSoundType,
+			SoundEvent fenceGateClose, SoundEvent fenceGateOpen) {
+		return new WoodTypeBuilder()
+				.soundType(soundType)
+				.hangingSignSoundType(hangingSignSoundType)
+				.fenceGateCloseSound(fenceGateClose)
+				.fenceGateOpenSound(fenceGateOpen)
+				.register(prefix(name), setType);
 	}
 
 	private final boolean speedrunIGTLoaded = isModLoaded("speedrunigt");

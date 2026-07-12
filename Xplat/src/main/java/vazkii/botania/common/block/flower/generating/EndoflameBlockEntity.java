@@ -139,7 +139,7 @@ public class EndoflameBlockEntity extends GeneratingFlowerBlockEntity {
 		if (stack.isEmpty() || Block.byItem(stack.getItem()) instanceof ManaSpreaderBlock) {
 			return 0;
 		} else {
-			return XplatAbstractions.INSTANCE.getSmeltingBurnTime(stack);
+			return XplatAbstractions.INSTANCE.getSmeltingBurnTime(getLevel(), stack);
 		}
 	}
 

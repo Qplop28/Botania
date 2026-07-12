@@ -582,7 +582,7 @@ public class ForgeXplatImpl implements XplatAbstractions {
 	}
 
 	@Override
-	public int getSmeltingBurnTime(ItemStack stack) {
+	public int getSmeltingBurnTime(Level level, ItemStack stack) {
 		return ForgeHooks.getBurnTime(stack, RecipeType.SMELTING);
 	}
 

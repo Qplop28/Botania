@@ -207,7 +207,7 @@ public interface XplatAbstractions {
 	boolean canFurnaceBurn(AbstractFurnaceBlockEntity furnace, @Nullable Recipe<?> recipe, NonNullList<ItemStack> items, int maxStackSize);
 	// Forge patches BucketItem to use a supplier for the fluid, and exposes it, while Fabric needs an accessor
 	Fluid getBucketFluid(BucketItem item);
-	int getSmeltingBurnTime(ItemStack stack);
+	int getSmeltingBurnTime(Level level, ItemStack stack);
 	boolean preventsRemoteMovement(ItemEntity entity);
 	void addAxeStripping(Block input, Block output);
 	int transferEnergyToNeighbors(Level level, BlockPos pos, int energy);

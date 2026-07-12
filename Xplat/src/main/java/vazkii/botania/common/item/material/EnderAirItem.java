@@ -13,7 +13,7 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.AreaEffectCloud;
 import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.player.Player;
@@ -41,70 +41,172 @@ public class EnderAirItem extends Item {
 		super(props);
 	}
 
-	public static InteractionResultHolder<ItemStack> onPlayerInteract(Player player, Level world, InteractionHand hand) {
+	public static InteractionResult onPlayerInteract(
+			Player player,
+			Level world,
+			InteractionHand hand) {
 		ItemStack stack = player.getItemInHand(hand);
 
-		if (stack.isEmpty() || !stack.is(Items.GLASS_BOTTLE)) {
-			return InteractionResultHolder.pass(stack);
+		if (stack.isEmpty()
+				|| !stack.is(Items.GLASS_BOTTLE)) {
+			return InteractionResult.PASS;
 		}
 
-		if ((world.dimension() == Level.END && isClearFromDragonBreath(world, player.getBoundingBox().inflate(3.5)) && notAimingAtFluid(world, player))
-				|| pickupFromEntity(world, player.getBoundingBox().inflate(1.0))) {
+		boolean canCollectAmbientAir =
+				world.dimension() == Level.END
+						&& isClearFromDragonBreath(
+								world,
+								player.getBoundingBox()
+										.inflate(3.5)
+						)
+						&& notAimingAtFluid(world, player);
 
-			if (!world.isClientSide) {
-				ItemStack enderAir = new ItemStack(BotaniaItems.enderAirBottle);
-				player.getInventory().placeItemBackInInventory(enderAir);
+		boolean canCollectEntityAir =
+				pickupFromEntity(
+						world,
+						player.getBoundingBox()
+								.inflate(1.0)
+				);
+
+		if (canCollectAmbientAir || canCollectEntityAir) {
+			if (!world.isClientSide()) {
+				ItemStack enderAir =
+						new ItemStack(
+								BotaniaItems.enderAirBottle
+						);
+
+				player.getInventory()
+						.placeItemBackInInventory(enderAir);
+
 				stack.shrink(1);
-				world.playSound(null, player.blockPosition(), SoundEvents.ITEM_PICKUP, SoundSource.NEUTRAL, 0.5F, 1F);
-				world.gameEvent(player, GameEvent.FLUID_PICKUP, player.position());
+
+				world.playSound(
+						null,
+						player.blockPosition(),
+						SoundEvents.ITEM_PICKUP,
+						SoundSource.NEUTRAL,
+						0.5F,
+						1.0F
+				);
+
+				world.gameEvent(
+						player,
+						GameEvent.FLUID_PICKUP,
+						player.position()
+				);
 			}
 
-			return InteractionResultHolder.sidedSuccess(stack, world.isClientSide());
+			return world.isClientSide()
+					? InteractionResult.SUCCESS
+					: InteractionResult.SUCCESS_SERVER;
 		}
 
-		return InteractionResultHolder.pass(stack);
+		return InteractionResult.PASS;
 	}
 
-	private static boolean notAimingAtFluid(Level world, Player player) {
-		BlockHitResult hitResult = getPlayerPOVHitResult(world, player, ClipContext.Fluid.ANY);
+	private static boolean notAimingAtFluid(
+			Level world,
+			Player player) {
+		BlockHitResult hitResult =
+				getPlayerPOVHitResult(
+						world,
+						player,
+						ClipContext.Fluid.ANY
+				);
+
 		if (hitResult.getType() == HitResult.Type.BLOCK) {
 			BlockPos pos = hitResult.getBlockPos();
-			return world.mayInteract(player, pos) && world.getFluidState(pos).isEmpty();
+
+			return world.mayInteract(player, pos)
+					&& world.getFluidState(pos).isEmpty();
 		}
+
 		return true;
 	}
 
-	public static boolean isClearFromDragonBreath(Level world, AABB aabb) {
-		List<AreaEffectCloud> list = world.getEntitiesOfClass(AreaEffectCloud.class,
-				aabb, entity -> entity != null && entity.isAlive()
-						&& entity.getParticle().getType() == ParticleTypes.DRAGON_BREATH);
-		return list.isEmpty();
+	public static boolean isClearFromDragonBreath(
+			Level world,
+			AABB area) {
+		List<AreaEffectCloud> clouds =
+				world.getEntitiesOfClass(
+						AreaEffectCloud.class,
+						area,
+						entity ->
+								entity != null
+										&& entity.isAlive()
+										&& entity.getParticle()
+												.getType()
+												== ParticleTypes.DRAGON_BREATH
+				);
+
+		return clouds.isEmpty();
 	}
 
-	public static boolean pickupFromEntity(Level level, AABB area) {
-		var entities = level.getEntitiesOfClass(EnderAirEntity.class, area, EntitySelector.ENTITY_STILL_ALIVE);
+	public static boolean pickupFromEntity(
+			Level level,
+			AABB area) {
+		var entities =
+				level.getEntitiesOfClass(
+						EnderAirEntity.class,
+						area,
+						EntitySelector.ENTITY_STILL_ALIVE
+				);
+
 		if (!entities.isEmpty()) {
-			entities.get(0).discard();
+			entities.getFirst().discard();
 			return true;
 		}
+
 		return false;
 	}
 
 	@NotNull
 	@Override
-	public InteractionResultHolder<ItemStack> use(Level world, Player player, @NotNull InteractionHand hand) {
+	public InteractionResult use(
+			Level world,
+			Player player,
+			@NotNull InteractionHand hand) {
 		ItemStack stack = player.getItemInHand(hand);
+
 		if (!player.getAbilities().instabuild) {
 			stack.shrink(1);
 		}
 
-		world.playSound(null, player.getX(), player.getY(), player.getZ(), BotaniaSounds.enderAirThrow, SoundSource.PLAYERS, 1F, 0.4F / (player.getRandom().nextFloat() * 0.4F + 0.8F));
+		world.playSound(
+				null,
+				player.getX(),
+				player.getY(),
+				player.getZ(),
+				BotaniaSounds.enderAirThrow,
+				SoundSource.PLAYERS,
+				1.0F,
+				0.4F
+						/ (player.getRandom().nextFloat()
+								* 0.4F
+								+ 0.8F)
+		);
 
-		if (!world.isClientSide) {
-			EnderAirBottleEntity b = new EnderAirBottleEntity(player, world);
-			b.shootFromRotation(player, player.getXRot(), player.getYRot(), 0F, 1.5F, 1F);
-			world.addFreshEntity(b);
+		if (!world.isClientSide()) {
+			EnderAirBottleEntity bottle =
+					new EnderAirBottleEntity(
+							player,
+							world
+					);
+
+			bottle.shootFromRotation(
+					player,
+					player.getXRot(),
+					player.getYRot(),
+					0.0F,
+					1.5F,
+					1.0F
+			);
+
+			world.addFreshEntity(bottle);
 		}
-		return InteractionResultHolder.sidedSuccess(stack, world.isClientSide);
+
+		return world.isClientSide()
+				? InteractionResult.SUCCESS
+				: InteractionResult.SUCCESS_SERVER;
 	}
 }

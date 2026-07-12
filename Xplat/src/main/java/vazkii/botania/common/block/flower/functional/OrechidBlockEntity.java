@@ -11,7 +11,6 @@ package vazkii.botania.common.block.flower.functional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.util.random.WeightedEntry;
 import net.minecraft.util.random.WeightedRandom;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.block.Block;
@@ -57,7 +56,9 @@ public class OrechidBlockEntity extends FunctionalFlowerBlockEntity {
 	public void tickFlower() {
 		super.tickFlower();
 
-		if (getLevel().isClientSide || redstoneSignal > 0 || !canOperate()) {
+		if (getLevel().isClientSide()
+		|| redstoneSignal > 0
+		|| !canOperate()) {
 			return;
 		}
 
@@ -74,15 +75,29 @@ public class OrechidBlockEntity extends FunctionalFlowerBlockEntity {
 	}
 
 	@Nullable
-	private OrechidRecipe findMatchingRecipe(BlockPos coords) {
-		BlockState input = level.getBlockState(coords);
-		List<WeightedEntry.Wrapper<OrechidRecipe>> values = new ArrayList<>();
-		for (OrechidRecipe recipe : OrechidManager.getMatchingRecipes(getLevel().getRecipeManager(), getRecipeType(), input)) {
-			values.add(WeightedEntry.wrap(recipe, recipe.getWeight(getLevel(), coords)));
-		}
-		return WeightedRandom.getRandomItem(getLevel().random, values)
-				.map(WeightedEntry.Wrapper::getData)
-				.orElse(null);
+	private OrechidRecipe findMatchingRecipe(
+			BlockPos coords) {
+		BlockState input =
+				level.getBlockState(coords);
+
+		List<OrechidRecipe> recipes =
+				new ArrayList<>(
+						OrechidManager.getMatchingRecipes(
+								getLevel().getRecipeManager(),
+								getRecipeType(),
+								input
+						)
+				);
+
+		return WeightedRandom.getRandomItem(
+				getLevel().random,
+				recipes,
+				recipe ->
+						recipe.getWeight(
+								getLevel(),
+								coords
+						)
+		).orElse(null);
 	}
 
 	private void trySetRecipe(BlockPos coords, @Nullable OrechidRecipe recipe) {

@@ -8,106 +8,256 @@
  */
 package vazkii.botania.common.item;
 
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageTypes;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.animal.horse.AbstractHorse;
-import net.minecraft.world.entity.animal.horse.Horse;
-import net.minecraft.world.entity.animal.horse.SkeletonHorse;
-import net.minecraft.world.entity.animal.horse.ZombieHorse;
+import net.minecraft.world.entity.animal.equine.AbstractHorse;
+import net.minecraft.world.entity.animal.equine.Horse;
+import net.minecraft.world.entity.animal.equine.SkeletonHorse;
+import net.minecraft.world.entity.animal.equine.ZombieHorse;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.ServerLevelAccessor;
 
 import vazkii.botania.common.handler.BotaniaSounds;
 import vazkii.botania.mixin.AbstractHorseAccessor;
 
 public class EquestrianVirusItem extends Item {
+	private static final Identifier VIRUS_MODIFIER_ID =
+			Identifier.fromNamespaceAndPath(
+					"botania",
+					"equestrian_virus"
+			);
+
 	public EquestrianVirusItem(Properties builder) {
 		super(builder);
 	}
 
 	@Override
-	public InteractionResult interactLivingEntity(ItemStack stack, Player player, LivingEntity living, InteractionHand hand) {
-		if (living.isAlive() && living instanceof Horse horse) {
-			if (player.level().isClientSide) {
-				return InteractionResult.SUCCESS;
-			}
-			if (horse.isTamed()) {
-				SimpleContainer inv = ((AbstractHorseAccessor) horse).getInventory();
-				ItemStack saddle = inv.getItem(0);
+	public InteractionResult interactLivingEntity(
+			ItemStack stack,
+			Player player,
+			LivingEntity living,
+			InteractionHand hand) {
+		if (!(living instanceof Horse horse)
+				|| !horse.isAlive()) {
+			return InteractionResult.PASS;
+		}
 
-				// Not all AbstractHorse's have saddles in slot 0
-				if (!saddle.isEmpty() && !saddle.is(Items.SADDLE)) {
-					horse.spawnAtLocation(saddle, 0);
-					saddle = ItemStack.EMPTY;
-				}
+		if (player.level().isClientSide()) {
+			return InteractionResult.SUCCESS;
+		}
 
-				for (int i = 1; i < inv.getContainerSize(); i++) {
-					if (!inv.getItem(i).isEmpty()) {
-						horse.spawnAtLocation(inv.getItem(i), 0);
-					}
-				}
+		if (!horse.isTamed()) {
+			return InteractionResult.PASS;
+		}
 
-				horse.discard();
+		if (!(player.level()
+				instanceof ServerLevel serverLevel)) {
+			return InteractionResult.PASS;
+		}
 
-				AbstractHorse newHorse = stack.is(BotaniaItems.necroVirus)
-						? EntityType.ZOMBIE_HORSE.create(player.level())
-						: EntityType.SKELETON_HORSE.create(player.level());
-				newHorse.tameWithName(player);
-				newHorse.absMoveTo(horse.getX(), horse.getY(), horse.getZ(), horse.getYRot(), horse.getXRot());
+		AbstractHorse newHorse =
+				stack.is(BotaniaItems.necroVirus)
+						? EntityType.ZOMBIE_HORSE.create(
+								serverLevel,
+								EntitySpawnReason.CONVERSION
+						)
+						: EntityType.SKELETON_HORSE.create(
+								serverLevel,
+								EntitySpawnReason.CONVERSION
+						);
 
-				// Put the saddle back
-				if (!saddle.isEmpty()) {
-					SimpleContainer newInv = ((AbstractHorseAccessor) newHorse).getInventory();
-					newInv.setItem(0, saddle);
-				}
+		if (newHorse == null) {
+			return InteractionResult.FAIL;
+		}
 
-				AttributeInstance movementSpeed = newHorse.getAttribute(Attributes.MOVEMENT_SPEED);
-				movementSpeed.setBaseValue(horse.getAttribute(Attributes.MOVEMENT_SPEED).getBaseValue());
-				movementSpeed.addPermanentModifier(new AttributeModifier("Ermergerd Virus D:", movementSpeed.getBaseValue(), AttributeModifier.Operation.ADDITION));
+		SimpleContainer inventory =
+				((AbstractHorseAccessor) horse)
+						.getInventory();
 
-				AttributeInstance health = newHorse.getAttribute(Attributes.MAX_HEALTH);
-				health.setBaseValue(horse.getAttribute(Attributes.MAX_HEALTH).getBaseValue());
-				health.addPermanentModifier(new AttributeModifier("Ermergerd Virus D:", health.getBaseValue(), AttributeModifier.Operation.ADDITION));
+		ItemStack saddle = inventory.getItem(0);
 
-				AttributeInstance jumpHeight = newHorse.getAttribute(Attributes.JUMP_STRENGTH);
-				jumpHeight.setBaseValue(horse.getAttribute(Attributes.JUMP_STRENGTH).getBaseValue());
-				jumpHeight.addPermanentModifier(new AttributeModifier("Ermergerd Virus D:", jumpHeight.getBaseValue() * 0.5, AttributeModifier.Operation.ADDITION));
+		/*
+		 * Not every AbstractHorse implementation uses
+		 * inventory slot zero for a saddle.
+		 */
+		if (!saddle.isEmpty()
+				&& !saddle.is(Items.SADDLE)) {
+			horse.spawnAtLocation(
+					serverLevel,
+					saddle,
+					0.0F
+			);
 
-				newHorse.playSound(BotaniaSounds.virusInfect, 1.0F + living.level().random.nextFloat(), living.level().random.nextFloat() * 0.7F + 1.3F);
-				newHorse.finalizeSpawn((ServerLevelAccessor) player.level(), player.level().getCurrentDifficultyAt(newHorse.blockPosition()), MobSpawnType.CONVERSION, null, null);
-				newHorse.setAge(horse.getAge());
-				player.level().addFreshEntity(newHorse);
-				newHorse.spawnAnim();
+			saddle = ItemStack.EMPTY;
+		}
 
-				stack.shrink(1);
-				return InteractionResult.SUCCESS;
+		for (int i = 1;
+				i < inventory.getContainerSize();
+				i++) {
+			ItemStack inventoryStack =
+					inventory.getItem(i);
+
+			if (!inventoryStack.isEmpty()) {
+				horse.spawnAtLocation(
+						serverLevel,
+						inventoryStack,
+						0.0F
+				);
 			}
 		}
-		return InteractionResult.PASS;
+
+		newHorse.snapTo(
+				horse.getX(),
+				horse.getY(),
+				horse.getZ(),
+				horse.getYRot(),
+				horse.getXRot()
+		);
+
+		newHorse.finalizeSpawn(
+				serverLevel,
+				serverLevel.getCurrentDifficultyAt(
+						newHorse.blockPosition()
+				),
+				EntitySpawnReason.CONVERSION,
+				null
+		);
+
+		newHorse.tameWithName(player);
+		newHorse.setAge(horse.getAge());
+
+		if (!saddle.isEmpty()) {
+			SimpleContainer newInventory =
+					((AbstractHorseAccessor) newHorse)
+							.getInventory();
+
+			newInventory.setItem(0, saddle);
+		}
+
+		AttributeInstance movementSpeed =
+				newHorse.getAttribute(
+						Attributes.MOVEMENT_SPEED
+				);
+
+		AttributeInstance oldMovementSpeed =
+				horse.getAttribute(
+						Attributes.MOVEMENT_SPEED
+				);
+
+		if (movementSpeed != null
+				&& oldMovementSpeed != null) {
+			movementSpeed.setBaseValue(
+					oldMovementSpeed.getBaseValue()
+			);
+
+			movementSpeed.addPermanentModifier(
+					new AttributeModifier(
+							VIRUS_MODIFIER_ID,
+							movementSpeed.getBaseValue(),
+							AttributeModifier.Operation.ADD_VALUE
+					)
+			);
+		}
+
+		AttributeInstance health =
+				newHorse.getAttribute(
+						Attributes.MAX_HEALTH
+				);
+
+		AttributeInstance oldHealth =
+				horse.getAttribute(
+						Attributes.MAX_HEALTH
+				);
+
+		if (health != null && oldHealth != null) {
+			health.setBaseValue(
+					oldHealth.getBaseValue()
+			);
+
+			health.addPermanentModifier(
+					new AttributeModifier(
+							VIRUS_MODIFIER_ID,
+							health.getBaseValue(),
+							AttributeModifier.Operation.ADD_VALUE
+					)
+			);
+		}
+
+		AttributeInstance jumpStrength =
+				newHorse.getAttribute(
+						Attributes.JUMP_STRENGTH
+				);
+
+		AttributeInstance oldJumpStrength =
+				horse.getAttribute(
+						Attributes.JUMP_STRENGTH
+				);
+
+		if (jumpStrength != null
+				&& oldJumpStrength != null) {
+			jumpStrength.setBaseValue(
+					oldJumpStrength.getBaseValue()
+			);
+
+			jumpStrength.addPermanentModifier(
+					new AttributeModifier(
+							VIRUS_MODIFIER_ID,
+							jumpStrength.getBaseValue()
+									* 0.5,
+							AttributeModifier.Operation.ADD_VALUE
+					)
+			);
+		}
+
+		newHorse.playSound(
+				BotaniaSounds.virusInfect,
+				1.0F
+						+ living.level()
+								.random
+								.nextFloat(),
+				living.level()
+						.random
+						.nextFloat()
+						* 0.7F
+						+ 1.3F
+		);
+
+		horse.discard();
+
+		serverLevel.addFreshEntity(newHorse);
+		newHorse.spawnAnim();
+
+		stack.shrink(1);
+
+		return InteractionResult.SUCCESS_SERVER;
 	}
 
-	public static boolean onLivingHurt(LivingEntity entity, DamageSource source) {
-		if (entity.isPassenger() && entity.getVehicle() instanceof LivingEntity vehicle) {
+	public static boolean onLivingHurt(
+			LivingEntity entity,
+			DamageSource source) {
+		if (entity.isPassenger()
+				&& entity.getVehicle()
+						instanceof LivingEntity vehicle) {
 			entity = vehicle;
 		}
 
-		if ((entity instanceof ZombieHorse || entity instanceof SkeletonHorse)
-				&& source == entity.damageSources().fall()
-				&& ((AbstractHorse) entity).isTamed()) {
-			return true;
-		}
-
-		return false;
+		return entity instanceof AbstractHorse horse
+				&& (horse instanceof ZombieHorse
+						|| horse instanceof SkeletonHorse)
+				&& source.is(DamageTypes.FALL)
+				&& horse.isTamed();
 	}
 }

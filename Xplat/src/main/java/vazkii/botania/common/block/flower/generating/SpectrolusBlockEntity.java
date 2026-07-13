@@ -77,9 +77,36 @@ public class SpectrolusBlockEntity extends GeneratingFlowerBlockEntity {
 					sheep.playSound(SoundEvents.GENERIC_EAT, 1, 1);
 
 					ItemStack morbid = new ItemStack(sheep.isOnFire() ? Items.COOKED_MUTTON : Items.MUTTON);
-					((ServerLevel) getLevel()).sendParticles(new ItemParticleOption(ParticleTypes.ITEM, ItemStackTemplate.fromNonEmptyStack(morbid)), target.getX(), target.getY() + target.getEyeHeight(), target.getZ(), 20, 0.1D, 0.1D, 0.1D, 0.05D);
+					((ServerLevel) getLevel()).sendParticles(
+							new ItemParticleOption(
+									ParticleTypes.ITEM,
+									ItemStackTemplate.fromNonEmptyStack(morbid)
+							),
+							target.getX(),
+							target.getY() + target.getEyeHeight(),
+							target.getZ(),
+							20,
+							0.1D,
+							0.1D,
+							0.1D,
+							0.05D
+					);
 
-					ItemStack wool = new ItemStack(ColorHelper.WOOL_MAP.apply(sheep.getColor()));((ServerLevel) getLevel()).sendParticles(new ItemParticleOption(ParticleTypes.ITEM, ItemStackTemplate.fromNonEmptyStack(wool)), target.getX(), target.getY() + target.getEyeHeight(), target.getZ(), 20, 0.1D, 0.1D, 0.1D, 0.05D);
+					ItemStack wool = new ItemStack(ColorHelper.WOOL_MAP.apply(sheep.getColor()));
+					((ServerLevel) getLevel()).sendParticles(
+							new ItemParticleOption(
+									ParticleTypes.ITEM,
+									ItemStackTemplate.fromNonEmptyStack(wool)
+							),
+							target.getX(),
+							target.getY() + target.getEyeHeight(),
+							target.getZ(),
+							20,
+							0.1D,
+							0.1D,
+							0.1D,
+							0.05D
+					);
 				}
 				sheep.setHealth(0);
 			} else if (target instanceof ItemEntity item) {
@@ -89,7 +116,21 @@ public class SpectrolusBlockEntity extends GeneratingFlowerBlockEntity {
 					Block expected = ColorHelper.WOOL_MAP.apply(nextColor);
 
 					if (expected.asItem() == stack.getItem()) {
-						addManaAndCycle(WOOL_GEN);((ServerLevel) getLevel()).sendParticles(new ItemParticleOption(ParticleTypes.ITEM, ItemStackTemplate.fromNonEmptyStack(stack), target.getX(), target.getY(), target.getZ(), 20, 0.1D, 0.1D, 0.1D, 0.05D);
+						addManaAndCycle(WOOL_GEN);
+						((ServerLevel) getLevel()).sendParticles(
+								new ItemParticleOption(
+										ParticleTypes.ITEM,
+										ItemStackTemplate.fromNonEmptyStack(stack)
+								),
+								target.getX(),
+								target.getY(),
+								target.getZ(),
+								20,
+								0.1D,
+								0.1D,
+								0.1D,
+								0.05D
+						);
 					}
 
 					target.discard();

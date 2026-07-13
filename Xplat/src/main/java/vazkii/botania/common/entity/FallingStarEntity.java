@@ -9,15 +9,18 @@
 package vazkii.botania.common.entity;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.npc.Villager;
+import net.minecraft.world.entity.npc.villager.Villager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
@@ -29,55 +32,120 @@ import vazkii.botania.xplat.BotaniaConfig;
 
 import java.util.List;
 
-public class FallingStarEntity extends ThrowableCopyEntity {
+public class FallingStarEntity
+		extends ThrowableCopyEntity {
+	private static final String TAG_HAS_BEEN_IN_AIR =
+			"hasBeenInAir";
 
-	private static final String TAG_HAS_BEEN_IN_AIR = "hasBeenInAir";
 	/*
-	* Prevent the star from being discarded on block collisions before its
-	* first exposure to an air block.
-	*/
-	private boolean hasBeenInAir = false;
+	 * Prevent the star from being discarded on block
+	 * collisions before its first exposure to an air block.
+	 */
+	private boolean hasBeenInAir;
 
-	public FallingStarEntity(EntityType<FallingStarEntity> type, Level world) {
-		super(type, world);
+	public FallingStarEntity(
+			EntityType<FallingStarEntity> type,
+			Level level) {
+		super(type, level);
 	}
 
-	public FallingStarEntity(LivingEntity e, Level world) {
-		super(BotaniaEntities.FALLING_STAR, e, world);
+	public FallingStarEntity(
+			LivingEntity owner,
+			Level level) {
+		super(
+				BotaniaEntities.FALLING_STAR,
+				owner,
+				level
+		);
 	}
 
 	@Override
-	protected void defineSynchedData() {}
+	protected void defineSynchedData(
+			SynchedEntityData.Builder entityData) {
+	}
 
 	@Override
 	public void tick() {
 		super.tick();
 
-		if (!hasBeenInAir && !level().isClientSide) {
-			var bs = getFeetBlockState();
-			hasBeenInAir = bs.isAir() || isInWater() || isInLava();
+		if (!hasBeenInAir
+				&& !level().isClientSide()) {
+			BlockState feetState =
+					getFeetBlockState();
+
+			hasBeenInAir =
+					feetState.isAir()
+							|| isInWater()
+							|| isInLava();
 		}
 
-		float dist = 1.5F;
-		SparkleParticleData data = SparkleParticleData.sparkle(2F, 1F, 0.4F, 1F, 6);
+		float distance = 1.5F;
+
+		SparkleParticleData data =
+				SparkleParticleData.sparkle(
+						2.0F,
+						1.0F,
+						0.4F,
+						1.0F,
+						6
+				);
+
 		for (int i = 0; i < 10; i++) {
-			float xs = (float) (Math.random() - 0.5) * dist;
-			float ys = (float) (Math.random() - 0.5) * dist;
-			float zs = (float) (Math.random() - 0.5) * dist;
-			level().addAlwaysVisibleParticle(data, getX() + xs, getY() + ys, getZ() + zs, 0, 0, 0);
+			float xOffset =
+					(float) (Math.random() - 0.5)
+							* distance;
+
+			float yOffset =
+					(float) (Math.random() - 0.5)
+							* distance;
+
+			float zOffset =
+					(float) (Math.random() - 0.5)
+							* distance;
+
+			level().addAlwaysVisibleParticle(
+					data,
+					getX() + xOffset,
+					getY() + yOffset,
+					getZ() + zOffset,
+					0.0,
+					0.0,
+					0.0
+			);
 		}
 
-		Entity thrower = getOwner();
-		if (!level().isClientSide && thrower != null) {
-			AABB axis = new AABB(getX(), getY(), getZ(), xOld, yOld, zOld).inflate(2);
-			List<LivingEntity> entities = level().getEntitiesOfClass(LivingEntity.class, axis);
+		Entity owner = getOwner();
+
+		if (!level().isClientSide()
+				&& owner != null) {
+			AABB bounds =
+					new AABB(
+							getX(),
+							getY(),
+							getZ(),
+							xOld,
+							yOld,
+							zOld
+					).inflate(2.0);
+
+			List<LivingEntity> entities =
+					level().getEntitiesOfClass(
+							LivingEntity.class,
+							bounds
+					);
+
 			for (LivingEntity living : entities) {
-				if (living == thrower) {
+				if (living == owner) {
 					continue;
 				}
 
 				if (living.hurtTime == 0) {
-					onHit(new EntityHitResult(living));
+					onHit(
+							new EntityHitResult(
+									living
+							)
+					);
+
 					return;
 				}
 			}
@@ -89,49 +157,98 @@ public class FallingStarEntity extends ThrowableCopyEntity {
 	}
 
 	@Override
-	protected void onHitEntity(@NotNull EntityHitResult hit) {
+	protected void onHitEntity(
+			@NotNull EntityHitResult hit) {
 		super.onHitEntity(hit);
-		Entity e = hit.getEntity();
-		// Blacklisting villagers since trading with them counts as a "swing" and will summon a star.
-		if (e instanceof Villager) {
+
+		Entity target = hit.getEntity();
+
+		// Trading with villagers counts as a swing and
+		// must not summon a damaging star.
+		if (target instanceof Villager) {
 			return;
 		}
-		if (!level().isClientSide) {
-			if (e != getOwner() && e.isAlive()) {
-				if (getOwner() instanceof Player player) {
-					e.hurt(player.damageSources().playerAttack(player), Math.random() < 0.25 ? 10 : 5);
+
+		if (!level().isClientSide()) {
+			Entity owner = getOwner();
+
+			if (target != owner
+					&& target.isAlive()) {
+				DamageSource source;
+
+				if (owner instanceof Player player) {
+					source =
+							player.damageSources()
+									.playerAttack(
+											player
+									);
 				} else {
-					e.hurt(e.damageSources().generic(), Math.random() < 0.25 ? 10 : 5);
+					source = damageSources().generic();
 				}
+
+				float damage =
+						Math.random() < 0.25
+								? 10.0F
+								: 5.0F;
+
+				target.hurtOrSimulate(
+						source,
+						damage
+				);
 			}
+
 			discard();
 		}
 	}
 
 	@Override
-	protected void onHitBlock(BlockHitResult hit) {
+	protected void onHitBlock(
+			BlockHitResult hit) {
 		super.onHitBlock(hit);
-		if (!level().isClientSide) {
-			BlockPos bpos = hit.getBlockPos();
-			BlockState state = level().getBlockState(bpos);
+
+		if (!level().isClientSide()) {
+			BlockPos position =
+					hit.getBlockPos();
+
+			BlockState state =
+					level().getBlockState(position);
+
 			if (hasBeenInAir) {
-				if (BotaniaConfig.common().blockBreakParticles() && !state.isAir()) {
-					this.level().levelEvent(2001, bpos, Block.getId(state));
+				if (BotaniaConfig.common()
+						.blockBreakParticles()
+						&& !state.isAir()) {
+					level().levelEvent(
+							2001,
+							position,
+							Block.getId(state)
+					);
 				}
+
 				discard();
 			}
 		}
 	}
 
 	@Override
-	protected void addAdditionalSaveData(CompoundTag tag) {
-		super.addAdditionalSaveData(tag);
-		tag.putBoolean(TAG_HAS_BEEN_IN_AIR, hasBeenInAir);
+	protected void addAdditionalSaveData(
+			ValueOutput output) {
+		super.addAdditionalSaveData(output);
+
+		output.putBoolean(
+				TAG_HAS_BEEN_IN_AIR,
+				hasBeenInAir
+		);
 	}
 
 	@Override
-	protected void readAdditionalSaveData(CompoundTag tag) {
-		super.readAdditionalSaveData(tag);
-		this.hasBeenInAir = tag.getBoolean(TAG_HAS_BEEN_IN_AIR);
+	protected void readAdditionalSaveData(
+			ValueInput input) {
+		super.readAdditionalSaveData(input);
+
+		hasBeenInAir =
+				input.getBooleanOr(
+						TAG_HAS_BEEN_IN_AIR,
+						false
+				);
 	}
 }

@@ -11,7 +11,7 @@ package vazkii.botania.common.block.block_entity;
 import com.google.common.base.Predicates;
 import com.google.common.base.Suppliers;
 
-import net.minecraft.ResourceLocationException;
+import net.minecraft.IdentifierException;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.core.BlockPos;
@@ -428,9 +428,14 @@ public class ManaEnchanterBlockEntity extends BotaniaBlockEntity implements Mana
 					String[] entryTokens = token.split("=");
 					int lvl = Integer.parseInt(entryTokens[1]);
 					level.holderLookup(Registries.ENCHANTMENT)
-							.get(ResourceKey.create(Registries.ENCHANTMENT, new Identifier(entryTokens[0])))
-							.ifPresent(ench -> enchants.add(new EnchantmentInstance(ench.value(), lvl)));
-				} catch (ResourceLocationException ignored) {}
+							.get(ResourceKey.create(
+									Registries.ENCHANTMENT,
+									Identifier.parse(entryTokens[0])
+							))
+							.ifPresent(ench -> enchants.add(
+									new EnchantmentInstance(ench.value(), lvl)
+							));
+				} catch (IdentifierException ignored) {}
 			}
 		}
 	}

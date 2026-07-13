@@ -14,7 +14,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.model.BookModel;
+import net.minecraft.client.model.object.book.BookModel;
 import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -124,11 +124,11 @@ public class RenderLexicon {
 		float leftPageAngle = Mth.frac(pageFlip + 0.25F) * 1.6F - 0.3F;
 		float rightPageAngle = Mth.frac(pageFlip + 0.75F) * 1.6F - 0.3F;
 		var model = getModel();
-		model.setupAnim(ClientTickHandler.total(), Mth.clamp(leftPageAngle, 0.0F, 1.0F), Mth.clamp(rightPageAngle, 0.0F, 1.0F), opening);
+		model.setupAnim(BookModel.State.forAnimation(ClientTickHandler.total(), Mth.clamp(leftPageAngle, 0.0F, 1.0F), Mth.clamp(rightPageAngle, 0.0F, 1.0F), opening));
 
 		Material mat = LexicaBotaniaItem.isElven(stack) ? ELVEN_TEXTURE : TEXTURE;
 		VertexConsumer buffer = mat.buffer(buffers, RenderType::entitySolid);
-		model.renderToBuffer(ms, buffer, light, OverlayTexture.NO_OVERLAY, 1, 1, 1, 1);
+		model.renderToBuffer(ms, buffer, light, OverlayTexture.NO_OVERLAY);
 
 		if (ticks < 3) {
 			Font font = Minecraft.getInstance().font;

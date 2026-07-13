@@ -9,8 +9,8 @@
 package vazkii.botania.common.block.dispenser;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.BlockSource;
 import net.minecraft.core.Direction;
+import net.minecraft.core.dispenser.BlockSource;
 import net.minecraft.core.dispenser.OptionalDispenseItemBehavior;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -19,7 +19,8 @@ import net.minecraft.world.level.block.DispenserBlock;
 
 import org.jetbrains.annotations.NotNull;
 
-public class SeedsBehavior extends OptionalDispenseItemBehavior {
+public class SeedsBehavior
+		extends OptionalDispenseItemBehavior {
 	private final Block block;
 
 	public SeedsBehavior(Block block) {
@@ -28,19 +29,33 @@ public class SeedsBehavior extends OptionalDispenseItemBehavior {
 
 	@NotNull
 	@Override
-	public ItemStack execute(BlockSource source, ItemStack stack) {
-		Direction facing = source.getBlockState().getValue(DispenserBlock.FACING);
-		BlockPos pos = source.getPos().relative(facing);
-		Level world = source.getLevel();
+	protected ItemStack execute(
+			BlockSource source,
+			ItemStack stack) {
+		Direction facing =
+				source.state().getValue(
+						DispenserBlock.FACING
+				);
+
+		BlockPos target =
+				source.pos().relative(facing);
+
+		Level level = source.level();
 
 		setSuccess(false);
-		if (world.isEmptyBlock(pos) && block.defaultBlockState().canSurvive(world, pos)) {
-			world.setBlockAndUpdate(pos, block.defaultBlockState());
+
+		if (level.isEmptyBlock(target)
+				&& block.defaultBlockState()
+						.canSurvive(level, target)) {
+			level.setBlockAndUpdate(
+					target,
+					block.defaultBlockState()
+			);
+
 			stack.shrink(1);
 			setSuccess(true);
 		}
 
 		return stack;
 	}
-
 }

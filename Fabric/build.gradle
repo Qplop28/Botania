@@ -115,6 +115,8 @@ dependencies {
 
     implementation "net.fabricmc:fabric-loader:${loader_version}"
     implementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
+    
+    modImplementation "vazkii.patchouli:patchouli-fabric:26.1-94"
 
     implementation "org.ladysnake.cardinal-components-api:cardinal-components-base:8.0.1"
     implementation "org.ladysnake.cardinal-components-api:cardinal-components-entity:8.0.1"

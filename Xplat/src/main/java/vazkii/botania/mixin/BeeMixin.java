@@ -11,7 +11,7 @@ package vazkii.botania.mixin;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.animal.Animal;
-import net.minecraft.world.entity.animal.Bee;
+import net.minecraft.world.entity.animal.bee.Bee;
 import net.minecraft.world.level.Level;
 
 import org.spongepowered.asm.mixin.Mixin;
@@ -30,15 +30,21 @@ public abstract class BeeMixin extends Animal {
 	/**
 	 * Allows bees to treat special flowers as proper flowers for
 	 * pollination despite being excluded from the flower tag.
-	 * 
+	 *
 	 * @see PollinateGoalMixin
 	 */
 	@Inject(
-		method = "isFlowerValid", cancellable = true,
-		at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/animal/Bee;level()Lnet/minecraft/world/level/Level;", ordinal = 1)
+			method = "isFlowerValid",
+			cancellable = true,
+			at = @At(
+					value = "INVOKE",
+					target = "Lnet/minecraft/world/entity/animal/bee/Bee;level()Lnet/minecraft/world/level/Level;",
+					ordinal = 1
+			)
 	)
 	private void isSpecialFlower(BlockPos pos, CallbackInfoReturnable<Boolean> cir) {
-		if (level().isLoaded(pos) && level().getBlockState(pos).is(BotaniaTags.Blocks.SPECIAL_FLOWERS)) {
+		if (level().isLoaded(pos)
+				&& level().getBlockState(pos).is(BotaniaTags.Blocks.SPECIAL_FLOWERS)) {
 			cir.setReturnValue(true);
 		}
 	}

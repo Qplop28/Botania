@@ -11,8 +11,8 @@ package vazkii.botania.mixin;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.SpawnPlacements;
 import net.minecraft.world.level.ServerLevelAccessor;
 
@@ -27,15 +27,26 @@ import vazkii.botania.common.brew.effect.BloodthirstMobEffect;
 public class SpawnPlacementsMixin {
 	// This injection is kind of scuffed:
 	// In vanilla code, canSpawnEntity calls a per-entity predicate to determine spawnability.
-	// Many (but not all) hostile mobs register their own canSpawn predicates or fall back to MonsterEntity::canSpawnInLightLevel,
-	// which ordinarily should be jumped over under Bloodthirst.
-	// However, certain mobs (e.g. slimes) use the predicate for actual logic (e.g. slimechunks),
-	// and we jump over that in Bloodthirst as well.
-	@Inject(at = @At("RETURN"), cancellable = true, method = "checkSpawnRules")
-	private static <T extends Entity> void bloodthirstOverride(EntityType<T> type, ServerLevelAccessor world, MobSpawnType reason, BlockPos position, RandomSource random, CallbackInfoReturnable<Boolean> cir) {
-		if (reason == MobSpawnType.NATURAL && BloodthirstMobEffect.overrideSpawn(world, position, type.getCategory())) {
+	// Many hostile mobs register their own spawn predicates or fall back to a standard
+	// monster spawn check, which ordinarily should be jumped over under Bloodthirst.
+	// However, certain mobs use the predicate for additional logic, such as slime chunks,
+	// and Bloodthirst jumps over that logic as well.
+	@Inject(
+			method = "checkSpawnRules",
+			at = @At("RETURN"),
+			cancellable = true
+	)
+	private static <T extends Entity> void bloodthirstOverride(
+			EntityType<T> type,
+			ServerLevelAccessor world,
+			EntitySpawnReason reason,
+			BlockPos position,
+			RandomSource random,
+			CallbackInfoReturnable<Boolean> cir
+	) {
+		if (reason == EntitySpawnReason.NATURAL
+				&& BloodthirstMobEffect.overrideSpawn(world, position, type.getCategory())) {
 			cir.setReturnValue(true);
 		}
 	}
-
 }

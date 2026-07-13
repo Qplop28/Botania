@@ -35,7 +35,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.AbstractGlassBlock;
+import net.minecraft.world.level.block.TransparentBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.IronBarsBlock;
 import net.minecraft.world.level.block.RenderShape;
@@ -98,7 +98,7 @@ public class ShiftingCrustRodItem extends Item implements WireframeCoordinateLis
 			BlockEntity tile = world.getBlockEntity(pos);
 			if (tile == null && block.asItem() != Items.AIR
 					&& (wstate.isSolidRender(world, pos) || wstate.getRenderShape() == RenderShape.MODEL)
-					&& (wstate.canOcclude() || block instanceof AbstractGlassBlock || block instanceof IronBarsBlock)
+					&& (wstate.canOcclude() || block instanceof TransparentBlock || block instanceof IronBarsBlock)
 					&& block.asItem() instanceof BlockItem) {
 				setItemToPlace(stack, block.asItem());
 				setSwapTemplateDirection(stack, ctx.getClickedFace());

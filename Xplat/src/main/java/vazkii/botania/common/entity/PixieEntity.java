@@ -13,6 +13,7 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.FlyingMob;
 import net.minecraft.world.entity.LivingEntity;
@@ -136,7 +137,7 @@ public class PixieEntity extends FlyingMob {
 	}
 
 	@Override
-	public void remove(RemovalReason reason) {
+	public void remove(Entity.RemovalReason reason) {
 		if (level() != null && level().isClientSide && getPixieType() == 0) {
 			for (int i = 0; i < 12; i++) {
 				SparkleParticleData data = SparkleParticleData.sparkle(1F + (float) Math.random() * 0.25F, 1F, 0.25F, 0.9F, 5);

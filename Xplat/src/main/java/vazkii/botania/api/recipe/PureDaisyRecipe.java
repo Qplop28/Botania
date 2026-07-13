@@ -21,6 +21,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import vazkii.botania.api.BotaniaAPI;
 import vazkii.botania.api.block_entity.SpecialFlowerBlockEntity;
@@ -44,6 +45,7 @@ public interface PureDaisyRecipe extends Recipe<Container> {
 
 	BlockState getOutputState();
 
+	@Nullable
 	CacheableFunction getSuccessFunction();
 
 	int getTime();

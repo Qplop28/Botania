@@ -19,6 +19,7 @@ import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import vazkii.botania.api.BotaniaAPI;
 
@@ -53,6 +54,7 @@ public interface OrechidRecipe extends Recipe<Container> {
 		return getWeight();
 	}
 
+	@Nullable
 	CacheableFunction getSuccessFunction();
 
 	@Override

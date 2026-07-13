@@ -17,11 +17,13 @@ import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import vazkii.botania.api.recipe.StateIngredient;
 
 public class OrechidIgnemRecipe extends OrechidRecipe {
-	public OrechidIgnemRecipe(Identifier id, StateIngredient input, StateIngredient output, int weight, CacheableFunction successFunction) {
+	public OrechidIgnemRecipe(Identifier id, StateIngredient input, StateIngredient output, int weight,
+		@Nullable CacheableFunction successFunction) {
 		super(id, input, output, weight, successFunction);
 	}
 

@@ -24,6 +24,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import vazkii.botania.api.recipe.StateIngredient;
 
@@ -32,7 +33,7 @@ public class MarimorphosisRecipe extends OrechidRecipe {
 	private final TagKey<Biome> biomes;
 
 	public MarimorphosisRecipe(Identifier id, StateIngredient input, StateIngredient output, int weight,
-			CacheableFunction successFunction,
+			@Nullable CacheableFunction successFunction,
 			int weightBonus, TagKey<Biome> biomes) {
 		super(id, input, output, weight, successFunction);
 		this.weightBonus = weightBonus;

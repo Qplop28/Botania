@@ -19,6 +19,7 @@ import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import vazkii.botania.api.recipe.StateIngredient;
 
@@ -27,9 +28,11 @@ public class OrechidRecipe implements vazkii.botania.api.recipe.OrechidRecipe {
 	private final StateIngredient input;
 	private final StateIngredient output;
 	private final int weight;
+	@Nullable
 	private final CacheableFunction successFunction;
 
-	public OrechidRecipe(Identifier id, StateIngredient input, StateIngredient output, int weight, CacheableFunction successFunction) {
+	public OrechidRecipe(Identifier id, StateIngredient input, StateIngredient output, int weight,
+		@Nullable CacheableFunction successFunction) {
 		this.id = id;
 		this.input = input;
 		this.output = output;
@@ -52,6 +55,7 @@ public class OrechidRecipe implements vazkii.botania.api.recipe.OrechidRecipe {
 		return weight;
 	}
 
+	@Nullable
 	@Override
 	public CacheableFunction getSuccessFunction() {
 		return this.successFunction;
@@ -88,7 +92,7 @@ public class OrechidRecipe implements vazkii.botania.api.recipe.OrechidRecipe {
 			var functionIdString = GsonHelper.getAsString(json, "success_function", null);
 			var functionId = functionIdString == null ? null : new Identifier(functionIdString);
 			var function = functionId == null
-					? CacheableFunction.NONE
+					? null
 					: new CacheableFunction(functionId);
 
 			return new OrechidRecipe(recipeId, input, output, weight, function);
@@ -99,7 +103,7 @@ public class OrechidRecipe implements vazkii.botania.api.recipe.OrechidRecipe {
 			var input = StateIngredientHelper.read(buffer);
 			var output = StateIngredientHelper.read(buffer);
 			var weight = buffer.readVarInt();
-			return new OrechidRecipe(recipeId, input, output, weight, CacheableFunction.NONE);
+			return new OrechidRecipe(recipeId, input, output, weight, null);
 		}
 
 		@Override

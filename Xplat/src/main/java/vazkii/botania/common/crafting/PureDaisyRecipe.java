@@ -24,6 +24,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import vazkii.botania.api.block_entity.SpecialFlowerBlockEntity;
 import vazkii.botania.api.recipe.StateIngredient;
@@ -36,6 +37,7 @@ public class PureDaisyRecipe implements vazkii.botania.api.recipe.PureDaisyRecip
 	protected final StateIngredient input;
 	protected final BlockState outputState;
 	private final int time;
+	@Nullable
 	private final CacheableFunction function;
 
 	/**
@@ -45,10 +47,10 @@ public class PureDaisyRecipe implements vazkii.botania.api.recipe.PureDaisyRecip
 	 * @param time     The amount of time in ticks to complete this recipe. Note that this is ticks on your block, not
 	 *                 total time.
 	 *                 The Pure Daisy only ticks one block at a time in a round robin fashion.
-	 * @param function An mcfunction to run at the converted block after finish. If you don't want one, pass
-	 *                 CommandFunction.CacheableFunction.NONE
+	 * @param function An mcfunction to run at the converted block after finish, or null for none.
 	 */
-	public PureDaisyRecipe(Identifier id, StateIngredient input, BlockState state, int time, CacheableFunction function) {
+		public PureDaisyRecipe(Identifier id, StateIngredient input, BlockState state, int time,
+			@Nullable CacheableFunction function) {
 		Preconditions.checkArgument(time >= 0, "Time must be nonnegative");
 		this.id = id;
 		this.input = input;
@@ -69,12 +71,14 @@ public class PureDaisyRecipe implements vazkii.botania.api.recipe.PureDaisyRecip
 			if (success) {
 				var serverLevel = (ServerLevel) world;
 				var server = serverLevel.getServer();
-				this.function.get(server.getFunctions()).ifPresent(command -> {
-					var context = server.getFunctions().getGameLoopSender()
-							.withLevel((ServerLevel) world)
-							.withPosition(Vec3.atBottomCenterOf(pos));
-					server.getFunctions().execute(command, context);
-				});
+				if (this.function != null) {
+					this.function.get(server.getFunctions()).ifPresent(command -> {
+						var context = server.getFunctions().getGameLoopSender()
+								.withLevel(serverLevel)
+								.withPosition(Vec3.atBottomCenterOf(pos));
+						server.getFunctions().execute(command, context);
+					});
+				}
 			}
 			return success;
 		}
@@ -91,11 +95,11 @@ public class PureDaisyRecipe implements vazkii.botania.api.recipe.PureDaisyRecip
 		return outputState;
 	}
 
+	@Nullable
 	@Override
 	public CacheableFunction getSuccessFunction() {
 		return this.function;
 	}
-
 	@Override
 	public int getTime() {
 		return time;
@@ -120,7 +124,7 @@ public class PureDaisyRecipe implements vazkii.botania.api.recipe.PureDaisyRecip
 			int time = GsonHelper.getAsInt(object, "time", DEFAULT_TIME);
 			var functionIdString = GsonHelper.getAsString(object, "success_function", null);
 			var functionId = functionIdString == null ? null : new Identifier(functionIdString);
-			var function = functionId == null ? CacheableFunction.NONE : new CacheableFunction(functionId);
+			var function = functionId == null ? null : new CacheableFunction(functionId);
 			return new PureDaisyRecipe(id, input, output, time, function);
 		}
 
@@ -137,7 +141,7 @@ public class PureDaisyRecipe implements vazkii.botania.api.recipe.PureDaisyRecip
 			StateIngredient input = StateIngredientHelper.read(buf);
 			BlockState output = Block.stateById(buf.readVarInt());
 			int time = buf.readVarInt();
-			return new PureDaisyRecipe(id, input, output, time, CacheableFunction.NONE);
+			return new PureDaisyRecipe(id, input, output, time, null);
 		}
 	}
 }

@@ -8,7 +8,7 @@
  */
 package vazkii.botania.mixin;
 
-import net.minecraft.world.entity.animal.Bee;
+import net.minecraft.world.entity.animal.bee.Bee;
 import net.minecraft.world.level.block.state.BlockState;
 
 import org.spongepowered.asm.mixin.Final;
@@ -23,7 +23,7 @@ import vazkii.botania.common.lib.BotaniaTags;
 
 import java.util.function.Predicate;
 
-@Mixin(targets = "net.minecraft.world.entity.animal.Bee$BeePollinateGoal")
+@Mixin(targets = "net.minecraft.world.entity.animal.bee.Bee$BeePollinateGoal")
 public class PollinateGoalMixin {
 	@Shadow
 	@Mutable

@@ -9,19 +9,20 @@
 package vazkii.botania.common.block.mana;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.entity.animal.chicken.Chicken;
+import net.minecraft.world.entity.animal.cow.MushroomCow;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.Shearable;
-import net.minecraft.world.entity.animal.Chicken;
-import net.minecraft.world.entity.animal.MushroomCow;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.item.component.SuspiciousStewEffects;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.SuspiciousStewItem;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -75,30 +76,90 @@ public class DrumBlock extends BotaniaWaterloggedBlock {
 		return SHAPE;
 	}
 
-	public static void gatherProduce(Level world, BlockPos pos) {
-		List<Mob> mobs = world.getEntitiesOfClass(Mob.class, new AABB(pos.offset(-GATHER_RANGE, -GATHER_RANGE, -GATHER_RANGE), pos.offset(GATHER_RANGE + 1, GATHER_RANGE + 1, GATHER_RANGE + 1)),
-				mob -> mob.isAlive() && !BergamuteBlockEntity.isBergamuteNearby(world, mob.getX(), mob.getY(), mob.getZ()));
-		List<Shearable> shearables = new ArrayList<>();
+	public static void gatherProduce(
+			Level level,
+			BlockPos pos) {
+		if (!(level instanceof ServerLevel serverLevel)) {
+			return;
+		}
+
+		List<Mob> mobs =
+				serverLevel.getEntitiesOfClass(
+						Mob.class,
+						new AABB(
+								pos.offset(
+										-GATHER_RANGE,
+										-GATHER_RANGE,
+										-GATHER_RANGE
+								),
+								pos.offset(
+										GATHER_RANGE + 1,
+										GATHER_RANGE + 1,
+										GATHER_RANGE + 1
+								)
+						),
+						mob ->
+								mob.isAlive()
+										&& !BergamuteBlockEntity
+												.isBergamuteNearby(
+														serverLevel,
+														mob.getX(),
+														mob.getY(),
+														mob.getZ()
+												)
+				);
+
+		List<Shearable> shearables =
+				new ArrayList<>();
 
 		for (Mob mob : mobs) {
-			if (mob instanceof Chicken chicken && !chicken.isBaby() && !chicken.isChickenJockey()) {
+			if (mob instanceof Chicken chicken
+					&& !chicken.isBaby()
+					&& !chicken.isChickenJockey()) {
 				speedUpEggLaying(chicken);
 			}
-			if (mob.getType().is(BotaniaTags.Entities.DRUM_MILKABLE) && !mob.isBaby()) {
-				convertNearby(mob, Items.BUCKET, Items.MILK_BUCKET);
+
+			if (mob.getType().is(
+					BotaniaTags.Entities.DRUM_MILKABLE)
+					&& !mob.isBaby()) {
+				convertNearby(
+						mob,
+						Items.BUCKET,
+						Items.MILK_BUCKET
+				);
 			}
-			if (mob instanceof MushroomCow mooshroom && !mooshroom.isBaby()) {
-				if (mooshroom.getVariant() == MushroomCow.MushroomType.BROWN && ((MushroomCowAccessor) mooshroom).getEffect() != null) {
+
+			if (mob instanceof MushroomCow mooshroom
+					&& !mooshroom.isBaby()) {
+				MushroomCowAccessor accessor =
+						(MushroomCowAccessor) mooshroom;
+
+				if (mooshroom.getVariant()
+						== MushroomCow.Variant.BROWN
+						&& accessor.getStewEffects()
+								!= null) {
 					fillBowlSuspiciously(mooshroom);
 				}
-				convertNearby(mob, Items.BOWL, Items.MUSHROOM_STEW);
+
+				convertNearby(
+						mob,
+						Items.BOWL,
+						Items.MUSHROOM_STEW
+				);
 			}
-			if (mob instanceof Shearable shearable && !mob.getType().is(BotaniaTags.Entities.DRUM_NO_SHEARING) && shearable.readyForShearing()) {
+
+			if (mob instanceof Shearable shearable
+					&& !mob.getType().is(
+							BotaniaTags.Entities
+									.DRUM_NO_SHEARING
+					)
+					&& shearable.readyForShearing()) {
 				shearables.add(shearable);
 			}
 		}
 
 		Collections.shuffle(shearables);
+
 		int sheared = 0;
 
 		for (Shearable shearable : shearables) {
@@ -106,7 +167,12 @@ public class DrumBlock extends BotaniaWaterloggedBlock {
 				break;
 			}
 
-			shearable.shear(SoundSource.BLOCKS);
+			shearable.shear(
+					serverLevel,
+					SoundSource.BLOCKS,
+					new ItemStack(Items.SHEARS)
+			);
+
 			++sheared;
 		}
 	}
@@ -143,28 +209,54 @@ public class DrumBlock extends BotaniaWaterloggedBlock {
 		));
 	}
 
-	private static void fillBowlSuspiciously(MushroomCow mushroomCow) {
-		MushroomCowAccessor mushroomCowAccessor = (MushroomCowAccessor) mushroomCow;
-		MobEffect effect = mushroomCowAccessor.getEffect();
-		int effectDuration = mushroomCowAccessor.getEffectDuration();
+	private static void fillBowlSuspiciously(
+			MushroomCow mushroomCow) {
+		MushroomCowAccessor accessor =
+				(MushroomCowAccessor) mushroomCow;
 
-		Level world = mushroomCow.level();
-		List<ItemEntity> bowlItemEntities = world.getEntitiesOfClass(ItemEntity.class, mushroomCow.getBoundingBox(),
-				itemEntity -> itemEntity.getItem().is(Items.BOWL) && !itemEntity.getItem().isEmpty());
-		for (ItemEntity bowlItemEntity : bowlItemEntities) {
-			ItemStack bowlItem = bowlItemEntity.getItem();
-			ItemStack stewItem = new ItemStack(Items.SUSPICIOUS_STEW);
-			SuspiciousStewItem.saveMobEffect(stewItem, effect, effectDuration);
-			spawnItem(mushroomCow, stewItem);
+		SuspiciousStewEffects stewEffects =
+				accessor.getStewEffects();
 
-			EntityHelper.shrinkItem(bowlItemEntity);
-			if (bowlItem.getCount() == 0) {
-				bowlItemEntity.discard();
+		if (stewEffects == null) {
+			return;
+		}
+
+		Level level = mushroomCow.level();
+
+		List<ItemEntity> bowlEntities =
+				level.getEntitiesOfClass(
+						ItemEntity.class,
+						mushroomCow.getBoundingBox(),
+						itemEntity ->
+								itemEntity.getItem()
+										.is(Items.BOWL)
+										&& !itemEntity.getItem()
+												.isEmpty()
+				);
+
+		for (ItemEntity bowlEntity : bowlEntities) {
+			ItemStack bowl = bowlEntity.getItem();
+
+			ItemStack stew =
+					new ItemStack(
+							Items.SUSPICIOUS_STEW
+					);
+
+			stew.set(
+					DataComponents.SUSPICIOUS_STEW_EFFECTS,
+					stewEffects
+			);
+
+			spawnItem(mushroomCow, stew);
+
+			EntityHelper.shrinkItem(bowlEntity);
+
+			if (bowl.isEmpty()) {
+				bowlEntity.discard();
 			}
 
-			// only one suspicious stew per flower fed
-			mushroomCowAccessor.setEffect(null);
-			mushroomCowAccessor.setEffectDuration(0);
+			// Only one suspicious stew per flower fed.
+			accessor.setStewEffects(null);
 			break;
 		}
 	}
@@ -185,7 +277,7 @@ public class DrumBlock extends BotaniaWaterloggedBlock {
 			if (burst.isFake()) {
 				return;
 			}
-			if (world.isClientSide) {
+			if (world.isClientSide()) {
 				world.addParticle(ParticleTypes.NOTE, pos.getX() + 0.5, pos.getY() + 1.2, pos.getZ() + 0.5D, 1.0 / 24.0, 0, 0);
 				return;
 			} else if (burst.entity().getOwner() instanceof ServerPlayer player

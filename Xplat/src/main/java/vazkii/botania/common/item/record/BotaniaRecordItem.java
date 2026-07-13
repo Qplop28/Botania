@@ -8,11 +8,31 @@
  */
 package vazkii.botania.common.item.record;
 
-import net.minecraft.sounds.SoundEvent;
-import net.minecraft.world.item.RecordItem;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.JukeboxSong;
 
-public class BotaniaRecordItem extends RecordItem {
-	public BotaniaRecordItem(int comparator, SoundEvent sound, Properties builder, int lengthInSeconds) {
-		super(comparator, sound, builder, lengthInSeconds);
+import vazkii.botania.common.lib.LibItemNames;
+
+import static vazkii.botania.common.lib.ResourceLocationHelper.prefix;
+
+public class BotaniaRecordItem extends Item {
+	public static final ResourceKey<JukeboxSong> GAIA_1 =
+			ResourceKey.create(
+					Registries.JUKEBOX_SONG,
+					prefix(LibItemNames.RECORD_GAIA1)
+			);
+
+	public static final ResourceKey<JukeboxSong> GAIA_2 =
+			ResourceKey.create(
+					Registries.JUKEBOX_SONG,
+					prefix(LibItemNames.RECORD_GAIA2)
+			);
+
+	public BotaniaRecordItem(
+			ResourceKey<JukeboxSong> song,
+			Item.Properties properties) {
+		super(properties.jukeboxPlayable(song));
 	}
 }

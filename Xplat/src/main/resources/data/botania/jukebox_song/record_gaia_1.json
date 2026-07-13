@@ -1,0 +1,8 @@
+{
+  "sound_event": "botania:music.gaia1",
+  "description": {
+    "translate": "item.botania.record_gaia_1"
+  },
+  "length_in_seconds": 202.0,
+  "comparator_output": 1
+}

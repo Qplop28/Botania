@@ -20,7 +20,7 @@ import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.entity.AgeableMob;
 import net.minecraft.world.entity.EntityEvent;
 import net.minecraft.world.entity.animal.Animal;
-import net.minecraft.world.entity.animal.MushroomCow;
+import net.minecraft.world.entity.animal.cow.MushroomCow;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -59,7 +59,8 @@ public class PollidisiacBlockEntity extends FunctionalFlowerBlockEntity implemen
 	public void tickFlower() {
 		super.tickFlower();
 
-		if (!getLevel().isClientSide && getMana() >= MANA_COST) {
+		if (!getLevel().isClientSide()
+		&& getMana() >= MANA_COST) {
 			List<ItemEntity> items = getItems();
 			if (!items.isEmpty()) {
 				List<Animal> animals = getAnimals();
@@ -128,17 +129,31 @@ public class PollidisiacBlockEntity extends FunctionalFlowerBlockEntity implemen
 					if (!stack.is(ItemTags.SMALL_FLOWERS)) {
 						continue;
 					}
-					var effect = SuspiciousEffectHolder.tryGet(stack.getItem());
-					if (effect == null) {
+					SuspiciousEffectHolder effectHolder =
+							SuspiciousEffectHolder.tryGet(
+									stack.getItem()
+							);
+
+					if (effectHolder == null) {
 						continue;
 					}
+
 					consumeFoodItemAndMana(item);
 					did = true;
 
-					MushroomCowAccessor cowAccessor = (MushroomCowAccessor) animal;
-					cowAccessor.setEffect(effect.getSuspiciousEffect());
-					cowAccessor.setEffectDuration(effect.getEffectDuration());
-					animal.playSound(SoundEvents.MOOSHROOM_EAT, 2.0F, 1.0F);
+					MushroomCowAccessor cowAccessor =
+							(MushroomCowAccessor) animal;
+
+					cowAccessor.setStewEffects(
+							effectHolder.getSuspiciousEffects()
+					);
+
+					animal.playSound(
+							SoundEvents.MOOSHROOM_EAT,
+							2.0F,
+							1.0F
+					);
+
 					break;
 				}
 
@@ -157,11 +172,17 @@ public class PollidisiacBlockEntity extends FunctionalFlowerBlockEntity implemen
 		addMana(-MANA_COST);
 	}
 
-	private static boolean isBrownMooshroomWithoutEffect(Animal animal) {
-		if (animal instanceof MushroomCow mushroomCow && mushroomCow.getVariant() == MushroomCow.MushroomType.BROWN) {
-			MushroomCowAccessor cowAccessor = (MushroomCowAccessor) animal;
-			return cowAccessor.getEffect() == null;
+	private static boolean isBrownMooshroomWithoutEffect(
+			Animal animal) {
+		if (animal instanceof MushroomCow mushroomCow
+				&& mushroomCow.getVariant()
+						== MushroomCow.Variant.BROWN) {
+			MushroomCowAccessor accessor =
+					(MushroomCowAccessor) animal;
+
+			return accessor.getStewEffects() == null;
 		}
+
 		return false;
 	}
 
@@ -205,7 +226,13 @@ public class PollidisiacBlockEntity extends FunctionalFlowerBlockEntity implemen
 	@Override
 	public void readFromPacketNBT(CompoundTag cmp) {
 		super.readFromPacketNBT(cmp);
-		this.mode = Mode.forName(cmp.getString(TAG_FEEDING_MODE));
+		this.mode = Mode.forName(
+				cmp.getStringOr(
+						TAG_FEEDING_MODE,
+						Mode.FEED_ADULTS
+								.getSerializedName()
+				)
+		);
 	}
 
 	@Override

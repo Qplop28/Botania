@@ -5,8 +5,8 @@ import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
-import net.fabricmc.fabric.api.client.particle.v1.ParticleFactoryRegistry;
+import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
+import net.fabricmc.fabric.api.client.particle.v1.ParticleProviderRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.*;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenKeyboardEvents;
@@ -102,7 +102,7 @@ public class FabricClientInitializer implements ClientModInitializer {
 		BotaniaParticles.FactoryHandler.registerFactories(new BotaniaParticles.FactoryHandler.Consumer() {
 			@Override
 			public <T extends ParticleOptions> void register(ParticleType<T> type, Function<SpriteSet, ParticleProvider<T>> constructor) {
-				ParticleFactoryRegistry.getInstance().register(type, constructor::apply);
+				ParticleProviderRegistry.getInstance().register(type, constructor::apply);
 			}
 		});
 
@@ -118,7 +118,7 @@ public class FabricClientInitializer implements ClientModInitializer {
 
 		// Etc
 		ClientProxy.initSeasonal();
-		ClientProxy.initKeybindings(KeyBindingHelper::registerKeyBinding);
+		ClientProxy.initKeybindings(KeyMappingHelper::registerKeyMapping);
 
 		registerArmors();
 		registerCapabilities();

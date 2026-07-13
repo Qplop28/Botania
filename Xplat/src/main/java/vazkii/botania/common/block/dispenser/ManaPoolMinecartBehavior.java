@@ -9,77 +9,137 @@
 package vazkii.botania.common.block.dispenser;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.BlockSource;
 import net.minecraft.core.Direction;
+import net.minecraft.core.dispenser.BlockSource;
 import net.minecraft.core.dispenser.DefaultDispenseItemBehavior;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
-import net.minecraft.world.entity.vehicle.minecart.AbstractMinecart;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseRailBlock;
 import net.minecraft.world.level.block.DispenserBlock;
-import net.minecraft.world.level.block.LevelEvent;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.RailShape;
+import net.minecraft.world.phys.Vec3;
 
 import org.jetbrains.annotations.NotNull;
 
 import vazkii.botania.common.entity.ManaPoolMinecartEntity;
 
-// [VanillaCopy] MinecartItem
-public class ManaPoolMinecartBehavior extends DefaultDispenseItemBehavior {
-	private final DefaultDispenseItemBehavior behaviourDefaultDispenseItem = new DefaultDispenseItemBehavior();
+// [VanillaCopy] MinecartDispenseItemBehavior
+public class ManaPoolMinecartBehavior
+		extends DefaultDispenseItemBehavior {
+	private final DefaultDispenseItemBehavior
+			defaultBehavior =
+					new DefaultDispenseItemBehavior();
 
 	@NotNull
 	@Override
-	public ItemStack execute(BlockSource source, ItemStack stack) {
-		Direction direction = source.getBlockState().getValue(DispenserBlock.FACING);
-		Level world = source.getLevel();
-		double x = source.x() + (double) direction.getStepX() * 1.125;
-		double y = Math.floor(source.y()) + (double) direction.getStepY();
-		double z = source.z() + (double) direction.getStepZ() * 1.125;
-		BlockPos blockpos = source.getPos().relative(direction);
-		BlockState blockState = world.getBlockState(blockpos);
-		RailShape railShape = blockState.getBlock() instanceof BaseRailBlock
-				? blockState.getValue(((BaseRailBlock) blockState.getBlock()).getShapeProperty())
-				: RailShape.NORTH_SOUTH;
+	protected ItemStack execute(
+			BlockSource source,
+			ItemStack stack) {
+		Direction direction =
+				source.state().getValue(
+						DispenserBlock.FACING
+				);
+
+		ServerLevel level = source.level();
+		Vec3 center = source.center();
+
+		double spawnX =
+				center.x()
+						+ direction.getStepX()
+						* 1.125;
+
+		double spawnY =
+				Math.floor(center.y())
+						+ direction.getStepY();
+
+		double spawnZ =
+				center.z()
+						+ direction.getStepZ()
+						* 1.125;
+
+		BlockPos front =
+				source.pos().relative(direction);
+
+		BlockState blockFront =
+				level.getBlockState(front);
+
 		double yOffset;
-		if (blockState.is(BlockTags.RAILS)) {
-			if (railShape.isAscending()) {
-				yOffset = 0.6;
-			} else {
-				yOffset = 0.1;
-			}
+
+		if (blockFront.is(BlockTags.RAILS)) {
+			yOffset =
+					getRailShape(blockFront).isSlope()
+							? 0.6
+							: 0.1;
 		} else {
-			if (!blockState.isAir() || !world.getBlockState(blockpos.below()).is(BlockTags.RAILS)) {
-				return this.behaviourDefaultDispenseItem.dispense(source, stack);
+			if (!blockFront.isAir()) {
+				return defaultBehavior.dispense(
+						source,
+						stack
+				);
 			}
 
-			BlockState blockStateBelow = world.getBlockState(blockpos.below());
-			RailShape railShapeBelow = blockStateBelow.getBlock() instanceof BaseRailBlock
-					? blockStateBelow.getValue(((BaseRailBlock) blockStateBelow.getBlock()).getShapeProperty())
-					: RailShape.NORTH_SOUTH;
-			if (direction != Direction.DOWN && railShapeBelow.isAscending()) {
+			BlockState blockBelow =
+					level.getBlockState(
+							front.below()
+					);
+
+			if (!blockBelow.is(BlockTags.RAILS)) {
+				return defaultBehavior.dispense(
+						source,
+						stack
+				);
+			}
+
+			if (direction != Direction.DOWN
+					&& getRailShape(
+							blockBelow
+					).isSlope()) {
 				yOffset = -0.4;
 			} else {
 				yOffset = -0.9;
 			}
 		}
 
-		// changed from vanilla, because it uses AbstractMinecart.Type enum to resolve the entity type
-		AbstractMinecart minecart = new ManaPoolMinecartEntity(world, x, y + yOffset, z);
+		ManaPoolMinecartEntity minecart =
+				new ManaPoolMinecartEntity(
+						level,
+						spawnX,
+						spawnY + yOffset,
+						spawnZ
+				);
+
 		if (stack.hasCustomHoverName()) {
-			minecart.setCustomName(stack.getHoverName());
+			minecart.setCustomName(
+					stack.getHoverName()
+			);
 		}
 
-		world.addFreshEntity(minecart);
+		level.addFreshEntity(minecart);
 		stack.shrink(1);
+
 		return stack;
+	}
+
+	private static RailShape getRailShape(
+			BlockState state) {
+		if (state.getBlock()
+				instanceof BaseRailBlock railBlock) {
+			return state.getValue(
+					railBlock.getShapeProperty()
+			);
+		}
+
+		return RailShape.NORTH_SOUTH;
 	}
 
 	@Override
 	protected void playSound(BlockSource source) {
-		source.getLevel().levelEvent(LevelEvent.SOUND_DISPENSER_DISPENSE, source.getPos(), 0);
+		source.level().levelEvent(
+				1000,
+				source.pos(),
+				0
+		);
 	}
-
 }

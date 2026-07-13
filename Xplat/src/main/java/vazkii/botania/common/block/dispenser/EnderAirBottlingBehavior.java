@@ -9,15 +9,13 @@
 package vazkii.botania.common.block.dispenser;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.BlockSource;
 import net.minecraft.core.Direction;
-import net.minecraft.core.dispenser.DefaultDispenseItemBehavior;
+import net.minecraft.core.dispenser.BlockSource;
 import net.minecraft.core.dispenser.DispenseItemBehavior;
 import net.minecraft.core.dispenser.OptionalDispenseItemBehavior;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.DispenserBlock;
-import net.minecraft.world.level.block.entity.DispenserBlockEntity;
 import net.minecraft.world.phys.AABB;
 
 import org.jetbrains.annotations.NotNull;
@@ -25,56 +23,78 @@ import org.jetbrains.annotations.NotNull;
 import vazkii.botania.common.item.BotaniaItems;
 import vazkii.botania.common.item.material.EnderAirItem;
 
-public class EnderAirBottlingBehavior extends OptionalDispenseItemBehavior {
-	private final DefaultDispenseItemBehavior defaultBehaviour = new DefaultDispenseItemBehavior();
+public class EnderAirBottlingBehavior
+		extends OptionalDispenseItemBehavior {
 	private final DispenseItemBehavior parent;
 
-	public EnderAirBottlingBehavior(DispenseItemBehavior parent) {
+	public EnderAirBottlingBehavior(
+			DispenseItemBehavior parent) {
 		this.parent = parent;
 	}
 
 	@Override
 	protected void playSound(BlockSource source) {
-		if (this.isSuccess()) {
+		if (isSuccess()) {
 			super.playSound(source);
 		}
 	}
 
 	@Override
-	protected void playAnimation(BlockSource source, Direction facingIn) {
-		if (this.isSuccess()) {
-			super.playAnimation(source, facingIn);
+	protected void playAnimation(
+			BlockSource source,
+			Direction facing) {
+		if (isSuccess()) {
+			super.playAnimation(source, facing);
 		}
 	}
 
-	private static boolean pickupInEnd(Level world, BlockPos facingPos) {
-		return world.dimension() == Level.END
-				&& world.isEmptyBlock(facingPos) && world.isEmptyBlock(facingPos.above())
-				&& EnderAirItem.isClearFromDragonBreath(world, new AABB(facingPos).inflate(2.0D));
+	private static boolean pickupInEnd(
+			Level level,
+			BlockPos target) {
+		return level.dimension() == Level.END
+				&& level.isEmptyBlock(target)
+				&& level.isEmptyBlock(target.above())
+				&& EnderAirItem.isClearFromDragonBreath(
+						level,
+						new AABB(target).inflate(2.0)
+				);
 	}
 
 	@NotNull
 	@Override
-	protected ItemStack execute(BlockSource source, @NotNull ItemStack stack) {
-		Level world = source.getLevel();
-		BlockPos blockpos = source.getPos().relative(source.getBlockState().getValue(DispenserBlock.FACING));
-		if (pickupInEnd(world, blockpos) || EnderAirItem.pickupFromEntity(world, new AABB(blockpos))) {
-			this.setSuccess(true);
-			return fillBottle(source, stack, new ItemStack(BotaniaItems.enderAirBottle));
-		}
-		this.setSuccess(false);
-		return parent.dispense(source, stack);
-	}
+	protected ItemStack execute(
+			BlockSource source,
+			ItemStack stack) {
+		Level level = source.level();
 
-	private ItemStack fillBottle(BlockSource source, ItemStack input, ItemStack output) {
-		input.shrink(1);
-		if (input.isEmpty()) {
-			return output.copy();
-		} else {
-			if (((DispenserBlockEntity) source.getEntity()).addItem(output.copy()) < 0) {
-				this.defaultBehaviour.dispense(source, output.copy());
-			}
-			return input;
+		Direction facing =
+				source.state().getValue(
+						DispenserBlock.FACING
+				);
+
+		BlockPos target =
+				source.pos().relative(facing);
+
+		boolean collected =
+				pickupInEnd(level, target)
+						|| EnderAirItem.pickupFromEntity(
+								level,
+								new AABB(target)
+						);
+
+		if (collected) {
+			setSuccess(true);
+
+			return consumeWithRemainder(
+					source,
+					stack,
+					new ItemStack(
+							BotaniaItems.enderAirBottle
+					)
+			);
 		}
+
+		setSuccess(false);
+		return parent.dispense(source, stack);
 	}
 }

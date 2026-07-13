@@ -3,15 +3,12 @@ package vazkii.botania.common.helper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.util.random.Weight;
-import net.minecraft.util.random.WeightedEntry;
 import net.minecraft.world.entity.decoration.GlowItemFrame;
 import net.minecraft.world.entity.decoration.ItemFrame;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import vazkii.botania.mixin.BundleItemAccessor;
@@ -80,15 +77,9 @@ public class FilterHelper {
 		return null;
 	}
 
-	public record WeightedItemStack(ItemStack stack, Weight weight) implements WeightedEntry {
+	public record WeightedItemStack(ItemStack stack, int weight) {
 		public static WeightedItemStack of(ItemStack stack, int weight) {
-			return new WeightedItemStack(stack, Weight.of(weight));
-		}
-
-		@NotNull
-		@Override
-		public Weight getWeight() {
-			return weight;
+			return new WeightedItemStack(stack, weight);
 		}
 	}
 }

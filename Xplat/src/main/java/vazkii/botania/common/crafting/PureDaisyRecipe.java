@@ -11,7 +11,7 @@ package vazkii.botania.common.crafting;
 import com.google.common.base.Preconditions;
 import com.google.gson.JsonObject;
 
-import net.minecraft.commands.CommandFunction;
+import net.minecraft.commands.CacheableFunction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.Identifier;
@@ -36,7 +36,7 @@ public class PureDaisyRecipe implements vazkii.botania.api.recipe.PureDaisyRecip
 	protected final StateIngredient input;
 	protected final BlockState outputState;
 	private final int time;
-	private final CommandFunction.CacheableFunction function;
+	private final CacheableFunction function;
 
 	/**
 	 * @param id       The ID for this recipe.
@@ -48,7 +48,7 @@ public class PureDaisyRecipe implements vazkii.botania.api.recipe.PureDaisyRecip
 	 * @param function An mcfunction to run at the converted block after finish. If you don't want one, pass
 	 *                 CommandFunction.CacheableFunction.NONE
 	 */
-	public PureDaisyRecipe(Identifier id, StateIngredient input, BlockState state, int time, CommandFunction.CacheableFunction function) {
+	public PureDaisyRecipe(Identifier id, StateIngredient input, BlockState state, int time, CacheableFunction function) {
 		Preconditions.checkArgument(time >= 0, "Time must be nonnegative");
 		this.id = id;
 		this.input = input;
@@ -92,7 +92,7 @@ public class PureDaisyRecipe implements vazkii.botania.api.recipe.PureDaisyRecip
 	}
 
 	@Override
-	public CommandFunction.CacheableFunction getSuccessFunction() {
+	public CacheableFunction getSuccessFunction() {
 		return this.function;
 	}
 
@@ -120,7 +120,7 @@ public class PureDaisyRecipe implements vazkii.botania.api.recipe.PureDaisyRecip
 			int time = GsonHelper.getAsInt(object, "time", DEFAULT_TIME);
 			var functionIdString = GsonHelper.getAsString(object, "success_function", null);
 			var functionId = functionIdString == null ? null : new Identifier(functionIdString);
-			var function = functionId == null ? CommandFunction.CacheableFunction.NONE : new CommandFunction.CacheableFunction(functionId);
+			var function = functionId == null ? CacheableFunction.NONE : new CacheableFunction(functionId);
 			return new PureDaisyRecipe(id, input, output, time, function);
 		}
 
@@ -137,7 +137,7 @@ public class PureDaisyRecipe implements vazkii.botania.api.recipe.PureDaisyRecip
 			StateIngredient input = StateIngredientHelper.read(buf);
 			BlockState output = Block.stateById(buf.readVarInt());
 			int time = buf.readVarInt();
-			return new PureDaisyRecipe(id, input, output, time, CommandFunction.CacheableFunction.NONE);
+			return new PureDaisyRecipe(id, input, output, time, CacheableFunction.NONE);
 		}
 	}
 }

@@ -11,7 +11,7 @@ package vazkii.botania.common.crafting;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 
-import net.minecraft.commands.CommandFunction;
+import net.minecraft.commands.CacheableFunction;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.GsonHelper;
@@ -27,9 +27,9 @@ public class OrechidRecipe implements vazkii.botania.api.recipe.OrechidRecipe {
 	private final StateIngredient input;
 	private final StateIngredient output;
 	private final int weight;
-	private final CommandFunction.CacheableFunction successFunction;
+	private final CacheableFunction successFunction;
 
-	public OrechidRecipe(Identifier id, StateIngredient input, StateIngredient output, int weight, CommandFunction.CacheableFunction successFunction) {
+	public OrechidRecipe(Identifier id, StateIngredient input, StateIngredient output, int weight, CacheableFunction successFunction) {
 		this.id = id;
 		this.input = input;
 		this.output = output;
@@ -53,7 +53,7 @@ public class OrechidRecipe implements vazkii.botania.api.recipe.OrechidRecipe {
 	}
 
 	@Override
-	public CommandFunction.CacheableFunction getSuccessFunction() {
+	public CacheableFunction getSuccessFunction() {
 		return this.successFunction;
 	}
 
@@ -88,8 +88,8 @@ public class OrechidRecipe implements vazkii.botania.api.recipe.OrechidRecipe {
 			var functionIdString = GsonHelper.getAsString(json, "success_function", null);
 			var functionId = functionIdString == null ? null : new Identifier(functionIdString);
 			var function = functionId == null
-					? CommandFunction.CacheableFunction.NONE
-					: new CommandFunction.CacheableFunction(functionId);
+					? CacheableFunction.NONE
+					: new CacheableFunction(functionId);
 
 			return new OrechidRecipe(recipeId, input, output, weight, function);
 		}
@@ -99,7 +99,7 @@ public class OrechidRecipe implements vazkii.botania.api.recipe.OrechidRecipe {
 			var input = StateIngredientHelper.read(buffer);
 			var output = StateIngredientHelper.read(buffer);
 			var weight = buffer.readVarInt();
-			return new OrechidRecipe(recipeId, input, output, weight, CommandFunction.CacheableFunction.NONE);
+			return new OrechidRecipe(recipeId, input, output, weight, CacheableFunction.NONE);
 		}
 
 		@Override

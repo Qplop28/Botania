@@ -11,7 +11,7 @@ package vazkii.botania.common.block.block_entity.corporea;
 import com.mojang.blaze3d.vertex.PoseStack;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -206,7 +206,7 @@ public class CorporeaCrystalCubeBlockEntity extends BaseCorporeaBlockEntity impl
 	}
 
 	public static class Hud {
-		public static void render(GuiGraphics gui, CorporeaCrystalCubeBlockEntity cube) {
+		public static void render(GuiGraphicsExtractor gui, CorporeaCrystalCubeBlockEntity cube) {
 			PoseStack ps = gui.pose();
 			Minecraft mc = Minecraft.getInstance();
 			ProfilerFiller profiler = mc.getProfiler();

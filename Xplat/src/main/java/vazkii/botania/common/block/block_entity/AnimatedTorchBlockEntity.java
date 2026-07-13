@@ -9,7 +9,7 @@
 package vazkii.botania.common.block.block_entity;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -153,7 +153,7 @@ public class AnimatedTorchBlockEntity extends BotaniaBlockEntity implements Mana
 		}
 
 		@Override
-		public void renderHUD(GuiGraphics gui, Minecraft mc) {
+		public void renderHUD(GuiGraphicsExtractor gui, Minecraft mc) {
 			int x = mc.getWindow().getGuiScaledWidth() / 2 + 8;
 			int y = mc.getWindow().getGuiScaledHeight() / 2 - 10;
 

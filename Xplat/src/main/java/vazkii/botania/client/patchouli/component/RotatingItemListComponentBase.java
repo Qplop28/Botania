@@ -10,7 +10,7 @@ package vazkii.botania.client.patchouli.component;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.world.item.crafting.Ingredient;
 
@@ -40,7 +40,7 @@ abstract class RotatingItemListComponentBase implements ICustomComponent {
 	protected abstract List<Ingredient> makeIngredients();
 
 	@Override
-	public void render(GuiGraphics gui, IComponentRenderContext context, float pticks, int mouseX, int mouseY) {
+	public void render(GuiGraphicsExtractor gui, IComponentRenderContext context, float pticks, int mouseX, int mouseY) {
 		int degreePerInput = (int) (360F / ingredients.size());
 		int ticksElapsed = context.getTicksInBook();
 
@@ -57,7 +57,7 @@ abstract class RotatingItemListComponentBase implements ICustomComponent {
 		}
 	}
 
-	private void renderIngredientAtAngle(GuiGraphics gui, IComponentRenderContext context, float angle, Ingredient ingredient, int mouseX, int mouseY) {
+	private void renderIngredientAtAngle(GuiGraphicsExtractor gui, IComponentRenderContext context, float angle, Ingredient ingredient, int mouseX, int mouseY) {
 		PoseStack ms = gui.pose();
 		if (ingredient.isEmpty()) {
 			return;

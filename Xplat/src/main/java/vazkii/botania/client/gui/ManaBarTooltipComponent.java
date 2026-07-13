@@ -11,7 +11,7 @@ package vazkii.botania.client.gui;
 import com.mojang.blaze3d.vertex.PoseStack;
 
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.resources.language.I18n;
@@ -82,7 +82,7 @@ public class ManaBarTooltipComponent implements ClientTooltipComponent {
 	}
 
 	@Override
-	public void renderImage(Font font, int x, int y, GuiGraphics gui) {
+	public void renderImage(Font font, int x, int y, GuiGraphicsExtractor gui) {
 		PoseStack ps = gui.pose();
 		int height = 3;
 		int offsetFromBox = 4;

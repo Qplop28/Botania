@@ -12,7 +12,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -77,7 +77,7 @@ public class ManaseerMonocleItem extends BaubleItem implements CosmeticBauble {
 		private static final int MAX_CONTENTS_ROWS = 3;
 		public static final int TEXT_ROW_HEIGHT = 12;
 
-		public static void render(GuiGraphics gui, Player player) {
+		public static void render(GuiGraphicsExtractor gui, Player player) {
 			Minecraft mc = Minecraft.getInstance();
 			HitResult hitResult = mc.hitResult;
 			if (hitResult instanceof BlockHitResult bhr && bhr.getType() == HitResult.Type.BLOCK) {
@@ -87,7 +87,7 @@ public class ManaseerMonocleItem extends BaubleItem implements CosmeticBauble {
 			}
 		}
 
-		private static void renderEntityInfo(GuiGraphics gui, EntityHitResult hitResult, Minecraft mc) {
+		private static void renderEntityInfo(GuiGraphicsExtractor gui, EntityHitResult hitResult, Minecraft mc) {
 			Entity entity = hitResult.getEntity();
 
 			if (entity instanceof ItemFrame frame && !frame.getItem().isEmpty()) {
@@ -148,7 +148,7 @@ public class ManaseerMonocleItem extends BaubleItem implements CosmeticBauble {
 			}
 		}
 
-		private static void renderBlockInfo(GuiGraphics gui, BlockHitResult hitResult, Minecraft mc, Level level) {
+		private static void renderBlockInfo(GuiGraphicsExtractor gui, BlockHitResult hitResult, Minecraft mc, Level level) {
 			BlockPos pos = hitResult.getBlockPos();
 			BlockState state = level.getBlockState(pos);
 

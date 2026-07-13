@@ -11,7 +11,7 @@ package vazkii.botania.common.item.equipment.bauble;
 import com.mojang.blaze3d.systems.RenderSystem;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
@@ -87,7 +87,7 @@ public class RingOfDexterousMotionItem extends BaubleItem {
 			oldBackDown = mc.options.keyDown.isDown();
 		}
 
-		public static void renderHUD(GuiGraphics gui, Player player, ItemStack stack, float pticks) {
+		public static void renderHUD(GuiGraphicsExtractor gui, Player player, ItemStack stack, float pticks) {
 			int xo = Minecraft.getInstance().getWindow().getGuiScaledWidth() / 2 - 20;
 			int y = Minecraft.getInstance().getWindow().getGuiScaledHeight() / 2 + 20;
 

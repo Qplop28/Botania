@@ -9,7 +9,7 @@
 package vazkii.botania.common.block.block_entity.mana;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.SimpleContainer;
@@ -100,7 +100,7 @@ public class ManaPrismBlockEntity extends ExposedSimpleInventoryBlockEntity impl
 		}
 
 		@Override
-		public void renderHUD(GuiGraphics gui, Minecraft mc) {
+		public void renderHUD(GuiGraphicsExtractor gui, Minecraft mc) {
 			ItemStack lens = prism.getItem(0);
 			if (!lens.isEmpty()) {
 				Component lensName = lens.getHoverName();

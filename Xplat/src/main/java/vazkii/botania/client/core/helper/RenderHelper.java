@@ -20,7 +20,7 @@ import com.mojang.blaze3d.vertex.VertexFormat;
 
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.blockentity.TheEndPortalRenderer;
@@ -281,7 +281,7 @@ public final class RenderHelper extends RenderType {
 		return DOPPLEGANGER.apply(texture);
 	}
 
-	public static void drawTexturedModalRect(GuiGraphics gui, Identifier textureId, int x, int y, int u, int v, int width, int height) {
+	public static void drawTexturedModalRect(GuiGraphicsExtractor gui, Identifier textureId, int x, int y, int u, int v, int width, int height) {
 		gui.blit(textureId, x, y, u, v, width, height, 256, 256);
 	}
 
@@ -350,7 +350,7 @@ public final class RenderHelper extends RenderType {
 		buffer.vertex(mat, xMax, y, zMax).color(r, g, b, a).endVertex();
 	}
 
-	public static void renderProgressPie(GuiGraphics gui, int x, int y, float progress, ItemStack stack) {
+	public static void renderProgressPie(GuiGraphicsExtractor gui, int x, int y, float progress, ItemStack stack) {
 		PoseStack ms = gui.pose();
 		Minecraft mc = Minecraft.getInstance();
 		gui.renderItem(stack, x, y);
@@ -612,7 +612,7 @@ public final class RenderHelper extends RenderType {
 	* Renders a transparent black box with a soft border. The parameters describe the inner box, there will also be drawn
 	* another box that is 2px bigger in each direction
 	*/
-	public static void renderHUDBox(GuiGraphics gui, int startX, int startY, int endX, int endY) {
+	public static void renderHUDBox(GuiGraphicsExtractor gui, int startX, int startY, int endX, int endY) {
 		gui.fill(startX, startY, endX, endY, 0x40000000);
 		gui.fill(startX - 2, startY - 2, endX + 2, endY + 2, 0x40000000);
 	}
@@ -621,14 +621,14 @@ public final class RenderHelper extends RenderType {
 	* Renders an item and its name, vertically centered next to it. Renders nothing if the stack is empty
 	* Note: The item renderer does not respect the PoseStack
 	*/
-	public static void renderItemWithName(GuiGraphics gui, Minecraft mc, ItemStack itemStack, int startX, int startY, int color) {
+	public static void renderItemWithName(GuiGraphicsExtractor gui, Minecraft mc, ItemStack itemStack, int startX, int startY, int color) {
 		if (!itemStack.isEmpty()) {
 			gui.drawString(mc.font, itemStack.getHoverName(), startX + ITEM_AND_PADDING_WIDTH, startY + 4, color);
 			gui.renderItem(itemStack, startX, startY);
 		}
 	}
 
-	public static void renderItemWithNameCentered(GuiGraphics gui, Minecraft mc, ItemStack itemStack, int startY, int color) {
+	public static void renderItemWithNameCentered(GuiGraphicsExtractor gui, Minecraft mc, ItemStack itemStack, int startY, int color) {
 		int centerX = mc.getWindow().getGuiScaledWidth() / 2;
 		int startX = centerX - (ITEM_AND_PADDING_WIDTH + mc.font.width(itemStack.getHoverName())) / 2;
 		renderItemWithName(gui, mc, itemStack, startX, startY, color);

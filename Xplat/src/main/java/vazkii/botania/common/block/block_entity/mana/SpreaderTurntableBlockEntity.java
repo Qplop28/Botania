@@ -10,7 +10,7 @@ package vazkii.botania.common.block.block_entity.mana;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -86,7 +86,7 @@ public class SpreaderTurntableBlockEntity extends BotaniaBlockEntity implements 
 		}
 
 		@Override
-		public void renderHUD(GuiGraphics gui, Minecraft mc) {
+		public void renderHUD(GuiGraphicsExtractor gui, Minecraft mc) {
 			char motion = turntable.backwards ? '<' : '>';
 			String speed = ChatFormatting.BOLD + "";
 			for (int i = 0; i < turntable.speed; i++) {

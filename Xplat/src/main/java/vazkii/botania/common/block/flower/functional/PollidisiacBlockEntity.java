@@ -9,7 +9,7 @@
 package vazkii.botania.common.block.flower.functional;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -288,7 +288,7 @@ public class PollidisiacBlockEntity extends FunctionalFlowerBlockEntity implemen
 		}
 
 		@Override
-		public void renderHUD(GuiGraphics gui, Minecraft mc) {
+		public void renderHUD(GuiGraphicsExtractor gui, Minecraft mc) {
 			String filter = I18n.get("botaniamisc.pollidisiac." + flower.getMode().getSerializedName());
 			int filterWidth = mc.font.width(filter);
 			int filterTextStart = (mc.getWindow().getGuiScaledWidth() - filterWidth) / 2;

@@ -12,7 +12,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.BossEvent;
@@ -34,7 +34,7 @@ public final class BossBarHandler {
 	public static final Set<GaiaGuardianEntity> bosses = Collections.newSetFromMap(new WeakHashMap<>());
 	private static final Identifier BAR_TEXTURE = new Identifier(ResourcesLib.GUI_BOSS_BAR);
 
-	public static OptionalInt onBarRender(GuiGraphics gui, int x, int y, BossEvent bossEvent, boolean drawName) {
+	public static OptionalInt onBarRender(GuiGraphicsExtractor gui, int x, int y, BossEvent bossEvent, boolean drawName) {
 		for (GaiaGuardianEntity currentBoss : bosses) {
 			if (currentBoss.getBossInfoUuid().equals(bossEvent.getId())) {
 				Minecraft mc = Minecraft.getInstance();
@@ -66,7 +66,7 @@ public final class BossBarHandler {
 		return OptionalInt.empty();
 	}
 
-	private static int drawPlayerCount(int playerCount, GuiGraphics gui, int x, int y) {
+	private static int drawPlayerCount(int playerCount, GuiGraphicsExtractor gui, int x, int y) {
 		PoseStack ps = gui.pose();
 		ps.pushPose();
 		int px = x + 160;
@@ -82,7 +82,7 @@ public final class BossBarHandler {
 		return 5;
 	}
 
-	private static void drawHealthBar(GuiGraphics gui, GaiaGuardianEntity currentBoss, int x, int y, int u, int v, int w, int h, boolean bg) {
+	private static void drawHealthBar(GuiGraphicsExtractor gui, GaiaGuardianEntity currentBoss, int x, int y, int u, int v, int w, int h, boolean bg) {
 		var shader = CoreShaders.dopplegangerBar();
 		if (shader != null) {
 			float time = currentBoss.getInvulTime();

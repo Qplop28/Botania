@@ -10,7 +10,7 @@ import dev.emi.emi.api.widget.Widget;
 import dev.emi.emi.api.widget.WidgetHolder;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -73,7 +73,7 @@ public class ElvenTradeEmiRecipe extends BotaniaEmiRecipe {
 		}
 
 		@Override
-		public void render(GuiGraphics gui, int mouseX, int mouseY, float delta) {
+		public void render(GuiGraphicsExtractor gui, int mouseX, int mouseY, float delta) {
 			PoseStack matrices = gui.pose();
 			TextureAtlasSprite sprite = Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS)
 					.apply(prefix("block/alfheim_portal_swirl"));

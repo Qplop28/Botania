@@ -10,7 +10,7 @@ package vazkii.botania.client.patchouli.component;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.world.item.ItemStack;
 
 import vazkii.patchouli.api.IComponentRenderContext;
@@ -40,7 +40,7 @@ public class TerraPlateComponent implements ICustomComponent {
 	}
 
 	@Override
-	public void render(GuiGraphics gui, IComponentRenderContext context, float pticks, int mouseX, int mouseY) {
+	public void render(GuiGraphicsExtractor gui, IComponentRenderContext context, float pticks, int mouseX, int mouseY) {
 		PoseStack ms = gui.pose();
 		ms.pushPose();
 		ms.translate(0, 0, -10);

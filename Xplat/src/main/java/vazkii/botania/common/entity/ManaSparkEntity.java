@@ -10,7 +10,7 @@ package vazkii.botania.common.entity;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -506,7 +506,7 @@ public class ManaSparkEntity extends SparkBaseEntity implements ManaSpark {
 
 	public record WandHud(ManaSparkEntity entity) implements WandHUD {
 		@Override
-		public void renderHUD(GuiGraphics gui, Minecraft mc) {
+		public void renderHUD(GuiGraphicsExtractor gui, Minecraft mc) {
 			ItemStack sparkStack = new ItemStack(entity.getSparkItem());
 			ItemStack augmentStack = SparkAugmentItem.getByType(entity.getUpgrade());
 			DyeColor networkColor = entity.getNetwork();

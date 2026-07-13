@@ -16,7 +16,7 @@ import it.unimi.dsi.fastutil.objects.*;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
@@ -588,7 +588,7 @@ public class LooniumBlockEntity extends FunctionalFlowerBlockEntity {
 		}
 
 		@Override
-		public void renderHUD(GuiGraphics gui, Minecraft mc) {
+		public void renderHUD(GuiGraphicsExtractor gui, Minecraft mc) {
 			String lootType;
 			String structureName = "";
 			if (flower.attuneDisplayOverride != null) {

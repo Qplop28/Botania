@@ -10,7 +10,7 @@ package vazkii.botania.client.patchouli.component;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 
 import vazkii.botania.client.gui.HUDHandler;
@@ -39,7 +39,7 @@ public class ManaComponent implements ICustomComponent {
 	}
 
 	@Override
-	public void render(GuiGraphics gui, IComponentRenderContext context, float pticks, int mouseX, int mouseY) {
+	public void render(GuiGraphicsExtractor gui, IComponentRenderContext context, float pticks, int mouseX, int mouseY) {
 		Font font = Minecraft.getInstance().font;
 		Component manaUsage = Component.translatable("botaniamisc.manaUsage").setStyle(context.getFont());
 		gui.drawString(font, manaUsage, x + 102 / 2 - font.width(manaUsage) / 2, y, 0x66000000, false);

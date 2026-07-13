@@ -14,7 +14,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderBuffers;
 import net.minecraft.client.renderer.RenderType;
@@ -439,7 +439,7 @@ public class AssemblyHaloItem extends Item {
 			bufferSource.endBatch();
 		}
 
-		public static void renderHUD(GuiGraphics gui, Player player, ItemStack stack) {
+		public static void renderHUD(GuiGraphicsExtractor gui, Player player, ItemStack stack) {
 			Minecraft mc = Minecraft.getInstance();
 			int slot = getSegmentLookedAt(stack, player);
 
@@ -471,7 +471,7 @@ public class AssemblyHaloItem extends Item {
 			}
 		}
 
-		private static void renderRecipe(GuiGraphics gui, Component label, @Nullable Recipe<CraftingContainer> recipe, Player player, boolean isSavedRecipe) {
+		private static void renderRecipe(GuiGraphicsExtractor gui, Component label, @Nullable Recipe<CraftingContainer> recipe, Player player, boolean isSavedRecipe) {
 			Minecraft mc = Minecraft.getInstance();
 
 			ItemStack recipeResult;

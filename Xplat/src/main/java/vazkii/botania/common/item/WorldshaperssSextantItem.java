@@ -17,7 +17,7 @@ import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -277,7 +277,7 @@ public class WorldshaperssSextantItem extends Item {
 	}
 
 	public static class Hud {
-		public static void render(GuiGraphics gui, Player player, ItemStack stack) {
+		public static void render(GuiGraphicsExtractor gui, Player player, ItemStack stack) {
 			PoseStack ms = gui.pose();
 			ItemStack onUse = player.getUseItem();
 			int time = player.getUseItemRemainingTicks();

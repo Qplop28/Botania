@@ -10,7 +10,7 @@ package vazkii.botania.client.impl;
 
 import com.google.common.collect.Maps;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
@@ -35,12 +35,12 @@ public class BotaniaAPIClientImpl implements BotaniaAPIClient {
 	}
 
 	@Override
-	public void drawSimpleManaHUD(GuiGraphics gui, int color, int mana, int maxMana, String name) {
+	public void drawSimpleManaHUD(GuiGraphicsExtractor gui, int color, int mana, int maxMana, String name) {
 		HUDHandler.drawSimpleManaHUD(gui, color, mana, maxMana, name);
 	}
 
 	@Override
-	public void drawComplexManaHUD(GuiGraphics gui, int color, int mana, int maxMana, String name, ItemStack bindDisplay, boolean properlyBound) {
+	public void drawComplexManaHUD(GuiGraphicsExtractor gui, int color, int mana, int maxMana, String name, ItemStack bindDisplay, boolean properlyBound) {
 		HUDHandler.drawComplexManaHUD(color, gui, mana, maxMana, name, bindDisplay, properlyBound);
 	}
 }

@@ -4,7 +4,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 
 import dev.emi.emi.api.widget.TextureWidget;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.resources.Identifier;
 
 public class BlendTextureWidget extends TextureWidget {
@@ -14,7 +14,7 @@ public class BlendTextureWidget extends TextureWidget {
 	}
 
 	@Override
-	public void render(GuiGraphics gui, int mouseX, int mouseY, float delta) {
+	public void render(GuiGraphicsExtractor gui, int mouseX, int mouseY, float delta) {
 		RenderSystem.enableBlend();
 		super.render(gui, mouseX, mouseY, delta);
 		RenderSystem.disableBlend();

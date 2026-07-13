@@ -9,7 +9,7 @@
 package vazkii.botania.fabric.mixin.client;
 
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipPositioner;
 
@@ -24,7 +24,7 @@ import vazkii.botania.client.gui.ManaBarTooltipComponent;
 
 import java.util.List;
 
-@Mixin(GuiGraphics.class)
+@Mixin(GuiGraphicsExtractor.class)
 public class GuiGraphicsFabricMixin {
 	@Inject(method = "renderTooltipInternal", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;pushPose()V"), locals = LocalCapture.CAPTURE_FAILHARD)
 	private void renderManaBar(Font font, List<ClientTooltipComponent> components, int oldX, int oldY, ClientTooltipPositioner positioner, CallbackInfo ci, int width, int height, int i, int j, Vector2ic vector2ic, int x, int y) {

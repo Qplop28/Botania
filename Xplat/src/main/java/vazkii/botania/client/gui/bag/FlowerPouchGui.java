@@ -12,7 +12,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -37,14 +37,14 @@ public class FlowerPouchGui extends AbstractContainerScreen<FlowerPouchContainer
 	}
 
 	@Override
-	public void render(GuiGraphics gui, int mouseX, int mouseY, float partialTicks) {
+	public void render(GuiGraphicsExtractor gui, int mouseX, int mouseY, float partialTicks) {
 		this.renderBackground(gui);
 		super.render(gui, mouseX, mouseY, partialTicks);
 		this.renderTooltip(gui, mouseX, mouseY);
 	}
 
 	@Override
-	protected void renderBg(GuiGraphics gui, float partialTicks, int mouseX, int mouseY) {
+	protected void renderBg(GuiGraphicsExtractor gui, float partialTicks, int mouseX, int mouseY) {
 		PoseStack ms = gui.pose();
 		Minecraft mc = Minecraft.getInstance();
 		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);

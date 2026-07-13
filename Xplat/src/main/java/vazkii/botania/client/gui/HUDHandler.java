@@ -15,7 +15,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.ChatScreen;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.BlockPos;
@@ -79,7 +79,7 @@ public final class HUDHandler {
 		}
 	}
 
-	public static void onDrawScreenPost(GuiGraphics gui, float partialTicks) {
+	public static void onDrawScreenPost(GuiGraphicsExtractor gui, float partialTicks) {
 		PoseStack ms = gui.pose();
 		Minecraft mc = Minecraft.getInstance();
 		if (mc.options.hideGui) {
@@ -230,7 +230,7 @@ public final class HUDHandler {
 		RenderSystem.setShaderColor(1F, 1F, 1F, 1F);
 	}
 
-	private static void renderManaInvBar(GuiGraphics gui, int totalMana, int totalMaxMana) {
+	private static void renderManaInvBar(GuiGraphicsExtractor gui, int totalMana, int totalMaxMana) {
 		Minecraft mc = Minecraft.getInstance();
 		int width = 182;
 		int x = mc.getWindow().getGuiScaledWidth() / 2 - width / 2;
@@ -263,7 +263,7 @@ public final class HUDHandler {
 		RenderSystem.setShaderColor(1, 1, 1, 1);
 	}
 
-	private static void renderPoolRecipeHUD(GuiGraphics gui, ManaPoolBlockEntity tile, ItemStack stack, boolean alternateRecipeHudPosition) {
+	private static void renderPoolRecipeHUD(GuiGraphicsExtractor gui, ManaPoolBlockEntity tile, ItemStack stack, boolean alternateRecipeHudPosition) {
 		Minecraft mc = Minecraft.getInstance();
 		ProfilerFiller profiler = mc.getProfiler();
 
@@ -292,7 +292,7 @@ public final class HUDHandler {
 		profiler.pop();
 	}
 
-	private static void renderNearIndexDisplay(GuiGraphics gui) {
+	private static void renderNearIndexDisplay(GuiGraphicsExtractor gui) {
 		Minecraft mc = Minecraft.getInstance();
 		String txt0 = I18n.get("botaniamisc.nearIndex0");
 		String txt1 = ChatFormatting.GRAY + I18n.get("botaniamisc.nearIndex1");
@@ -313,7 +313,7 @@ public final class HUDHandler {
 	/**
 	 * Renders a mana HUD below the crosshair, containing just a mana bar and a name above
 	 */
-	public static void drawSimpleManaHUD(GuiGraphics gui, int color, int mana, int maxMana, String name) {
+	public static void drawSimpleManaHUD(GuiGraphicsExtractor gui, int color, int mana, int maxMana, String name) {
 		RenderSystem.enableBlend();
 		RenderSystem.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 		Minecraft mc = Minecraft.getInstance();
@@ -333,7 +333,7 @@ public final class HUDHandler {
 	/**
 	 * Renders a mana HUD below the crosshair, containing a mana bar, a name above, and a bound item status to the right
 	 */
-	public static void drawComplexManaHUD(int color, GuiGraphics gui, int mana, int maxMana, String name, ItemStack bindDisplay, boolean properlyBound) {
+	public static void drawComplexManaHUD(int color, GuiGraphicsExtractor gui, int mana, int maxMana, String name, ItemStack bindDisplay, boolean properlyBound) {
 		PoseStack ms = gui.pose();
 		drawSimpleManaHUD(gui, color, mana, maxMana, name);
 
@@ -359,7 +359,7 @@ public final class HUDHandler {
 		RenderSystem.enableDepthTest();
 	}
 
-	public static void renderManaBar(GuiGraphics gui, int x, int y, int color, float alpha, int mana, int maxMana) {
+	public static void renderManaBar(GuiGraphicsExtractor gui, int x, int y, int color, float alpha, int mana, int maxMana) {
 		RenderSystem.setShaderColor(1F, 1F, 1F, alpha);
 		RenderHelper.drawTexturedModalRect(gui, manaBar, x, y, 0, 0, 102, 5);
 

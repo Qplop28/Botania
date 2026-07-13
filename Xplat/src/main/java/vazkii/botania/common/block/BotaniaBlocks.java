@@ -11,6 +11,7 @@ package vazkii.botania.common.block;
 import net.minecraft.core.*;
 import net.minecraft.core.dispenser.BlockSource;
 import net.minecraft.core.dispenser.DispenseItemBehavior;
+import net.minecraft.core.dispenser.EquipmentDispenseItemBehavior;
 import net.minecraft.core.dispenser.OptionalDispenseItemBehavior;
 import net.minecraft.core.dispenser.ShearsDispenseItemBehavior;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -18,7 +19,6 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.projectile.Projectile;
-import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
@@ -1496,7 +1496,13 @@ public final class BotaniaBlocks {
 			@NotNull
 			@Override
 			protected ItemStack execute(@NotNull BlockSource source, @NotNull ItemStack stack) {
-				setSuccess(ArmorItem.dispenseArmor(source, stack));
+				setSuccess(
+		EquipmentDispenseItemBehavior
+				.dispenseEquipment(
+						source,
+						stack
+				)
+);
 				return stack;
 			}
 		});

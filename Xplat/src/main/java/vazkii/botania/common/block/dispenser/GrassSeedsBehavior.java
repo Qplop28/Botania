@@ -1,7 +1,8 @@
 package vazkii.botania.common.block.dispenser;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.BlockSource;
+import net.minecraft.core.Direction;
+import net.minecraft.core.dispenser.BlockSource;
 import net.minecraft.core.dispenser.OptionalDispenseItemBehavior;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
@@ -15,21 +16,53 @@ import vazkii.botania.network.EffectType;
 import vazkii.botania.network.clientbound.BotaniaEffectPacket;
 import vazkii.botania.xplat.XplatAbstractions;
 
-public class GrassSeedsBehavior extends OptionalDispenseItemBehavior {
+public class GrassSeedsBehavior
+		extends OptionalDispenseItemBehavior {
 	@NotNull
 	@Override
-	public ItemStack execute(BlockSource source, ItemStack stack) {
-		ServerLevel world = source.getLevel();
-		BlockPos pos = source.getPos().relative(source.getBlockState().getValue(DispenserBlock.FACING));
-		IslandType islandType = ((GrassSeedsItem) stack.getItem()).getIslandType(stack);
+	protected ItemStack execute(
+			BlockSource source,
+			ItemStack stack) {
+		ServerLevel level = source.level();
 
-		setSuccess(((GrassSeedsItem) stack.getItem()).applySeeds(world, pos, stack).consumesAction());
+		Direction facing =
+				source.state().getValue(
+						DispenserBlock.FACING
+				);
+
+		BlockPos target =
+				source.pos().relative(facing);
+
+		GrassSeedsItem seeds =
+				(GrassSeedsItem) stack.getItem();
+
+		IslandType islandType =
+				seeds.getIslandType(stack);
+
+		setSuccess(
+				seeds.applySeeds(
+						level,
+						target,
+						stack
+				).consumesAction()
+		);
 
 		if (isSuccess()) {
-			XplatAbstractions.INSTANCE.sendToNear(world, pos,
-					new BotaniaEffectPacket(EffectType.GRASS_SEED_PARTICLES,
-							pos.getX(), pos.getY(), pos.getZ(),
-							GrassSeedsItem.getColor(islandType)));
+			XplatAbstractions.INSTANCE.sendToNear(
+					level,
+					target,
+					new BotaniaEffectPacket(
+							EffectType
+									.GRASS_SEED_PARTICLES,
+							target.getX(),
+							target.getY(),
+							target.getZ(),
+							GrassSeedsItem.getColor(
+									islandType
+							)
+					)
+			);
+
 			return stack;
 		}
 

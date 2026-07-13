@@ -69,11 +69,13 @@ public class ManufactoryHaloItem extends AssemblyHaloItem {
 
 	@NotNull
 	@Override
-	public InteractionResultHolder<ItemStack> use(Level world, Player player, @NotNull InteractionHand hand) {
+	public InteractionResult use(Level world, Player player, @NotNull InteractionHand hand) {
 		ItemStack stack = player.getItemInHand(hand);
 		if (getSegmentLookedAt(stack, player) == 0 && player.isSecondaryUseActive()) {
 			togglePassive(stack, player, world);
-			return InteractionResultHolder.sidedSuccess(stack, world.isClientSide());
+			return world.isClientSide()
+					? InteractionResult.SUCCESS
+					: InteractionResult.SUCCESS_SERVER;
 		}
 
 		return super.use(world, player, hand);

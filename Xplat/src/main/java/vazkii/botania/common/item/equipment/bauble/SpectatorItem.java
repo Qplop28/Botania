@@ -19,7 +19,6 @@ import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.LongArrayTag;
 import net.minecraft.world.Container;
@@ -92,10 +91,19 @@ public class SpectatorItem extends BaubleItem {
 			ms.translate(-0.35, -0.2, armor ? 0.05 : 0.1);
 			ms.scale(0.75F, -0.75F, -0.75F);
 
-			BakedModel model = MiscellaneousModels.INSTANCE.itemFinderGem;
 			VertexConsumer buffer = buffers.getBuffer(Sheets.cutoutBlockSheet());
 			Minecraft.getInstance().getBlockRenderer().getModelRenderer()
-					.renderModel(ms.last(), buffer, null, model, 1, 1, 1, light, OverlayTexture.NO_OVERLAY);
+					.renderModel(
+							ms.last(),
+							buffer,
+							null,
+							MiscellaneousModels.INSTANCE.itemFinderGem,
+							1,
+							1,
+							1,
+							light,
+							OverlayTexture.NO_OVERLAY
+					);
 		}
 	}
 

@@ -17,7 +17,6 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -95,12 +94,21 @@ public class CirrusAmuletItem extends BaubleItem {
 			ms.translate(-0.3, 0.4, armor ? 0.05 : 0.12);
 			ms.scale(0.5F, -0.5F, -0.5F);
 
-			BakedModel model = stack.is(BotaniaItems.superCloudPendant)
-					? MiscellaneousModels.INSTANCE.nimbusGem
-					: MiscellaneousModels.INSTANCE.cirrusGem;
 			VertexConsumer buffer = buffers.getBuffer(Sheets.cutoutBlockSheet());
 			Minecraft.getInstance().getBlockRenderer().getModelRenderer()
-					.renderModel(ms.last(), buffer, null, model, 1, 1, 1, light, OverlayTexture.NO_OVERLAY);
+					.renderModel(
+							ms.last(),
+							buffer,
+							null,
+							stack.is(BotaniaItems.superCloudPendant)
+									? MiscellaneousModels.INSTANCE.nimbusGem
+									: MiscellaneousModels.INSTANCE.cirrusGem,
+							1,
+							1,
+							1,
+							light,
+							OverlayTexture.NO_OVERLAY
+					);
 		}
 	}
 

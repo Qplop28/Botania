@@ -18,7 +18,6 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.language.I18n;
-import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.Identifier;
@@ -121,10 +120,37 @@ public class TaintedBloodPendantItem extends BaubleItem implements BrewContainer
 			ms.translate(-0.25, 0.4, armor ? 0.05 : 0.12);
 			ms.scale(0.5F, -0.5F, -0.5F);
 
-			BakedModel model = MiscellaneousModels.INSTANCE.bloodPendantChain;
 			VertexConsumer buffer = buffers.getBuffer(Sheets.cutoutBlockSheet());
 			Minecraft.getInstance().getBlockRenderer().getModelRenderer()
-					.renderModel(ms.last(), buffer, null, model, 1, 1, 1, light, OverlayTexture.NO_OVERLAY);
+					.renderModel(
+							ms.last(),
+							buffer,
+							null,
+							MiscellaneousModels.INSTANCE.bloodPendantChain,
+							1,
+							1,
+							1,
+							light,
+							OverlayTexture.NO_OVERLAY
+					);
+
+			int color = ColorHandler.getBrewColor(stack);
+			float r = (color >> 16 & 0xFF) / 255F;
+			float g = (color >> 8 & 0xFF) / 255F;
+			float b = (color & 0xFF) / 255F;
+
+			Minecraft.getInstance().getBlockRenderer().getModelRenderer()
+					.renderModel(
+							ms.last(),
+							buffer,
+							null,
+							MiscellaneousModels.INSTANCE.bloodPendantGem,
+							r,
+							g,
+							b,
+							0xF000F0,
+							OverlayTexture.NO_OVERLAY
+					);
 
 			model = MiscellaneousModels.INSTANCE.bloodPendantGem;
 			int color = ColorHandler.getBrewColor(stack);

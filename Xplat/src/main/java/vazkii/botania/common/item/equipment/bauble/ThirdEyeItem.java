@@ -16,7 +16,6 @@ import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -92,10 +91,19 @@ public class ThirdEyeItem extends BaubleItem {
 
 				ms.translate(-0.3, 0.6, armor ? 0.10 : 0.15);
 				ms.scale(0.6F, -0.6F, -0.6F);
-				BakedModel model = MiscellaneousModels.INSTANCE.thirdEyeLayers[i];
 				VertexConsumer buffer = buffers.getBuffer(Sheets.cutoutBlockSheet());
 				Minecraft.getInstance().getBlockRenderer().getModelRenderer()
-						.renderModel(ms.last(), buffer, null, model, 1, 1, 1, light, OverlayTexture.NO_OVERLAY);
+						.renderModel(
+								ms.last(),
+								buffer,
+								null,
+								MiscellaneousModels.INSTANCE.thirdEyeLayers[i],
+								1,
+								1,
+								1,
+								light,
+								OverlayTexture.NO_OVERLAY
+						);
 				ms.popPose();
 			}
 		}

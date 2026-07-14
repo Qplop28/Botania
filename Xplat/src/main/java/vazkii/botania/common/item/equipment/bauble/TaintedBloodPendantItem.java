@@ -152,13 +152,23 @@ public class TaintedBloodPendantItem extends BaubleItem implements BrewContainer
 							OverlayTexture.NO_OVERLAY
 					);
 
-			model = MiscellaneousModels.INSTANCE.bloodPendantGem;
 			int color = ColorHandler.getBrewColor(stack);
 			float r = (color >> 16 & 0xFF) / 255F;
 			float g = (color >> 8 & 0xFF) / 255F;
 			float b = (color & 0xFF) / 255F;
+
 			Minecraft.getInstance().getBlockRenderer().getModelRenderer()
-					.renderModel(ms.last(), buffer, null, model, r, g, b, 0xF000F0, OverlayTexture.NO_OVERLAY);
+					.renderModel(
+							ms.last(),
+							buffer,
+							null,
+							MiscellaneousModels.INSTANCE.bloodPendantGem,
+							r,
+							g,
+							b,
+							0xF000F0,
+							OverlayTexture.NO_OVERLAY
+					);
 		}
 	}
 

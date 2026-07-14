@@ -97,7 +97,7 @@ public class FabricClientInitializer implements ClientModInitializer {
 			BuiltinItemRendererRegistry.INSTANCE.register(block, renderer::render);
 		}
 		EntityRenderers.registerEntityRenderers(EntityRendererRegistry::register);
-		LivingEntityFeatureRendererRegistrationCallback.EVENT.register(this::initAuxiliaryRender);
+		LivingEntityRenderLayerRegistrationCallback.EVENT.register(this::initAuxiliaryRender);
 
 		BotaniaParticles.FactoryHandler.registerFactories(new BotaniaParticles.FactoryHandler.Consumer() {
 			@Override
@@ -157,8 +157,12 @@ public class FabricClientInitializer implements ClientModInitializer {
 		ColorHandler.submitItems(ColorProviderRegistry.ITEM::register);
 	}
 
-	private void initAuxiliaryRender(EntityType<? extends LivingEntity> type, LivingEntityRenderer<?, ?> renderer,
-			LivingEntityFeatureRendererRegistrationCallback.RegistrationHelper helper, EntityRendererProvider.Context ctx) {
+	private void initAuxiliaryRender(
+			EntityType<? extends LivingEntity> type,
+			LivingEntityRenderer<?, ?, ?> renderer,
+			LivingEntityRenderLayerRegistrationCallback.RegistrationHelper helper,
+			EntityRendererProvider.Context ctx
+	) {
 		if (type == EntityType.PLAYER && renderer instanceof PlayerRenderer playerRenderer) {
 			EntityRenderers.addAuxiliaryPlayerRenders(playerRenderer, helper::register);
 		}

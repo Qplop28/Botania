@@ -1,7 +1,6 @@
 package vazkii.botania.fabric.client;
 
 import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
@@ -45,7 +44,6 @@ import vazkii.botania.client.gui.box.BaubleBoxGui;
 import vazkii.botania.client.integration.ears.EarsIntegration;
 import vazkii.botania.client.model.BotaniaLayerDefinitions;
 import vazkii.botania.client.model.armor.ArmorModels;
-import vazkii.botania.client.render.BlockRenderLayers;
 import vazkii.botania.client.render.ColorHandler;
 import vazkii.botania.client.render.entity.*;
 import vazkii.botania.common.block.BotaniaFlowerBlocks;
@@ -85,7 +83,6 @@ public class FabricClientInitializer implements ClientModInitializer {
 		MenuScreens.register(BotaniaItems.BAUBLE_BOX_CONTAINER, BaubleBoxGui::new);
 
 		// Blocks and Items
-		BlockRenderLayers.init(BlockRenderLayerMap.INSTANCE::putBlock);
 		BotaniaItemProperties.init((i, id, propGetter) -> ItemProperties.register(i.asItem(), id, propGetter));
 
 		// BE/Entity Renderer

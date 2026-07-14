@@ -11,13 +11,15 @@ package vazkii.botania.common.crafting.recipe;
 import com.google.gson.JsonObject;
 
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.inventory.CraftingContainer;
-import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.ShapedRecipe;
+import net.minecraft.world.item.equipment.Equippable;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -36,8 +38,10 @@ public class ArmorUpgradeRecipe extends ShapedRecipe {
 		ItemStack out = super.assemble(inv, registries);
 		for (int i = 0; i < inv.getContainerSize(); i++) {
 			ItemStack stack = inv.getItem(i);
-			if (stack.hasTag() && stack.getItem() instanceof ArmorItem) {
-				out.setTag(stack.getTag());
+			Equippable equippable = stack.get(DataComponents.EQUIPPABLE);
+			if (equippable != null
+					&& equippable.slot().getType() == EquipmentSlot.Type.HUMANOID_ARMOR) {
+				out.applyComponentsAndValidate(stack.getComponentsPatch());
 				break;
 			}
 		}

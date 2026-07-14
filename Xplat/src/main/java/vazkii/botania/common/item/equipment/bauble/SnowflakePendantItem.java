@@ -20,11 +20,14 @@ import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.enchantment.FrostWalkerEnchantment;
+import net.minecraft.world.item.enchantment.EnchantedItemInUse;
+import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -45,9 +48,28 @@ public class SnowflakePendantItem extends BaubleItem {
 	@Override
 	public void onWornTick(ItemStack stack, LivingEntity entity) {
 		if (!entity.level().isClientSide && !entity.isShiftKeyDown()) {
+			ServerLevel level = (ServerLevel) entity.level();
+
 			boolean lastOnGround = entity.onGround();
 			entity.setOnGround(true);
-			FrostWalkerEnchantment.onEntityMoved(entity, entity.level(), entity.blockPosition(), 8);
+
+			// Frost Walker's 26.1 radius is level + 2.
+			// Level 6 preserves Botania's previous radius of 8.
+			var frostWalker = level.registryAccess()
+					.lookupOrThrow(Registries.ENCHANTMENT)
+					.getOrThrow(Enchantments.FROST_WALKER);
+
+			frostWalker.value().runLocationChangedEffects(
+					level,
+					6,
+					new EnchantedItemInUse(
+							stack,
+							EquipmentSlot.FEET,
+							entity
+					),
+					entity
+			);
+
 			entity.setOnGround(lastOnGround);
 
 			int x;

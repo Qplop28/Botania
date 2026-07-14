@@ -12,12 +12,13 @@ import com.google.gson.JsonObject;
 
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.alchemy.PotionUtils;
+import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -33,7 +34,7 @@ public class WaterBottleMatchingRecipe extends ShapedRecipe {
 	public WaterBottleMatchingRecipe(Identifier id, String group, CraftingBookCategory category, int width, int height, NonNullList<Ingredient> recipeItems, ItemStack result) {
 		super(id, group, category, width, height, NonNullList.of(Ingredient.EMPTY, recipeItems.stream().map(i -> {
 			if (i.test(new ItemStack(Items.POTION))) {
-				return Ingredient.of(PotionUtils.setPotion(new ItemStack(Items.POTION), Potions.WATER));
+				return Ingredient.of(PotionContents.createItemStack(Items.POTION, Potions.WATER));
 			}
 			return i;
 		}).toArray(Ingredient[]::new)), result);
@@ -54,7 +55,11 @@ public class WaterBottleMatchingRecipe extends ShapedRecipe {
 		}
 		for (int i = 0; i < craftingContainer.getContainerSize(); i++) {
 			var item = craftingContainer.getItem(i);
-			if (item.is(Items.POTION) && !(PotionUtils.getPotion(item) == Potions.WATER)) {
+			if (item.is(Items.POTION)
+					&& !item.getOrDefault(
+							DataComponents.POTION_CONTENTS,
+							PotionContents.EMPTY
+					).is(Potions.WATER)) {
 				return false;
 			}
 		}

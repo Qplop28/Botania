@@ -181,6 +181,8 @@ public final class ColorHandler {
 				BotaniaItems.brewVial
 		);
 
+		items.register((s, t) -> {
+			ItemStack lens = ManaBlasterItem.getLens(s);
 			if (!lens.isEmpty() && t == 0) {
 				return lens.getItem() instanceof BasicLensItem lensItem
 						? lensItem.getLensColor(lens, Minecraft.getInstance().level)
@@ -188,7 +190,12 @@ public final class ColorHandler {
 			}
 
 			if (t == 2) {
-				BurstProperties props = ((ManaBlasterItem) s.getItem()).getBurstProps(Minecraft.getInstance().player, s, false, InteractionHand.MAIN_HAND);
+				BurstProperties props = ((ManaBlasterItem) s.getItem()).getBurstProps(
+						Minecraft.getInstance().player,
+						s,
+						false,
+						InteractionHand.MAIN_HAND
+				);
 
 				float mul = (float) (Math.sin((double) ClientTickHandler.ticksInGame / 5) * 0.15F);
 				int c = (int) (255 * mul);
@@ -202,10 +209,22 @@ public final class ColorHandler {
 				int cb = Mth.clamp(b, 0, 255);
 
 				return cr << 16 | cg << 8 | cb;
-			} else {
-				return -1;
 			}
+
+			return -1;
 		}, BotaniaItems.manaGun);
+
+		items.register((s, t) -> t == 1
+						? Mth.hsvToRgb(
+								0.75F,
+								1F,
+								1.5F - (float) Math.min(
+										1F,
+										Math.sin(Util.getMillis() / 100D) * 0.5 + 1.2F
+								)
+						)
+						: -1,
+				BotaniaItems.enderDagger);
 
 		items.register((s, t) -> t == 1 ? Mth.hsvToRgb(0.75F, 1F, 1.5F - (float) Math.min(1F, Math.sin(Util.getMillis() / 100D) * 0.5 + 1.2F)) : -1, BotaniaItems.enderDagger);
 

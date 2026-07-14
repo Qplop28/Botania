@@ -26,6 +26,7 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import vazkii.botania.api.brew.Brew;
 import vazkii.botania.api.brew.BrewItem;
+import vazkii.botania.api.mana.BasicLensItem;
 import vazkii.botania.api.mana.BurstProperties;
 import vazkii.botania.client.core.handler.ClientTickHandler;
 import vazkii.botania.common.block.BotaniaBlocks;
@@ -40,7 +41,6 @@ import vazkii.botania.common.item.equipment.bauble.TaintedBloodPendantItem;
 import vazkii.botania.common.item.equipment.tool.terrasteel.TerraShattererItem;
 import vazkii.botania.common.item.lens.LensItem;
 import vazkii.botania.common.item.material.MysticalPetalItem;
-import vazkii.botania.mixin.client.MinecraftAccessor;
 import vazkii.botania.xplat.XplatAbstractions;
 
 import java.util.Optional;
@@ -118,6 +118,27 @@ public final class ColorHandler {
 				}, BotaniaBlocks.abstrusePlatform, BotaniaBlocks.spectralPlatform, BotaniaBlocks.infrangiblePlatform);
 	}
 
+	public static int getBrewColor(ItemStack stack) {
+		Brew brew = ((BrewItem) stack.getItem()).getBrew(stack);
+		if (brew == BotaniaBrews.fallbackBrew) {
+			return stack.getItem() instanceof TaintedBloodPendantItem
+					? 0xC6000E
+					: 0x989898;
+		}
+
+		int color = brew.getColor(stack);
+		double speed = stack.is(BotaniaItems.brewFlask) || stack.is(BotaniaItems.brewVial)
+				? 0.1
+				: 0.2;
+		int add = (int) (Math.sin(ClientTickHandler.ticksInGame * speed) * 24);
+
+		int r = Math.max(0, Math.min(255, (color >> 16 & 0xFF) + add));
+		int g = Math.max(0, Math.min(255, (color >> 8 & 0xFF) + add));
+		int b = Math.max(0, Math.min(255, (color & 0xFF) + add));
+
+		return r << 16 | g << 8 | b;
+	}
+
 	public static void submitItems(ItemHandlerConsumer items) {
 		items.register((s, t) -> t == 0 ? Mth.hsvToRgb(ClientTickHandler.ticksInGame * 2 % 360 / 360F, 0.25F, 1F) : -1,
 				BotaniaItems.lifeEssence, BotaniaItems.gaiaIngot);
@@ -152,31 +173,18 @@ public final class ColorHandler {
 
 		items.register((s, t) -> t == 0 ? Mth.hsvToRgb(0.55F, ((float) s.getMaxDamage() - (float) s.getDamageValue()) / (float) s.getMaxDamage() * 0.5F, 1F) : -1, BotaniaItems.spellCloth);
 
-		items.register((s, t) -> {
-			if (t != 1) {
-				return -1;
-			}
+		items.register(
+				(s, t) -> t == 1 ? getBrewColor(s) : -1,
+				BotaniaItems.bloodPendant,
+				BotaniaItems.incenseStick,
+				BotaniaItems.brewFlask,
+				BotaniaItems.brewVial
+		);
 
-			Brew brew = ((BrewItem) s.getItem()).getBrew(s);
-			if (brew == BotaniaBrews.fallbackBrew) {
-				return s.getItem() instanceof TaintedBloodPendantItem ? 0xC6000E : 0x989898;
-			}
-
-			int color = brew.getColor(s);
-			double speed = s.is(BotaniaItems.brewFlask) || s.is(BotaniaItems.brewVial) ? 0.1 : 0.2;
-			int add = (int) (Math.sin(ClientTickHandler.ticksInGame * speed) * 24);
-
-			int r = Math.max(0, Math.min(255, (color >> 16 & 0xFF) + add));
-			int g = Math.max(0, Math.min(255, (color >> 8 & 0xFF) + add));
-			int b = Math.max(0, Math.min(255, (color & 0xFF) + add));
-
-			return r << 16 | g << 8 | b;
-		}, BotaniaItems.bloodPendant, BotaniaItems.incenseStick, BotaniaItems.brewFlask, BotaniaItems.brewVial);
-
-		items.register((s, t) -> {
-			ItemStack lens = ManaBlasterItem.getLens(s);
 			if (!lens.isEmpty() && t == 0) {
-				return ((MinecraftAccessor) Minecraft.getInstance()).getItemColors().getColor(lens, t);
+				return lens.getItem() instanceof BasicLensItem lensItem
+						? lensItem.getLensColor(lens, Minecraft.getInstance().level)
+						: -1;
 			}
 
 			if (t == 2) {

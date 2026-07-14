@@ -24,6 +24,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.util.random.Weighted;
@@ -42,7 +43,6 @@ import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.levelgen.structure.StructureSpawnOverride;
 import net.minecraft.world.level.levelgen.structure.StructureStart;
-import net.minecraft.world.level.storage.loot.LootDataManager;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
@@ -268,13 +268,16 @@ public class LooniumBlockEntity extends FunctionalFlowerBlockEntity {
 		}
 
 		if (pickedMobType.equipmentTable != null) {
-			LootTable equipmentTable = world.getServer().getLootData().getLootTable(pickedMobType.equipmentTable);
+			LootTable equipmentTable =
+					getLootTable(world, pickedMobType.equipmentTable);
+
 			if (equipmentTable != LootTable.EMPTY) {
 				LootParams lootParams = new LootParams.Builder(world)
 						.withParameter(LootContextParams.THIS_ENTITY, mob)
 						.withParameter(LootContextParams.ORIGIN, mob.position())
 						// TODO 1.21: replace with LootContextParamSets.EQUIPMENT
 						.create(LootContextParamSets.SELECTOR);
+
 				var equippedSlots = new HashSet<EquipmentSlot>();
 				equipmentTable.getRandomItems(lootParams, equipmentStack -> {
 					EquipmentSlot slot = equipmentStack.is(BotaniaTags.Items.LOONIUM_OFFHAND_EQUIPMENT)
@@ -367,62 +370,119 @@ public class LooniumBlockEntity extends FunctionalFlowerBlockEntity {
 		}
 	}
 
-	private int countNearbyMobs(ServerLevel world, LooniumStructureConfiguration pickedConfig) {
+	private int countNearbyMobs(
+			ServerLevel world,
+			LooniumStructureConfiguration pickedConfig
+	) {
 		var setOfMobTypes = pickedConfig.spawnedMobs.unwrap().stream()
-			.map(Weighted::value)
-			.map(msd -> msd.type)
-			.collect(Collectors.toSet());
-		return world.getEntitiesOfClass(Mob.class, new AABB(getEffectivePos()).inflate(CHECK_RANGE),
-				m -> setOfMobTypes.contains(m.getType())).size();
+				.map(Weighted::value)
+				.map(msd -> msd.type)
+				.collect(Collectors.toSet());
+
+		return world.getEntitiesOfClass(
+				Mob.class,
+				new AABB(getEffectivePos()).inflate(CHECK_RANGE),
+				m -> setOfMobTypes.contains(m.getType())
+		).size();
 	}
 
-	private static ItemStack pickRandomLootItem(ServerLevel world, LootTable pickedLootTable) {
-		LootParams params = new LootParams.Builder(world).create(LootContextParamSets.EMPTY);
-		List<ItemStack> stacks = pickedLootTable.getRandomItems(params, world.random.nextLong());
-		stacks.removeIf(s -> s.isEmpty() || s.is(BotaniaTags.Items.LOONIUM_BLACKLIST));
+	private static LootTable getLootTable(ServerLevel world, Identifier id) {
+		return world.getServer()
+				.reloadableRegistries()
+				.getLootTable(ResourceKey.create(Registries.LOOT_TABLE, id));
+	}
+
+	private static ItemStack pickRandomLootItem(
+			ServerLevel world,
+			LootTable pickedLootTable
+	) {
+		LootParams params = new LootParams.Builder(world)
+				.create(LootContextParamSets.EMPTY);
+
+		List<ItemStack> stacks =
+				pickedLootTable.getRandomItems(params, world.random.nextLong());
+
+		stacks.removeIf(s ->
+				s.isEmpty() || s.is(BotaniaTags.Items.LOONIUM_BLACKLIST)
+		);
+
 		if (stacks.isEmpty()) {
 			return ItemStack.EMPTY;
-		} else {
-			Collections.shuffle(stacks);
-			return stacks.get(0);
 		}
+
+		Collections.shuffle(stacks);
+		return stacks.get(0);
 	}
 
 	@NotNull
-	private List<Pair<Identifier, LootTable>> determineLootTables(ServerLevel world,
-			Set<Identifier> structureIds) {
+	private List<Pair<Identifier, LootTable>> determineLootTables(
+			ServerLevel world,
+			Set<Identifier> structureIds
+	) {
 		var lootTables = new ArrayList<Pair<Identifier, LootTable>>();
-		LootDataManager lootData = world.getServer().getLootData();
-		Supplier<LootTable> defaultLootTableSupplier = Suppliers.memoize(() -> lootData.getLootTable(
-				BotaniaLootTables.LOONIUM_DEFAULT_LOOT));
+
+		Supplier<LootTable> defaultLootTableSupplier =
+				Suppliers.memoize(() -> getLootTable(
+						world,
+						BotaniaLootTables.LOONIUM_DEFAULT_LOOT
+				));
+
 		if (lootTableOverride != null) {
-			LootTable lootTable = lootData.getLootTable(lootTableOverride);
+			LootTable lootTable =
+					getLootTable(world, lootTableOverride);
+
 			if (lootTable != LootTable.EMPTY) {
-				lootTables.add(Pair.of(LooniumStructureConfiguration.DEFAULT_CONFIG_ID, lootTable));
+				lootTables.add(Pair.of(
+						LooniumStructureConfiguration.DEFAULT_CONFIG_ID,
+						lootTable
+				));
 			}
 		} else {
 			for (Identifier structureId : structureIds) {
-				if (structureId.equals(LooniumStructureConfiguration.DEFAULT_CONFIG_ID)) {
+				if (structureId.equals(
+						LooniumStructureConfiguration.DEFAULT_CONFIG_ID
+				)) {
 					continue;
 				}
-				Identifier lootTableId = prefix("loonium/%s/%s".formatted(structureId.getNamespace(), structureId.getPath()));
-				LootTable lootTable = lootData.getLootTable(lootTableId);
+
+				Identifier lootTableId = prefix(
+						"loonium/%s/%s".formatted(
+								structureId.getNamespace(),
+								structureId.getPath()
+						)
+				);
+
+				LootTable lootTable =
+						getLootTable(world, lootTableId);
+
 				if (lootTable != LootTable.EMPTY) {
 					lootTables.add(Pair.of(structureId, lootTable));
 				} else {
-					LootTable defaultLootTable = defaultLootTableSupplier.get();
+					LootTable defaultLootTable =
+							defaultLootTableSupplier.get();
+
 					if (defaultLootTable != LootTable.EMPTY) {
-						lootTables.add(Pair.of(structureId, defaultLootTable));
+						lootTables.add(Pair.of(
+								structureId,
+								defaultLootTable
+						));
 					}
 				}
 			}
 		}
+
 		if (lootTables.isEmpty()) {
-			LootTable defaultLootTable = defaultLootTableSupplier.get();
+			LootTable defaultLootTable =
+					defaultLootTableSupplier.get();
+
 			if (defaultLootTable != LootTable.EMPTY) {
-				lootTables.add(Pair.of(LooniumStructureConfiguration.DEFAULT_CONFIG_ID, defaultLootTable));
+				lootTables.add(Pair.of(
+						LooniumStructureConfiguration.DEFAULT_CONFIG_ID,
+						defaultLootTable
+				));
 			}
 		}
+
 		return lootTables;
 	}
 

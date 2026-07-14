@@ -73,7 +73,6 @@
     "client.ItemRendererAccessor",
     "client.LevelRendererAccessor",
     "client.LevelRendererMixin",
-    "client.ModelManagerAccessor",
     "client.RecipeBookComponentAccessor",
     "client.RecipeBookComponentMixin",
     "client.RecipeBookPageAccessor",

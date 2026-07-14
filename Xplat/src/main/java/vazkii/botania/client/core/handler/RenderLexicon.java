@@ -17,13 +17,12 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.model.object.book.BookModel;
 import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.resources.language.I18n;
-import net.minecraft.client.resources.model.Material;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
-import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 
@@ -45,8 +44,8 @@ import static vazkii.botania.common.lib.ResourceLocationHelper.prefix;
 public class RenderLexicon {
 	private static BookModel model = null;
 	private static final boolean SHOULD_MISSPELL = Math.random() < 0.004;
-	public static final Material TEXTURE = new Material(InventoryMenu.BLOCK_ATLAS, prefix("item/lexicon_3d"));
-	public static final Material ELVEN_TEXTURE = new Material(InventoryMenu.BLOCK_ATLAS, prefix("item/lexicon_elven_3d"));
+	public static final Identifier TEXTURE = prefix("item/lexicon_3d");
+	public static final Identifier ELVEN_TEXTURE = prefix("item/lexicon_elven_3d");
 
 	private static final String[] QUOTES = new String[] {
 			"\"Neat!\" - Direwolf20",
@@ -126,8 +125,11 @@ public class RenderLexicon {
 		var model = getModel();
 		model.setupAnim(BookModel.State.forAnimation(ClientTickHandler.total(), Mth.clamp(leftPageAngle, 0.0F, 1.0F), Mth.clamp(rightPageAngle, 0.0F, 1.0F), opening));
 
-		Material mat = LexicaBotaniaItem.isElven(stack) ? ELVEN_TEXTURE : TEXTURE;
-		VertexConsumer buffer = mat.buffer(buffers, RenderType::entitySolid);
+		Identifier texture = LexicaBotaniaItem.isElven(stack) ? ELVEN_TEXTURE : TEXTURE;
+		TextureAtlas atlas = (TextureAtlas) mc.getTextureManager()
+				.getTexture(TextureAtlas.LOCATION_BLOCKS);
+		VertexConsumer buffer = atlas.getSprite(texture)
+				.wrap(buffers.getBuffer(model.renderType(TextureAtlas.LOCATION_BLOCKS)));
 		model.renderToBuffer(ms, buffer, light, OverlayTexture.NO_OVERLAY);
 
 		if (ticks < 3) {

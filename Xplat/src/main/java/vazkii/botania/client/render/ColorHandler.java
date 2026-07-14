@@ -226,8 +226,6 @@ public final class ColorHandler {
 						: -1,
 				BotaniaItems.enderDagger);
 
-		items.register((s, t) -> t == 1 ? Mth.hsvToRgb(0.75F, 1F, 1.5F - (float) Math.min(1F, Math.sin(Util.getMillis() / 100D) * 0.5 + 1.2F)) : -1, BotaniaItems.enderDagger);
-
 		items.register((s, t) -> t == 1 && TerraShattererItem.isEnabled(s) ? Mth.hsvToRgb(0.375F, (float) Math.min(1F, Math.sin(Util.getMillis() / 200D) * 0.5 + 1F), 1F) : -1, BotaniaItems.terraPick);
 
 		ItemColor lensHandler = (s, t) -> t == 0 ? ((LensItem) s.getItem()).getLensColor(s, Minecraft.getInstance().level) : -1;

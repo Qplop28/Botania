@@ -19,6 +19,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -35,7 +36,6 @@ import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.PatrollingMonster;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.TieredItem;
 import net.minecraft.world.level.StructureManager;
 import net.minecraft.world.level.block.LevelEvent;
 import net.minecraft.world.level.block.state.BlockState;
@@ -280,19 +280,28 @@ public class LooniumBlockEntity extends FunctionalFlowerBlockEntity {
 
 				var equippedSlots = new HashSet<EquipmentSlot>();
 				equipmentTable.getRandomItems(lootParams, equipmentStack -> {
-					EquipmentSlot slot = equipmentStack.is(BotaniaTags.Items.LOONIUM_OFFHAND_EQUIPMENT)
-							? EquipmentSlot.OFFHAND
-							: LivingEntity.getEquipmentSlotForItem(equipmentStack);
+					EquipmentSlot slot =
+							equipmentStack.is(BotaniaTags.Items.LOONIUM_OFFHAND_EQUIPMENT)
+									? EquipmentSlot.OFFHAND
+									: LivingEntity.getEquipmentSlotForItem(equipmentStack);
+
 					if (equippedSlots.contains(slot)) {
 						slot = equippedSlots.contains(EquipmentSlot.MAINHAND)
-								&& !(equipmentStack.getItem() instanceof TieredItem)
+								&& !equipmentStack.has(DataComponents.TOOL)
 										? EquipmentSlot.OFFHAND
 										: EquipmentSlot.MAINHAND;
 					}
+
 					if (!equippedSlots.add(slot)) {
 						return;
 					}
-					mob.setItemSlot(slot, slot.isArmor() ? equipmentStack.copyWithCount(1) : equipmentStack);
+
+					mob.setItemSlot(
+							slot,
+							slot.isArmor()
+									? equipmentStack.copyWithCount(1)
+									: equipmentStack
+					);
 				});
 			}
 		}

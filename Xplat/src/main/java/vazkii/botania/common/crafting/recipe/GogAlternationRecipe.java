@@ -8,50 +8,62 @@
  */
 package vazkii.botania.common.crafting.recipe;
 
-import com.google.gson.JsonObject;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.Identifier;
-import net.minecraft.util.GsonHelper;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.crafting.Recipe;
-import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.item.crafting.RecipeSerializer;
-
-import org.jetbrains.annotations.NotNull;
 
 import vazkii.botania.xplat.XplatAbstractions;
 
-public class GogAlternationRecipe {
-	public static final RecipeSerializer<Recipe<?>> SERIALIZER = new Serializer();
+public final class GogAlternationRecipe {
+	private static final MapCodec<Recipe<?>> CODEC =
+			RecordCodecBuilder.mapCodec(instance -> instance.group(
+					Recipe.CODEC.fieldOf("gog")
+							.forGetter((Recipe<?> recipe) -> recipe),
+					Recipe.CODEC.fieldOf("base")
+							.forGetter((Recipe<?> recipe) -> recipe)
+			).apply(instance, GogAlternationRecipe::selectRecipe));
 
-	private static class Serializer implements RecipeSerializer<Recipe<?>> {
-		@NotNull
-		@Override
-		public Recipe<?> fromJson(@NotNull Identifier recipeId, @NotNull JsonObject json) {
-			// just select the recipe here
-			Recipe<?> gog = RecipeManager.fromJson(recipeId, GsonHelper.getAsJsonObject(json, "gog"));
-			Recipe<?> base = RecipeManager.fromJson(recipeId, GsonHelper.getAsJsonObject(json, "base"));
+	private static final StreamCodec<RegistryFriendlyByteBuf, Recipe<?>> STREAM_CODEC =
+			new StreamCodec<>() {
+				@Override
+				public Recipe<?> decode(RegistryFriendlyByteBuf buffer) {
+					throw new IllegalStateException(
+							"GogAlternationRecipe should not be sent over network"
+					);
+				}
 
-			if (gog.getType() != base.getType()) {
-				throw new IllegalArgumentException("Subrecipes must have matching types");
-			}
+				@Override
+				public void encode(
+						RegistryFriendlyByteBuf buffer,
+						Recipe<?> recipe
+				) {
+					throw new IllegalStateException(
+							"GogAlternationRecipe should not be sent over network"
+					);
+				}
+			};
 
-			if (XplatAbstractions.INSTANCE.gogLoaded()) {
-				return gog;
-			} else {
-				return base;
-			}
+	public static final RecipeSerializer<Recipe<?>> SERIALIZER =
+			new RecipeSerializer<>(CODEC, STREAM_CODEC);
+
+	private GogAlternationRecipe() {}
+
+	private static Recipe<?> selectRecipe(
+			Recipe<?> gog,
+			Recipe<?> base
+	) {
+		if (gog.getType() != base.getType()) {
+			throw new IllegalArgumentException(
+					"Subrecipes must have matching types"
+			);
 		}
 
-		@NotNull
-		@Override
-		public Recipe<?> fromNetwork(@NotNull Identifier recipeId, @NotNull FriendlyByteBuf buffer) {
-			throw new IllegalStateException("GogAlternationRecipe should not be sent over network");
-		}
-
-		@Override
-		public void toNetwork(@NotNull FriendlyByteBuf buffer, @NotNull Recipe<?> recipe) {
-			throw new IllegalStateException("GogAlternationRecipe should not be sent over network");
-		}
+		return XplatAbstractions.INSTANCE.gogLoaded()
+				? gog
+				: base;
 	}
 }

@@ -1,7 +1,7 @@
 /*
  * This class is distributed as part of the Botania Mod.
  * Get the Source Code in github:
- * https://github.com/Vazkii/Botania
+ * https://github.com/VazkiiMods/Botania
  *
  * Botania is Open Source and distributed under the
  * Botania License: http://botaniamod.net/license.php
@@ -9,87 +9,83 @@
 package vazkii.botania.common.crafting.recipe;
 
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.resources.Identifier;
-import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
+import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
-
-import org.jetbrains.annotations.NotNull;
 
 import vazkii.botania.common.item.BotaniaItems;
 import vazkii.botania.common.item.ManaBlasterItem;
 
 public class ManaBlasterRemoveLensRecipe extends CustomRecipe {
-	public static final NoOpRecipeSerializer<ManaBlasterRemoveLensRecipe> SERIALIZER = new NoOpRecipeSerializer<>(ManaBlasterRemoveLensRecipe::new);
+	public static final RecipeSerializer<ManaBlasterRemoveLensRecipe> SERIALIZER =
+			NoOpRecipeSerializer.create(ManaBlasterRemoveLensRecipe::new);
 
-	public ManaBlasterRemoveLensRecipe(Identifier id) {
-		super(id, CraftingBookCategory.EQUIPMENT);
+	@Override
+	public RecipeSerializer<ManaBlasterRemoveLensRecipe> getSerializer() {
+		return SERIALIZER;
 	}
 
 	@Override
-	public boolean matches(@NotNull CraftingContainer inv, @NotNull Level world) {
+	public CraftingBookCategory category() {
+		return CraftingBookCategory.EQUIPMENT;
+	}
+
+	@Override
+	public boolean matches(CraftingInput input, Level level) {
 		boolean foundGun = false;
 
-		for (int i = 0; i < inv.getContainerSize(); i++) {
-			ItemStack stack = inv.getItem(i);
-			if (!stack.isEmpty()) {
-				if (stack.getItem() instanceof ManaBlasterItem
-						&& !ManaBlasterItem.getLens(stack).isEmpty() && !foundGun) {
-					foundGun = true;
-				} else {
-					return false; // Found an invalid item, breaking the recipe
-				}
+		for (ItemStack stack : input.items()) {
+			if (stack.isEmpty()) {
+				continue;
+			}
+
+			if (stack.getItem() instanceof ManaBlasterItem
+					&& !ManaBlasterItem.getLens(stack).isEmpty()
+					&& !foundGun) {
+				foundGun = true;
+			} else {
+				return false;
 			}
 		}
 
 		return foundGun;
 	}
 
-	@NotNull
 	@Override
-	public ItemStack assemble(@NotNull CraftingContainer inv, @NotNull RegistryAccess registries) {
-		ItemStack gun = ItemStack.EMPTY;
+	public ItemStack assemble(CraftingInput input) {
+		for (ItemStack stack : input.items()) {
+			if (!stack.isEmpty()
+					&& stack.getItem() instanceof ManaBlasterItem) {
+				ItemStack result = stack.copyWithCount(1);
+				ManaBlasterItem.setLens(result, ItemStack.EMPTY);
+				return result;
+			}
+		}
 
-		for (int i = 0; i < inv.getContainerSize(); i++) {
-			ItemStack stack = inv.getItem(i);
-			if (!stack.isEmpty()) {
-				if (stack.getItem() instanceof ManaBlasterItem) {
-					gun = stack;
+		return ItemStack.EMPTY;
+	}
+
+	@Override
+	public NonNullList<ItemStack> getRemainingItems(CraftingInput input) {
+		NonNullList<ItemStack> remaining =
+				CraftingRecipe.defaultCraftingReminder(input);
+
+		for (int i = 0; i < input.size(); i++) {
+			ItemStack stack = input.getItem(i);
+
+			if (stack.is(BotaniaItems.manaGun)) {
+				ItemStack lens = ManaBlasterItem.getLens(stack);
+
+				if (!lens.isEmpty()) {
+					remaining.set(i, lens.copyWithCount(1));
 				}
 			}
 		}
 
-		ItemStack gunCopy = gun.copyWithCount(1);
-		ManaBlasterItem.setLens(gunCopy, ItemStack.EMPTY);
-
-		return gunCopy;
-	}
-
-	@Override
-	public boolean canCraftInDimensions(int width, int height) {
-		return width * height > 0;
-	}
-
-	@NotNull
-	@Override
-	public RecipeSerializer<?> getSerializer() {
-		return SERIALIZER;
-	}
-
-	@NotNull
-	@Override
-	public NonNullList<ItemStack> getRemainingItems(@NotNull CraftingContainer inv) {
-		return RecipeUtils.getRemainingItemsSub(inv, s -> {
-			if (s.is(BotaniaItems.manaGun)) {
-				ItemStack stack = ManaBlasterItem.getLens(s);
-				stack.setCount(1);
-				return stack;
-			}
-			return null;
-		});
+		return remaining;
 	}
 }

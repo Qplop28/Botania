@@ -12,14 +12,12 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.network.protocol.game.ClientboundLevelEventPacket;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.DiggerItem;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Tier;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
@@ -28,7 +26,6 @@ import net.minecraft.world.level.block.LevelEvent;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 
-import vazkii.botania.api.BotaniaAPI;
 import vazkii.botania.api.mana.ManaItemHandler;
 import vazkii.botania.common.item.BotaniaItems;
 import vazkii.botania.common.item.equipment.tool.terrasteel.TerraShattererItem;
@@ -110,24 +107,28 @@ public final class ToolCommons {
 	}
 
 	public static int getToolPriority(ItemStack stack) {
-		if (stack.isEmpty()) {
+		if (stack.isEmpty()
+				|| !(stack.is(ItemTags.PICKAXES)
+						|| stack.is(ItemTags.SHOVELS)
+						|| stack.is(ItemTags.AXES)
+						|| stack.is(ItemTags.HOES))) {
 			return 0;
 		}
 
-		Item item = stack.getItem();
-		if (!(item instanceof DiggerItem tool)) {
-			return 0;
-		}
-
-		Tier material = tool.getTier();
 		int materialLevel = 0;
-		if (material == BotaniaAPI.instance().getManasteelItemTier()) {
+
+		if (stack.is(BotaniaItems.manasteelPick)
+				|| stack.is(BotaniaItems.manasteelShovel)
+				|| stack.is(BotaniaItems.manasteelAxe)
+				|| stack.is(BotaniaItems.manasteelHoe)) {
 			materialLevel = 10;
-		}
-		if (material == BotaniaAPI.instance().getElementiumItemTier()) {
+		} else if (stack.is(BotaniaItems.elementiumPick)
+				|| stack.is(BotaniaItems.elementiumShovel)
+				|| stack.is(BotaniaItems.elementiumAxe)
+				|| stack.is(BotaniaItems.elementiumHoe)) {
 			materialLevel = 11;
-		}
-		if (material == BotaniaAPI.instance().getTerrasteelItemTier()) {
+		} else if (stack.is(BotaniaItems.terraPick)
+				|| stack.is(BotaniaItems.terraAxe)) {
 			materialLevel = 20;
 		}
 
@@ -136,7 +137,11 @@ public final class ToolCommons {
 			modifier = TerraShattererItem.getLevel(stack);
 		}
 
-		int efficiency = EnchantmentHelper.getItemEnchantmentLevel(Enchantments.BLOCK_EFFICIENCY, stack);
+		int efficiency = EnchantmentHelper.getItemEnchantmentLevel(
+				Enchantments.BLOCK_EFFICIENCY,
+				stack
+		);
+
 		return materialLevel * 100 + modifier * 10 + efficiency;
 	}
 

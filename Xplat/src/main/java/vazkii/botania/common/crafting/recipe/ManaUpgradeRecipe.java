@@ -8,74 +8,166 @@
  */
 package vazkii.botania.common.crafting.recipe;
 
-import com.google.gson.JsonObject;
+import com.mojang.serialization.MapCodec;
 
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.Identifier;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.Container;
-import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CraftingBookCategory;
+import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.item.crafting.PlacementInfo;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.ShapedRecipe;
-
-import org.jetbrains.annotations.NotNull;
+import net.minecraft.world.item.crafting.display.RecipeDisplay;
+import net.minecraft.world.level.Level;
 
 import vazkii.botania.xplat.XplatAbstractions;
 
-public class ManaUpgradeRecipe extends ShapedRecipe {
-	public ManaUpgradeRecipe(ShapedRecipe compose) {
-		super(compose.getId(), compose.getGroup(), compose.category(), compose.getWidth(), compose.getHeight(),
-				compose.getIngredients(),
-				// XXX: Hacky, but compose should always be a vanilla shaped recipe which doesn't do anything with the
-				// RegistryAccess
-				compose.getResultItem(RegistryAccess.EMPTY));
+import java.util.List;
+
+public final class ManaUpgradeRecipe implements CraftingRecipe {
+	private static final MapCodec<ManaUpgradeRecipe> CODEC =
+			ShapedRecipe.MAP_CODEC.xmap(
+					ManaUpgradeRecipe::new,
+					ManaUpgradeRecipe::delegate
+			);
+
+	private static final StreamCodec<RegistryFriendlyByteBuf, ManaUpgradeRecipe>
+			STREAM_CODEC = new StreamCodec<>() {
+				@Override
+				public ManaUpgradeRecipe decode(
+						RegistryFriendlyByteBuf buffer
+				) {
+					return new ManaUpgradeRecipe(
+							ShapedRecipe.STREAM_CODEC.decode(buffer)
+					);
+				}
+
+				@Override
+				public void encode(
+						RegistryFriendlyByteBuf buffer,
+						ManaUpgradeRecipe recipe
+				) {
+					ShapedRecipe.STREAM_CODEC.encode(
+							buffer,
+							recipe.delegate
+					);
+				}
+			};
+
+	public static final RecipeSerializer<ManaUpgradeRecipe> SERIALIZER =
+			new RecipeSerializer<>(CODEC, STREAM_CODEC);
+
+	private final ShapedRecipe delegate;
+
+	public ManaUpgradeRecipe(ShapedRecipe delegate) {
+		this.delegate = delegate;
 	}
 
-	public static ItemStack output(ItemStack output, Container inv) {
-		ItemStack out = output.copy();
-		var outItem = XplatAbstractions.INSTANCE.findManaItem(out);
-		if (outItem == null) {
-			return out;
+	private ShapedRecipe delegate() {
+		return this.delegate;
+	}
+
+	public static ItemStack output(
+			ItemStack output,
+			CraftingInput input
+	) {
+		ItemStack result = output.copy();
+		var resultManaItem =
+				XplatAbstractions.INSTANCE.findManaItem(result);
+
+		if (resultManaItem == null) {
+			return result;
 		}
-		for (int i = 0; i < inv.getContainerSize(); i++) {
-			ItemStack stack = inv.getItem(i);
-			var item = XplatAbstractions.INSTANCE.findManaItem(stack);
-			if (!stack.isEmpty() && item != null) {
-				outItem.addMana(item.getMana());
+
+		for (ItemStack stack : input.items()) {
+			if (stack.isEmpty()) {
+				continue;
+			}
+
+			var manaItem =
+					XplatAbstractions.INSTANCE.findManaItem(stack);
+
+			if (manaItem != null) {
+				resultManaItem.addMana(manaItem.getMana());
 			}
 		}
-		return out;
+
+		return result;
 	}
 
-	@NotNull
-	@Override
-	public ItemStack assemble(@NotNull CraftingContainer inv, @NotNull RegistryAccess registries) {
-		return output(super.assemble(inv, registries), inv);
+	/**
+	 * Transitional overload for remaining non-crafting Botania callers.
+	 */
+	public static ItemStack output(
+			ItemStack output,
+			Container input
+	) {
+		ItemStack result = output.copy();
+		var resultManaItem =
+				XplatAbstractions.INSTANCE.findManaItem(result);
+
+		if (resultManaItem == null) {
+			return result;
+		}
+
+		for (int i = 0; i < input.getContainerSize(); i++) {
+			ItemStack stack = input.getItem(i);
+
+			if (stack.isEmpty()) {
+				continue;
+			}
+
+			var manaItem =
+					XplatAbstractions.INSTANCE.findManaItem(stack);
+
+			if (manaItem != null) {
+				resultManaItem.addMana(manaItem.getMana());
+			}
+		}
+
+		return result;
 	}
 
-	@NotNull
 	@Override
-	public RecipeSerializer<?> getSerializer() {
+	public boolean matches(CraftingInput input, Level level) {
+		return this.delegate.matches(input, level);
+	}
+
+	@Override
+	public ItemStack assemble(CraftingInput input) {
+		return output(this.delegate.assemble(input), input);
+	}
+
+	@Override
+	public boolean showNotification() {
+		return this.delegate.showNotification();
+	}
+
+	@Override
+	public String group() {
+		return this.delegate.group();
+	}
+
+	@Override
+	public RecipeSerializer<ManaUpgradeRecipe> getSerializer() {
 		return SERIALIZER;
 	}
 
-	public static final RecipeSerializer<ManaUpgradeRecipe> SERIALIZER = new Serializer();
+	@Override
+	public PlacementInfo placementInfo() {
+		return this.delegate.placementInfo();
+	}
 
-	private static class Serializer implements RecipeSerializer<ManaUpgradeRecipe> {
-		@Override
-		public ManaUpgradeRecipe fromJson(@NotNull Identifier recipeId, @NotNull JsonObject json) {
-			return new ManaUpgradeRecipe(SHAPED_RECIPE.fromJson(recipeId, json));
-		}
+	@Override
+	public CraftingBookCategory category() {
+		return this.delegate.category();
+	}
 
-		@Override
-		public ManaUpgradeRecipe fromNetwork(@NotNull Identifier recipeId, @NotNull FriendlyByteBuf buffer) {
-			return new ManaUpgradeRecipe(SHAPED_RECIPE.fromNetwork(recipeId, buffer));
-		}
-
-		@Override
-		public void toNetwork(@NotNull FriendlyByteBuf buffer, @NotNull ManaUpgradeRecipe recipe) {
-			SHAPED_RECIPE.toNetwork(buffer, recipe);
-		}
+	@Override
+	public List<RecipeDisplay> display() {
+		return this.delegate.display();
 	}
 }

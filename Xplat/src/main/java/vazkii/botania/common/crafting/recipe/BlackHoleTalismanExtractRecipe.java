@@ -9,106 +9,119 @@
 package vazkii.botania.common.crafting.recipe;
 
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.resources.Identifier;
-import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
+import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-
-import org.jetbrains.annotations.NotNull;
 
 import vazkii.botania.common.helper.ItemNBTHelper;
 import vazkii.botania.common.item.BlackHoleTalismanItem;
 import vazkii.botania.common.item.BotaniaItems;
 
 public class BlackHoleTalismanExtractRecipe extends CustomRecipe {
-	public static final NoOpRecipeSerializer<BlackHoleTalismanExtractRecipe> SERIALIZER = new NoOpRecipeSerializer<>(BlackHoleTalismanExtractRecipe::new);
+	public static final RecipeSerializer<BlackHoleTalismanExtractRecipe> SERIALIZER =
+			NoOpRecipeSerializer.create(BlackHoleTalismanExtractRecipe::new);
 
-	public BlackHoleTalismanExtractRecipe(Identifier id) {
-		super(id, CraftingBookCategory.MISC);
+	@Override
+	public RecipeSerializer<BlackHoleTalismanExtractRecipe> getSerializer() {
+		return SERIALIZER;
 	}
 
 	@Override
-	public boolean matches(@NotNull CraftingContainer inv, @NotNull Level world) {
+	public CraftingBookCategory category() {
+		return CraftingBookCategory.MISC;
+	}
+
+	@Override
+	public boolean matches(CraftingInput input, Level level) {
 		boolean foundTalisman = false;
 
-		for (int i = 0; i < inv.getContainerSize(); i++) {
-			ItemStack stack = inv.getItem(i);
-			if (!stack.isEmpty()) {
-				if (stack.is(BotaniaItems.blackHoleTalisman) && !foundTalisman) {
+		for (ItemStack stack : input.items()) {
+			if (stack.isEmpty()) {
+				continue;
+			}
 
-					// Avoid returning true for empty talismans
-					int count = BlackHoleTalismanItem.getBlockCount(stack);
-					if (count <= 0) {
-						return false;
-					}
-
-					foundTalisman = true;
-				} else {
+			if (stack.is(BotaniaItems.blackHoleTalisman)
+					&& !foundTalisman) {
+				if (BlackHoleTalismanItem.getBlockCount(stack) <= 0) {
 					return false;
 				}
+
+				foundTalisman = true;
+			} else {
+				return false;
 			}
 		}
 
 		return foundTalisman;
 	}
 
-	@NotNull
 	@Override
-	public ItemStack assemble(@NotNull CraftingContainer inv, @NotNull RegistryAccess registries) {
+	public ItemStack assemble(CraftingInput input) {
 		ItemStack talisman = ItemStack.EMPTY;
 
-		for (int i = 0; i < inv.getContainerSize(); i++) {
-			ItemStack stack = inv.getItem(i);
-			if (!stack.isEmpty()) {
-				talisman = stack;
+		for (ItemStack stack : input.items()) {
+			if (stack.isEmpty()) {
+				continue;
 			}
+
+			if (!stack.is(BotaniaItems.blackHoleTalisman)
+					|| !talisman.isEmpty()) {
+				return ItemStack.EMPTY;
+			}
+
+			talisman = stack;
+		}
+
+		if (talisman.isEmpty()) {
+			return ItemStack.EMPTY;
 		}
 
 		int count = BlackHoleTalismanItem.getBlockCount(talisman);
-		if (count > 0) {
-			Block block = BlackHoleTalismanItem.getBlock(talisman);
-			if (block != null) {
-				return new ItemStack(block, Math.min(64, count));
-			}
+		Block block = BlackHoleTalismanItem.getBlock(talisman);
+
+		if (count <= 0 || block == null) {
+			return ItemStack.EMPTY;
 		}
 
-		return ItemStack.EMPTY;
+		return new ItemStack(block, Math.min(64, count));
 	}
 
 	@Override
-	public boolean canCraftInDimensions(int width, int height) {
-		return width * height > 0;
-	}
+	public NonNullList<ItemStack> getRemainingItems(CraftingInput input) {
+		NonNullList<ItemStack> remaining =
+				CraftingRecipe.defaultCraftingReminder(input);
 
-	@NotNull
-	@Override
-	public RecipeSerializer<?> getSerializer() {
-		return SERIALIZER;
-	}
+		for (int i = 0; i < input.size(); i++) {
+			ItemStack stack = input.getItem(i);
 
-	@NotNull
-	@Override
-	public NonNullList<ItemStack> getRemainingItems(@NotNull CraftingContainer inv) {
-		return RecipeUtils.getRemainingItemsSub(inv, s -> {
-			if (s.is(BotaniaItems.blackHoleTalisman)) {
-				int count = BlackHoleTalismanItem.getBlockCount(s);
-				if (count == 0) {
-					return ItemStack.EMPTY;
-				}
-
-				int extract = Math.min(64, count);
-				ItemStack copy = s.copyWithCount(1);
-				BlackHoleTalismanItem.remove(copy, extract);
-				ItemNBTHelper.setBoolean(copy, BlackHoleTalismanItem.TAG_ACTIVE, false);
-
-				return copy;
+			if (!stack.is(BotaniaItems.blackHoleTalisman)) {
+				continue;
 			}
-			return null;
-		});
+
+			int count = BlackHoleTalismanItem.getBlockCount(stack);
+
+			if (count <= 0) {
+				continue;
+			}
+
+			int extract = Math.min(64, count);
+			ItemStack talisman = stack.copyWithCount(1);
+
+			BlackHoleTalismanItem.remove(talisman, extract);
+			ItemNBTHelper.setBoolean(
+					talisman,
+					BlackHoleTalismanItem.TAG_ACTIVE,
+					false
+			);
+
+			remaining.set(i, talisman);
+		}
+
+		return remaining;
 	}
 }

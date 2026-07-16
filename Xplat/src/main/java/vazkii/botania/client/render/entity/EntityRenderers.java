@@ -1,15 +1,11 @@
 package vazkii.botania.client.render.entity;
 
-import net.minecraft.client.model.PlayerModel;
-import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.ItemEntityRenderer;
 import net.minecraft.client.renderer.entity.NoopRenderer;
 import net.minecraft.client.renderer.entity.ThrownItemRenderer;
-import net.minecraft.client.renderer.entity.layers.RenderLayer;
-import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.block.Block;
@@ -24,7 +20,6 @@ import vazkii.botania.common.block.block_entity.GaiaHeadBlockEntity;
 import vazkii.botania.common.entity.BotaniaEntities;
 
 import java.util.Map;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 public final class EntityRenderers {
@@ -54,13 +49,6 @@ public final class EntityRenderers {
 		consumer.accept(BotaniaEntities.THORN_CHAKRAM, ThrownItemRenderer::new);
 		consumer.accept(BotaniaEntities.VINE_BALL, ThrownItemRenderer::new);
 		consumer.accept(BotaniaEntities.ENDER_AIR_BOTTLE, ThrownItemRenderer::new);
-	}
-
-	public static void addAuxiliaryPlayerRenders(PlayerRenderer renderer,
-			Consumer<RenderLayer<AbstractClientPlayer, PlayerModel<AbstractClientPlayer>>> consumer) {
-		consumer.accept(new ContributorFancinessHandler(renderer));
-		consumer.accept(new ManaTabletRenderHandler(renderer));
-		consumer.accept(new TerrasteelHelmetLayer(renderer));
 	}
 
 	public interface BERConsumer {

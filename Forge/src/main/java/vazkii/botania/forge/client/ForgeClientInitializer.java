@@ -9,7 +9,6 @@ import net.minecraft.client.particle.ParticleProvider;
 import net.minecraft.client.particle.SpriteSet;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.ShaderInstance;
-import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleType;
@@ -259,15 +258,6 @@ public class ForgeClientInitializer {
 	@SubscribeEvent
 	public static void registerItemColors(RegisterColorHandlersEvent.Item evt) {
 		ColorHandler.submitItems(evt::register);
-	}
-
-	@SubscribeEvent
-	public static void initAuxiliaryRender(EntityRenderersEvent.AddLayers evt) {
-		for (var playerModelType : evt.getSkins()) {
-			if (evt.getSkin(playerModelType) instanceof PlayerRenderer renderer) {
-				EntityRenderers.addAuxiliaryPlayerRenders(renderer, renderer::addLayer);
-			}
-		}
 	}
 
 	@SubscribeEvent

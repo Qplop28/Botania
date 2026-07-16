@@ -14,15 +14,10 @@ import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.particle.ParticleProvider;
 import net.minecraft.client.particle.SpriteSet;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
-import net.minecraft.client.renderer.entity.EntityRendererProvider;
-import net.minecraft.client.renderer.entity.LivingEntityRenderer;
-import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
 
 import vazkii.botania.api.BotaniaAPI;
@@ -91,7 +86,6 @@ public class FabricClientInitializer implements ClientModInitializer {
 			BuiltinItemRendererRegistry.INSTANCE.register(block, renderer::render);
 		}
 		EntityRenderers.registerEntityRenderers(EntityRendererRegistry::register);
-		LivingEntityRenderLayerRegistrationCallback.EVENT.register(this::initAuxiliaryRender);
 
 		BotaniaParticles.FactoryHandler.registerFactories(new BotaniaParticles.FactoryHandler.Consumer() {
 			@Override
@@ -149,16 +143,5 @@ public class FabricClientInitializer implements ClientModInitializer {
 	private void loadComplete(Minecraft mc) {
 		ColorHandler.submitBlocks(ColorProviderRegistry.BLOCK::register);
 		ColorHandler.submitItems(ColorProviderRegistry.ITEM::register);
-	}
-
-	private void initAuxiliaryRender(
-			EntityType<? extends LivingEntity> type,
-			LivingEntityRenderer<?, ?, ?> renderer,
-			LivingEntityRenderLayerRegistrationCallback.RegistrationHelper helper,
-			EntityRendererProvider.Context ctx
-	) {
-		if (type == EntityType.PLAYER && renderer instanceof PlayerRenderer playerRenderer) {
-			EntityRenderers.addAuxiliaryPlayerRenders(playerRenderer, helper::register);
-		}
 	}
 }

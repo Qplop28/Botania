@@ -100,8 +100,8 @@ public class BotaniaRecipeTypes {
 
 	public static final RecipeSerializer<RecipeTerraPlate>
 			TERRA_PLATE_SERIALIZER =
-			new RecipeTerraPlate.Serializer();
-
+			RecipeTerraPlate.SERIALIZER;
+			
 	public static final RecipeType<OrechidRecipe>
 			ORECHID_TYPE = new ModRecipeType<>();
 

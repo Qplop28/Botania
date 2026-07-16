@@ -10,35 +10,47 @@ package vazkii.botania.api.recipe;
 
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.Container;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeBookCategories;
+import net.minecraft.world.item.crafting.RecipeBookCategory;
+import net.minecraft.world.item.crafting.RecipeInput;
 import net.minecraft.world.item.crafting.RecipeType;
-
-import org.jetbrains.annotations.NotNull;
 
 import vazkii.botania.api.BotaniaAPI;
 
-public interface TerrestrialAgglomerationRecipe extends Recipe<Container> {
-	Identifier TERRA_PLATE_ID = new Identifier(BotaniaAPI.MODID, "terra_plate");
+import java.util.Objects;
+
+public interface TerrestrialAgglomerationRecipe
+		extends Recipe<RecipeInput> {
+	Identifier TERRA_PLATE_ID =
+			new Identifier(BotaniaAPI.MODID, "terra_plate");
 	Identifier TYPE_ID = TERRA_PLATE_ID;
 
 	int getMana();
 
+	@SuppressWarnings("unchecked")
 	@Override
-	default RecipeType<?> getType() {
-		return BuiltInRegistries.RECIPE_TYPE.get(TYPE_ID);
+	default RecipeType<TerrestrialAgglomerationRecipe> getType() {
+		return (RecipeType<TerrestrialAgglomerationRecipe>)
+				Objects.requireNonNull(
+						BuiltInRegistries.RECIPE_TYPE
+								.getValue(TYPE_ID)
+				);
 	}
 
 	@Override
-	default boolean canCraftInDimensions(int width, int height) {
+	default boolean showNotification() {
 		return false;
 	}
 
-	@NotNull
 	@Override
-	default ItemStack getToastSymbol() {
-		return BuiltInRegistries.ITEM.getOptional(TERRA_PLATE_ID).map(ItemStack::new).orElse(ItemStack.EMPTY);
+	default String group() {
+		return "";
+	}
+
+	@Override
+	default RecipeBookCategory recipeBookCategory() {
+		return RecipeBookCategories.CRAFTING_MISC;
 	}
 
 	@Override

@@ -9,13 +9,16 @@
 package vazkii.botania.common.block.mana;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.RecipeManager;
+import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.EntityBlock;
@@ -38,66 +41,140 @@ import vazkii.botania.common.block.block_entity.TerrestrialAgglomerationPlateBlo
 import vazkii.botania.common.crafting.BotaniaRecipeTypes;
 import vazkii.botania.mixin.RecipeManagerAccessor;
 
-public class TerrestrialAgglomerationPlateBlock extends BotaniaWaterloggedBlock implements EntityBlock {
+import java.util.Collection;
 
-	private static final VoxelShape SHAPE = box(0, 0, 0, 16, 3, 16);
+public class TerrestrialAgglomerationPlateBlock
+		extends BotaniaWaterloggedBlock
+		implements EntityBlock {
+	private static final VoxelShape SHAPE =
+			box(0, 0, 0, 16, 3, 16);
 
-	public TerrestrialAgglomerationPlateBlock(Properties builder) {
-		super(builder);
+	public TerrestrialAgglomerationPlateBlock(Properties properties) {
+		super(properties);
 	}
 
 	@NotNull
 	@Override
-	public VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext ctx) {
+	public VoxelShape getShape(
+			BlockState state,
+			BlockGetter world,
+			BlockPos pos,
+			CollisionContext context
+	) {
 		return SHAPE;
 	}
 
 	@Override
-	public InteractionResult use(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+	public InteractionResult use(
+			BlockState state,
+			Level world,
+			BlockPos pos,
+			Player player,
+			InteractionHand hand,
+			BlockHitResult hit
+	) {
 		ItemStack stack = player.getItemInHand(hand);
+
 		if (!stack.isEmpty() && usesItem(stack, world)) {
-			if (!world.isClientSide) {
+			if (!world.isClientSide()) {
 				ItemStack target = stack.split(1);
-				ItemEntity item = new ItemEntity(world, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, target);
+				ItemEntity item = new ItemEntity(
+						world,
+						pos.getX() + 0.5,
+						pos.getY() + 0.5,
+						pos.getZ() + 0.5,
+						target
+				);
+
 				item.setPickUpDelay(40);
 				item.setDeltaMovement(Vec3.ZERO);
 				world.addFreshEntity(item);
 			}
 
-			return InteractionResult.sidedSuccess(world.isClientSide());
+			return InteractionResult.sidedSuccess(
+					world.isClientSide()
+			);
 		}
 
 		return InteractionResult.PASS;
 	}
 
-	private static boolean usesItem(ItemStack stack, Level world) {
-		for (Recipe<?> value : ((RecipeManagerAccessor) world.getRecipeManager()).botania_getAll(BotaniaRecipeTypes.TERRA_PLATE_TYPE).values()) {
-			for (Ingredient i : value.getIngredients()) {
-				if (i.test(stack)) {
+	@SuppressWarnings({
+			"rawtypes",
+			"unchecked"
+	})
+	private static boolean usesItem(
+			ItemStack stack,
+			Level world
+	) {
+		if (!(world instanceof ServerLevel serverLevel)) {
+			return false;
+		}
+
+		RecipeManager recipeManager =
+				serverLevel.getServer().getRecipeManager();
+
+		Collection<RecipeHolder<?>> recipes =
+				(Collection<RecipeHolder<?>>) (Collection<?>)
+						((RecipeManagerAccessor) recipeManager)
+								.botania_getRecipeMap()
+								.byType(
+										(RecipeType)
+												BotaniaRecipeTypes
+														.TERRA_PLATE_TYPE
+								);
+
+		for (RecipeHolder<?> holder : recipes) {
+			for (Ingredient ingredient :
+					holder.value()
+							.placementInfo()
+							.ingredients()) {
+				if (ingredient.test(stack)) {
 					return true;
 				}
 			}
 		}
+
 		return false;
 	}
 
 	@Override
-	public boolean isPathfindable(@NotNull BlockState state, @NotNull BlockGetter world, @NotNull BlockPos pos, PathComputationType type) {
+	public boolean isPathfindable(
+			@NotNull BlockState state,
+			@NotNull BlockGetter world,
+			@NotNull BlockPos pos,
+			PathComputationType type
+	) {
 		return false;
 	}
 
 	@NotNull
 	@Override
-	public BlockEntity newBlockEntity(@NotNull BlockPos pos, @NotNull BlockState state) {
-		return new TerrestrialAgglomerationPlateBlockEntity(pos, state);
+	public BlockEntity newBlockEntity(
+			@NotNull BlockPos pos,
+			@NotNull BlockState state
+	) {
+		return new TerrestrialAgglomerationPlateBlockEntity(
+				pos,
+				state
+		);
 	}
 
 	@Nullable
 	@Override
-	public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-		if (!level.isClientSide) {
-			return createTickerHelper(type, BotaniaBlockEntities.TERRA_PLATE, TerrestrialAgglomerationPlateBlockEntity::serverTick);
+	public <T extends BlockEntity> BlockEntityTicker<T> getTicker(
+			Level level,
+			BlockState state,
+			BlockEntityType<T> type
+	) {
+		if (!level.isClientSide()) {
+			return createTickerHelper(
+					type,
+					BotaniaBlockEntities.TERRA_PLATE,
+					TerrestrialAgglomerationPlateBlockEntity::serverTick
+			);
 		}
+
 		return null;
 	}
 
@@ -107,9 +184,15 @@ public class TerrestrialAgglomerationPlateBlock extends BotaniaWaterloggedBlock 
 	}
 
 	@Override
-	public int getAnalogOutputSignal(BlockState state, Level world, BlockPos pos) {
-		TerrestrialAgglomerationPlateBlockEntity plate = (TerrestrialAgglomerationPlateBlockEntity) world.getBlockEntity(pos);
+	public int getAnalogOutputSignal(
+			BlockState state,
+			Level world,
+			BlockPos pos
+	) {
+		TerrestrialAgglomerationPlateBlockEntity plate =
+				(TerrestrialAgglomerationPlateBlockEntity)
+						world.getBlockEntity(pos);
+
 		return plate.getComparatorLevel();
 	}
-
 }

@@ -13,6 +13,7 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
 import net.minecraft.world.Container;
@@ -23,8 +24,10 @@ import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.TransientCraftingContainer;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CraftingRecipe;
-import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
@@ -43,7 +46,10 @@ import vazkii.botania.common.item.BotaniaItems;
 import vazkii.botania.mixin.RecipeManagerAccessor;
 import vazkii.botania.xplat.XplatAbstractions;
 
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.List;
+import java.util.Optional;
+import java.util.Queue;
 
 import static vazkii.botania.common.lib.ResourceLocationHelper.prefix;
 
@@ -59,8 +65,11 @@ public class CraftyCrateBlockEntity extends OpenCrateBlockEntity implements Wand
 	private int lastRecipeEpoch = recipeEpoch;
 
 	public static void registerListener() {
-		XplatAbstractions.INSTANCE.registerReloadListener(PackType.SERVER_DATA, prefix("craft_crate_epoch_counter"),
-				(ResourceManagerReloadListener) mgr -> recipeEpoch++);
+		XplatAbstractions.INSTANCE.registerReloadListener(
+				PackType.SERVER_DATA,
+				prefix("craft_crate_epoch_counter"),
+				(ResourceManagerReloadListener) manager -> recipeEpoch++
+		);
 	}
 
 	public CraftyCrateBlockEntity(BlockPos pos, BlockState state) {
@@ -84,9 +93,11 @@ public class CraftyCrateBlockEntity extends OpenCrateBlockEntity implements Wand
 
 	public CraftyCratePattern getPattern() {
 		BlockState state = getBlockState();
+
 		if (!state.is(BotaniaBlocks.craftCrate)) {
 			return CraftyCratePattern.NONE;
 		}
+
 		return state.getValue(BotaniaStateProperties.CRATE_PATTERN);
 	}
 
@@ -94,27 +105,41 @@ public class CraftyCrateBlockEntity extends OpenCrateBlockEntity implements Wand
 		return !getPattern().openSlots.get(slot);
 	}
 
-	public static void serverTick(Level level, BlockPos worldPosition, BlockState state, CraftyCrateBlockEntity self) {
+	public static void serverTick(
+			Level level,
+			BlockPos worldPosition,
+			BlockState state,
+			CraftyCrateBlockEntity self
+	) {
 		if (recipeEpoch != self.lastRecipeEpoch) {
 			self.lastRecipeEpoch = recipeEpoch;
 			self.matchFailed = false;
 		}
 
-		if (!self.matchFailed && self.canEject() && self.isFull() && self.craft(true, null)) {
+		if (!self.matchFailed
+				&& self.canEject()
+				&& self.isFull()
+				&& self.craft(true, null)) {
 			self.ejectAll();
 		}
 
 		int newSignal = 0;
-		for (; newSignal < 9; newSignal++) // dis for loop be derpy
-		{
-			if (!self.isLocked(newSignal) && self.getItemHandler().getItem(newSignal).isEmpty()) {
+
+		for (; newSignal < 9; newSignal++) {
+			if (!self.isLocked(newSignal)
+					&& self.getItemHandler()
+							.getItem(newSignal)
+							.isEmpty()) {
 				break;
 			}
 		}
 
 		if (newSignal != self.signal) {
 			self.signal = newSignal;
-			level.updateNeighbourForOutputSignal(worldPosition, state.getBlock());
+			level.updateNeighbourForOutputSignal(
+					worldPosition,
+					state.getBlock()
+			);
 		}
 
 		if (self.dirty) {
@@ -123,98 +148,152 @@ public class CraftyCrateBlockEntity extends OpenCrateBlockEntity implements Wand
 		}
 	}
 
-	private boolean craft(boolean fullCheck, @Nullable Player player) {
+	private boolean craft(
+			boolean fullCheck,
+			@Nullable Player player
+	) {
 		level.getProfiler().push("craft");
+
 		if (fullCheck && !isFull()) {
+			level.getProfiler().pop();
 			return false;
 		}
 
-		CraftingContainer craft = new TransientCraftingContainer(new AbstractContainerMenu(MenuType.CRAFTING, -1) {
-			@NotNull
-			@Override
-			public ItemStack quickMoveStack(@NotNull Player player, int i) {
-				return ItemStack.EMPTY;
-			}
+		CraftingContainer craft = new TransientCraftingContainer(
+				new AbstractContainerMenu(MenuType.CRAFTING, -1) {
+					@NotNull
+					@Override
+					public ItemStack quickMoveStack(
+							@NotNull Player player,
+							int slot
+					) {
+						return ItemStack.EMPTY;
+					}
 
-			@Override
-			public boolean stillValid(@NotNull Player player) {
-				return false;
-			}
-		}, 3, 3);
+					@Override
+					public boolean stillValid(
+							@NotNull Player player
+					) {
+						return false;
+					}
+				},
+				3,
+				3
+		);
+
 		for (int i = 0; i < craft.getContainerSize(); i++) {
 			ItemStack stack = getItemHandler().getItem(i);
 
-			if (stack.isEmpty() || isLocked(i) || stack.is(BotaniaItems.placeholder)) {
+			if (stack.isEmpty()
+					|| isLocked(i)
+					|| stack.is(BotaniaItems.placeholder)) {
 				continue;
 			}
 
 			craft.setItem(i, stack);
 		}
 
-		Optional<CraftingRecipe> matchingRecipe = getMatchingRecipe(craft);
-		matchingRecipe.ifPresent(recipe -> {
-			ItemStack result = recipe.assemble(craft, this.getLevel().registryAccess());
+		CraftingInput input = craft.asCraftInput();
+		Optional<RecipeHolder<CraftingRecipe>> matchingRecipe =
+				getMatchingRecipe(input);
 
-			// Given some mods can return air by a bad implementation of their recipe handler,
-			// check for air before continuing on.
+		matchingRecipe.ifPresent(holder -> {
+			CraftingRecipe recipe = holder.value();
+			ItemStack result = recipe.assemble(input);
+
 			if (result.isEmpty()) {
-				// We have air, do not continue.
 				matchFailed = true;
 				return;
 			}
 
 			if (player != null) {
-				player.triggerRecipeCrafted(recipe, List.of(result));
-				result.onCraftedBy(level, player, result.getCount());
+				player.triggerRecipeCrafted(
+						holder,
+						List.of(result)
+				);
+				result.getItem().onCraftedBy(result, player);
 			}
 
 			Container handler = getItemHandler();
-			List<ItemStack> remainders = recipe.getRemainingItems(craft);
+			List<ItemStack> remainders =
+					recipe.getRemainingItems(input);
 
 			for (int i = 0; i < craft.getContainerSize(); i++) {
-				ItemStack s = remainders.get(i);
+				ItemStack remainder = remainders.get(i);
 				ItemStack inSlot = handler.getItem(i);
-				if ((inSlot.isEmpty() && s.isEmpty())
-						|| (!inSlot.isEmpty() && inSlot.is(BotaniaItems.placeholder))) {
+
+				if ((inSlot.isEmpty() && remainder.isEmpty())
+						|| (!inSlot.isEmpty()
+								&& inSlot.is(
+										BotaniaItems.placeholder
+								))) {
 					continue;
 				}
-				handler.setItem(i, s);
+
+				handler.setItem(i, remainder);
 			}
 
 			craftResult = result;
 		});
+
 		if (matchingRecipe.isEmpty()) {
 			matchFailed = true;
 		}
 
 		level.getProfiler().pop();
-		// Return only if present and not air.
-		return matchingRecipe.isPresent() && !craftResult.isEmpty();
+
+		return matchingRecipe.isPresent()
+				&& !craftResult.isEmpty();
 	}
 
-	private Optional<CraftingRecipe> getMatchingRecipe(CraftingContainer craft) {
+	private Optional<RecipeHolder<CraftingRecipe>>
+			getMatchingRecipe(CraftingInput input) {
+		if (!(level instanceof ServerLevel serverLevel)) {
+			return Optional.empty();
+		}
+
+		RecipeManager recipeManager =
+				serverLevel.getServer().getRecipeManager();
+
+		var recipes = ((RecipeManagerAccessor) recipeManager)
+				.botania_getRecipeMap()
+				.byType(RecipeType.CRAFTING);
+
 		for (Identifier currentRecipe : lastRecipes) {
-			Recipe<CraftingContainer> recipe = ((RecipeManagerAccessor) level.getRecipeManager())
-					.botania_getAll(RecipeType.CRAFTING)
-					.get(currentRecipe);
-			if (recipe instanceof CraftingRecipe craftingRecipe && recipe.matches(craft, level)) {
-				return Optional.of(craftingRecipe);
+			for (RecipeHolder<CraftingRecipe> holder : recipes) {
+				if (holder.id().identifier().equals(currentRecipe)
+						&& holder.value().matches(input, level)) {
+					return Optional.of(holder);
+				}
 			}
 		}
-		Optional<CraftingRecipe> recipe = level.getRecipeManager().getRecipeFor(RecipeType.CRAFTING, craft, level);
+
+		Optional<RecipeHolder<CraftingRecipe>> recipe =
+				recipeManager.getRecipeFor(
+						RecipeType.CRAFTING,
+						input,
+						serverLevel
+				);
+
 		if (recipe.isPresent()) {
 			if (lastRecipes.size() >= 8) {
 				lastRecipes.remove();
 			}
-			lastRecipes.add(recipe.get().getId());
-			return recipe;
+
+			lastRecipes.add(
+					recipe.get().id().identifier()
+			);
 		}
-		return Optional.empty();
+
+		return recipe;
 	}
 
 	boolean isFull() {
-		for (int i = 0; i < getItemHandler().getContainerSize(); i++) {
-			if (!isLocked(i) && getItemHandler().getItem(i).isEmpty()) {
+		for (int i = 0;
+				i < getItemHandler().getContainerSize();
+				i++) {
+			if (!isLocked(i)
+					&& getItemHandler().getItem(i).isEmpty()) {
 				return false;
 			}
 		}
@@ -225,11 +304,13 @@ public class CraftyCrateBlockEntity extends OpenCrateBlockEntity implements Wand
 	private void ejectAll() {
 		for (int i = 0; i < inventorySize(); ++i) {
 			ItemStack stack = getItemHandler().getItem(i);
+
 			if (!stack.isEmpty()) {
 				eject(stack, false);
 				getItemHandler().setItem(i, ItemStack.EMPTY);
 			}
 		}
+
 		if (!craftResult.isEmpty()) {
 			eject(craftResult, false);
 			craftResult = ItemStack.EMPTY;
@@ -241,7 +322,9 @@ public class CraftyCrateBlockEntity extends OpenCrateBlockEntity implements Wand
 			if (!isLocked(i)) {
 				continue;
 			}
+
 			ItemStack stack = getItemHandler().getItem(i);
+
 			if (!stack.isEmpty()) {
 				eject(stack, false);
 				getItemHandler().setItem(i, ItemStack.EMPTY);
@@ -250,18 +333,24 @@ public class CraftyCrateBlockEntity extends OpenCrateBlockEntity implements Wand
 	}
 
 	@Override
-	public boolean onUsedByWand(@Nullable Player player, ItemStack stack, Direction side) {
-		if (!getLevel().isClientSide && canEject()) {
+	public boolean onUsedByWand(
+			@Nullable Player player,
+			ItemStack stack,
+			Direction side
+	) {
+		if (!getLevel().isClientSide() && canEject()) {
 			craft(false, player);
 			ejectAll();
 		}
+
 		return true;
 	}
 
 	@Override
 	public void setChanged() {
 		super.setChanged();
-		if (level != null && !level.isClientSide) {
+
+		if (level != null && !level.isClientSide()) {
 			this.dirty = true;
 			this.matchFailed = false;
 		}
@@ -279,29 +368,55 @@ public class CraftyCrateBlockEntity extends OpenCrateBlockEntity implements Wand
 		}
 
 		@Override
-		public void renderHUD(GuiGraphicsExtractor gui, Minecraft mc) {
+		public void renderHUD(
+				GuiGraphicsExtractor gui,
+				Minecraft minecraft
+		) {
 			int width = 52;
 			int height = 52;
-			int xc = mc.getWindow().getGuiScaledWidth() / 2 + 12;
-			int yc = mc.getWindow().getGuiScaledHeight() / 2 - height / 2;
+			int xCenter =
+					minecraft.getWindow().getGuiScaledWidth() / 2 + 12;
+			int yCenter =
+					minecraft.getWindow().getGuiScaledHeight() / 2
+							- height / 2;
 
-			RenderHelper.renderHUDBox(gui, xc - 4, yc - 4, xc + width + 4, yc + height + 4);
+			RenderHelper.renderHUDBox(
+					gui,
+					xCenter - 4,
+					yCenter - 4,
+					xCenter + width + 4,
+					yCenter + height + 4
+			);
 
-			for (int i = 0; i < 3; i++) {
-				for (int j = 0; j < 3; j++) {
-					int index = i * 3 + j;
-					int xp = xc + j * 18;
-					int yp = yc + i * 18;
+			for (int row = 0; row < 3; row++) {
+				for (int column = 0; column < 3; column++) {
+					int index = row * 3 + column;
+					int x = xCenter + column * 18;
+					int y = yCenter + row * 18;
 
 					boolean enabled = true;
-					if (crate.getPattern() != CraftyCratePattern.NONE) {
-						enabled = crate.getPattern().openSlots.get(index);
+
+					if (crate.getPattern()
+							!= CraftyCratePattern.NONE) {
+						enabled =
+								crate.getPattern()
+										.openSlots
+										.get(index);
 					}
 
-					gui.fill(xp, yp, xp + 16, yp + 16, enabled ? 0x22FFFFFF : 0x22FF0000);
+					gui.fill(
+							x,
+							y,
+							x + 16,
+							y + 16,
+							enabled
+									? 0x22FFFFFF
+									: 0x22FF0000
+					);
 
-					ItemStack item = crate.getItemHandler().getItem(index);
-					gui.renderItem(item, xp, yp);
+					ItemStack item =
+							crate.getItemHandler().getItem(index);
+					gui.renderItem(item, x, y);
 				}
 			}
 		}

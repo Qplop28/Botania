@@ -8,76 +8,73 @@
  */
 package vazkii.botania.common.crafting.recipe;
 
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.resources.Identifier;
-import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
+import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
-
-import org.jetbrains.annotations.NotNull;
 
 import vazkii.botania.common.helper.ItemNBTHelper;
 import vazkii.botania.common.item.BotaniaItems;
 import vazkii.botania.common.item.ResoluteIvyItem;
 
 public class ResoluteIvyRecipe extends CustomRecipe {
-	public static final NoOpRecipeSerializer<ResoluteIvyRecipe> SERIALIZER = new NoOpRecipeSerializer<>(ResoluteIvyRecipe::new);
+	public static final RecipeSerializer<ResoluteIvyRecipe> SERIALIZER =
+			NoOpRecipeSerializer.create(ResoluteIvyRecipe::new);
 
-	public ResoluteIvyRecipe(Identifier id) {
-		super(id, CraftingBookCategory.EQUIPMENT);
+	@Override
+	public RecipeSerializer<ResoluteIvyRecipe> getSerializer() {
+		return SERIALIZER;
 	}
 
 	@Override
-	public boolean matches(@NotNull CraftingContainer inv, @NotNull Level world) {
+	public CraftingBookCategory category() {
+		return CraftingBookCategory.EQUIPMENT;
+	}
+
+	@Override
+	public boolean matches(CraftingInput input, Level level) {
 		boolean foundIvy = false;
 		boolean foundItem = false;
 
-		for (int i = 0; i < inv.getContainerSize(); i++) {
-			ItemStack stack = inv.getItem(i);
-			if (!stack.isEmpty()) {
-				if (stack.is(BotaniaItems.keepIvy) && !foundIvy) {
-					foundIvy = true;
-				} else if (!foundItem
-						&& !(stack.hasTag() && ItemNBTHelper.getBoolean(stack, ResoluteIvyItem.TAG_KEEP, false))
-						&& !stack.getItem().hasCraftingRemainingItem()) {
-					foundItem = true;
-				} else {
-					return false;
-				}
+		for (ItemStack stack : input.items()) {
+			if (stack.isEmpty()) {
+				continue;
+			}
+
+			if (stack.is(BotaniaItems.keepIvy) && !foundIvy) {
+				foundIvy = true;
+			} else if (!foundItem
+					&& !ItemNBTHelper.getBoolean(
+							stack,
+							ResoluteIvyItem.TAG_KEEP,
+							false
+					)
+					&& stack.getItem().getCraftingRemainder() == null) {
+				foundItem = true;
+			} else {
+				return false;
 			}
 		}
 
 		return foundIvy && foundItem;
 	}
 
-	@NotNull
 	@Override
-	public ItemStack assemble(@NotNull CraftingContainer inv, @NotNull RegistryAccess registries) {
-		ItemStack item = ItemStack.EMPTY;
-
-		for (int i = 0; i < inv.getContainerSize(); i++) {
-			ItemStack stack = inv.getItem(i);
+	public ItemStack assemble(CraftingInput input) {
+		for (ItemStack stack : input.items()) {
 			if (!stack.isEmpty() && !stack.is(BotaniaItems.keepIvy)) {
-				item = stack;
+				ItemStack result = stack.copyWithCount(1);
+				ItemNBTHelper.setBoolean(
+						result,
+						ResoluteIvyItem.TAG_KEEP,
+						true
+				);
+				return result;
 			}
 		}
 
-		ItemStack copy = item.copyWithCount(1);
-		ItemNBTHelper.setBoolean(copy, ResoluteIvyItem.TAG_KEEP, true);
-		return copy;
-	}
-
-	@Override
-	public boolean canCraftInDimensions(int width, int height) {
-		return width * height >= 2;
-	}
-
-	@NotNull
-	@Override
-	public RecipeSerializer<?> getSerializer() {
-		return SERIALIZER;
+		return ItemStack.EMPTY;
 	}
 }

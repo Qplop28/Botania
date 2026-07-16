@@ -13,68 +13,157 @@ import it.unimi.dsi.fastutil.ints.IntSet;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.RecipeInput;
 
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.IntFunction;
 
-public class RecipeUtils {
+public final class RecipeUtils {
+	private RecipeUtils() {}
+
 	/**
-	 * Check if every ingredient in {@code inputs} is satisfied by {@code inv}.
-	 * Optionally, the slots from the inventory used to fulfill the inputs are placed into {@code usedSlots}.
+	 * Checks whether every ingredient in {@code inputs} is satisfied by
+	 * {@code input}.
+	 *
+	 * <p>If supplied, {@code usedSlots} receives the indexes used to satisfy
+	 * the ingredients.</p>
 	 */
-	public static boolean matches(List<Ingredient> inputs, Container inv, @Nullable IntSet usedSlots) {
-		List<Ingredient> ingredientsMissing = new ArrayList<>(inputs);
+	public static boolean matches(
+			List<Ingredient> inputs,
+			RecipeInput input,
+			@Nullable IntSet usedSlots
+	) {
+		return matches(
+				inputs,
+				input.size(),
+				input::getItem,
+				usedSlots
+		);
+	}
 
-		for (int i = 0; i < inv.getContainerSize(); i++) {
-			ItemStack input = inv.getItem(i);
-			if (input.isEmpty()) {
+	/**
+	 * Transitional overload for custom recipe families that still use
+	 * {@link Container}.
+	 */
+	public static boolean matches(
+			List<Ingredient> inputs,
+			Container container,
+			@Nullable IntSet usedSlots
+	) {
+		return matches(
+				inputs,
+				container.getContainerSize(),
+				container::getItem,
+				usedSlots
+		);
+	}
+
+	private static boolean matches(
+			List<Ingredient> inputs,
+			int size,
+			IntFunction<ItemStack> getItem,
+			@Nullable IntSet usedSlots
+	) {
+		List<Ingredient> ingredientsMissing =
+				new ArrayList<>(inputs);
+
+		for (int slot = 0; slot < size; slot++) {
+			ItemStack stack = getItem.apply(slot);
+
+			if (stack.isEmpty()) {
 				break;
 			}
 
-			int stackIndex = -1;
+			int matchingIngredient = -1;
 
-			for (int j = 0; j < ingredientsMissing.size(); j++) {
-				Ingredient ingr = ingredientsMissing.get(j);
-				if (ingr.test(input)) {
-					stackIndex = j;
+			for (int ingredientIndex = 0;
+					ingredientIndex < ingredientsMissing.size();
+					ingredientIndex++) {
+				Ingredient ingredient =
+						ingredientsMissing.get(ingredientIndex);
+
+				if (ingredient.test(stack)) {
+					matchingIngredient = ingredientIndex;
+
 					if (usedSlots != null) {
-						usedSlots.add(i);
+						usedSlots.add(slot);
 					}
+
 					break;
 				}
 			}
 
-			if (stackIndex != -1) {
-				ingredientsMissing.remove(stackIndex);
-			} else {
+			if (matchingIngredient == -1) {
 				return false;
 			}
+
+			ingredientsMissing.remove(matchingIngredient);
 		}
 
 		return ingredientsMissing.isEmpty();
 	}
 
 	/**
-	 * Like the vanilla method on recipe interface, but specialHandler is called first, and if it returns
-	 * nonnull, that result is used instead of vanilla's
+	 * Returns crafting remainders, applying {@code specialHandler} before the
+	 * item's standard crafting remainder.
 	 */
-	public static NonNullList<ItemStack> getRemainingItemsSub(Container inv, Function<ItemStack, ItemStack> specialHandler) {
-		NonNullList<ItemStack> ret = NonNullList.withSize(inv.getContainerSize(), ItemStack.EMPTY);
+	public static NonNullList<ItemStack> getRemainingItemsSub(
+			RecipeInput input,
+			Function<ItemStack, ItemStack> specialHandler
+	) {
+		return getRemainingItemsSub(
+				input.size(),
+				input::getItem,
+				specialHandler
+		);
+	}
 
-		for (int i = 0; i < ret.size(); ++i) {
-			ItemStack item = inv.getItem(i);
-			ItemStack special = specialHandler.apply(item);
+	/**
+	 * Transitional overload for custom recipe families that still use
+	 * {@link Container}.
+	 */
+	public static NonNullList<ItemStack> getRemainingItemsSub(
+			Container container,
+			Function<ItemStack, ItemStack> specialHandler
+	) {
+		return getRemainingItemsSub(
+				container.getContainerSize(),
+				container::getItem,
+				specialHandler
+		);
+	}
+
+	private static NonNullList<ItemStack> getRemainingItemsSub(
+			int size,
+			IntFunction<ItemStack> getItem,
+			Function<ItemStack, ItemStack> specialHandler
+	) {
+		NonNullList<ItemStack> remaining =
+				NonNullList.withSize(size, ItemStack.EMPTY);
+
+		for (int slot = 0; slot < size; slot++) {
+			ItemStack stack = getItem.apply(slot);
+			ItemStack special = specialHandler.apply(stack);
+
 			if (special != null) {
-				ret.set(i, special);
-			} else if (item.getItem().hasCraftingRemainingItem()) {
-				ret.set(i, new ItemStack(item.getItem().getCraftingRemainingItem()));
+				remaining.set(slot, special);
+				continue;
+			}
+
+			ItemStackTemplate remainder =
+					stack.getItem().getCraftingRemainder();
+
+			if (remainder != null) {
+				remaining.set(slot, remainder.create());
 			}
 		}
 
-		return ret;
+		return remaining;
 	}
 }

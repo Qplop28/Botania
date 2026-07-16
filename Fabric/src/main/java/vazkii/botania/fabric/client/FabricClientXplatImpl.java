@@ -8,7 +8,6 @@ import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.texture.AbstractTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.RandomSource;
@@ -50,7 +49,7 @@ public class FabricClientXplatImpl implements ClientXplatAbstractions {
 	}
 
 	@Override
-	public BakedModel wrapPlatformModel(BakedModel original) {
+	public <T> T wrapPlatformModel(T original) {
 		// Custom Fabric models are disabled during the Minecraft 26.1 bootstrap.
 		return original;
 	}

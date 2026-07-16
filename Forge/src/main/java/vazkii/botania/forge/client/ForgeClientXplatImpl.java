@@ -56,8 +56,9 @@ public class ForgeClientXplatImpl implements ClientXplatAbstractions {
 	}
 
 	@Override
-	public BakedModel wrapPlatformModel(BakedModel original) {
-		return new ForgePlatformModel(original);
+	@SuppressWarnings("unchecked")
+	public <T> T wrapPlatformModel(T original) {
+		return (T) new ForgePlatformModel((BakedModel) original);
 	}
 
 	@Override

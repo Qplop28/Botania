@@ -8,50 +8,71 @@
  */
 package vazkii.botania.mixin;
 
-import net.minecraft.data.models.BlockModelGenerators;
-import net.minecraft.data.models.blockstates.BlockStateGenerator;
-import net.minecraft.data.models.blockstates.PropertyDispatch;
-import net.minecraft.data.models.blockstates.Variant;
-import net.minecraft.resources.Identifier;
+import net.minecraft.client.data.models.BlockModelGenerators;
+import net.minecraft.client.data.models.MultiVariant;
+import net.minecraft.client.data.models.blockstates.BlockModelDefinitionGenerator;
+import net.minecraft.client.data.models.blockstates.PropertyDispatch;
+import net.minecraft.client.renderer.block.dispatch.Variant;
+import net.minecraft.client.renderer.block.dispatch.VariantMutator;
 import net.minecraft.world.level.block.Block;
 
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.gen.Accessor;
 import org.spongepowered.asm.mixin.gen.Invoker;
 
 @Mixin(BlockModelGenerators.class)
 public interface BlockModelGeneratorsAccessor {
 	@Invoker("createSlab")
-	static BlockStateGenerator makeSlabState(Block block, Identifier bottomModel, Identifier topModel, Identifier doubleModel) {
+	static BlockModelDefinitionGenerator makeSlabState(
+			Block block,
+			MultiVariant bottomModel,
+			MultiVariant topModel,
+			MultiVariant doubleModel
+	) {
 		throw new IllegalStateException();
 	}
 
 	@Invoker("createFenceGate")
-	static BlockStateGenerator makeFenceGateState(Block block, Identifier openModel, Identifier closedModel, Identifier openWallModel, Identifier closedWallModel, boolean uvLock) {
+	static BlockModelDefinitionGenerator makeFenceGateState(
+			Block block,
+			MultiVariant openModel,
+			MultiVariant closedModel,
+			MultiVariant openWallModel,
+			MultiVariant closedWallModel,
+			boolean uvLock
+	) {
 		throw new IllegalStateException();
 	}
 
 	@Invoker("createFence")
-	static BlockStateGenerator makeFenceState(Block block, Identifier postModel, Identifier sideModel) {
+	static BlockModelDefinitionGenerator makeFenceState(
+			Block block,
+			MultiVariant postModel,
+			MultiVariant sideModel
+	) {
 		throw new IllegalStateException();
 	}
 
 	@Invoker("createAxisAlignedPillarBlock")
-	static BlockStateGenerator createAxisAlignedPillarBlock(Block block, Identifier model) {
+	static BlockModelDefinitionGenerator createAxisAlignedPillarBlock(
+			Block block,
+			MultiVariant model
+	) {
 		throw new IllegalStateException();
 	}
 
-	@Invoker("createHorizontalFacingDispatch")
-	static PropertyDispatch horizontalDispatch() {
+	@Accessor("ROTATION_HORIZONTAL_FACING")
+	static PropertyDispatch<VariantMutator> horizontalDispatch() {
 		throw new IllegalStateException();
 	}
 
-	@Invoker("createFacingDispatch")
-	static PropertyDispatch facingDispatch() {
+	@Accessor("ROTATION_FACING")
+	static PropertyDispatch<VariantMutator> facingDispatch() {
 		throw new IllegalStateException();
 	}
 
 	@Invoker("createRotatedVariants")
-	static Variant[] createRotatedVariants(Identifier model) {
+	static MultiVariant createRotatedVariants(Variant model) {
 		throw new IllegalStateException();
 	}
 }

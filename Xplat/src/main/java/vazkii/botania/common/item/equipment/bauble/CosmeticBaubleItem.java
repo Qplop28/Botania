@@ -23,7 +23,6 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 
 import vazkii.botania.api.item.CosmeticBauble;
-import vazkii.botania.client.core.helper.RenderHelper;
 import vazkii.botania.client.render.AccessoryRenderRegistry;
 import vazkii.botania.client.render.AccessoryRenderer;
 import vazkii.botania.common.helper.VecHelper;
@@ -183,8 +182,7 @@ public class CosmeticBaubleItem extends BaubleItem implements CosmeticBauble {
 					case ORANGE_SHADES -> {
 						ms.translate(0, -0.3, -0.3);
 						ms.scale(0.7F, -0.7F, -0.7F);
-						int color = 0xFFFFFF | (178 << 24);
-						RenderHelper.renderItemCustomColor(living, stack, color, ms, buffers, light, OverlayTexture.NO_OVERLAY);
+						renderItem(stack, ms, buffers, light);
 					}
 					case GROUCHO_GLASSES -> {
 						ms.translate(0, -0.1, -0.3);
@@ -253,7 +251,7 @@ public class CosmeticBaubleItem extends BaubleItem implements CosmeticBauble {
 						ms.translate(-0.4, 0.1, -0.2);
 						ms.mulPose(VecHelper.rotateY(180F));
 						ms.scale(0.5F, -0.5F, -0.5F);
-						RenderHelper.renderItemCustomColor(living, stack, 0xFF00004C, ms, buffers, light, OverlayTexture.NO_OVERLAY);
+						renderItem(stack, ms, buffers, light);
 					}
 					case FOUR_LEAF_CLOVER -> {
 						ms.translate(0.1, 0.1, -0.13);

@@ -18,11 +18,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
-import net.minecraft.world.item.ItemStack;
 
-import vazkii.botania.client.core.helper.RenderHelper;
 import vazkii.botania.client.lib.ResourcesLib;
-import vazkii.botania.common.item.FlowerPouchItem;
 
 public class FlowerPouchGui extends AbstractContainerScreen<FlowerPouchContainer> {
 
@@ -53,20 +50,24 @@ public class FlowerPouchGui extends AbstractContainerScreen<FlowerPouchContainer
 		gui.blit(texture, k, l, 0, 0, imageWidth, imageHeight);
 
 		for (Slot slot : menu.slots) {
-			if (slot.container == menu.flowerBagInv) {
+			if (slot.container == menu.flowerBagInv
+					&& slot.hasItem()
+					&& slot.getItem().getCount() == 1) {
 				int x = this.leftPos + slot.x;
 				int y = this.topPos + slot.y;
-				if (!slot.hasItem()) {
-					ItemStack missingFlower = new ItemStack(FlowerPouchItem.getFlowerForSlot(slot.index));
-					RenderHelper.renderGuiItemAlpha(missingFlower, x, y, 0x5F, mc.getItemRenderer());
-				} else if (slot.getItem().getCount() == 1) {
-					// Always draw the count even at 1
-					ms.pushPose();
-					// Same as how much vanilla offsets when drawing items in guis
-					ms.translate(0, 0, 200);
-					gui.drawString(mc.font, "1", x + 11, y + 9, 0xFFFFFF);
-					ms.popPose();
-				}
+
+				// Always draw the count even at 1
+				ms.pushPose();
+				// Same as how much vanilla offsets when drawing items in GUIs
+				ms.translate(0, 0, 200);
+				gui.drawString(
+						mc.font,
+						"1",
+						x + 11,
+						y + 9,
+						0xFFFFFF
+				);
+				ms.popPose();
 			}
 		}
 	}

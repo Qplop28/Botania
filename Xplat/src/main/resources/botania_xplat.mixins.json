@@ -70,7 +70,6 @@
     "client.AbstractContainerScreenAccessor",
     "client.ClientLevelDataMixin",
     "client.ItemInHandRendererMixin",
-    "client.ItemRendererAccessor",
     "client.LevelRendererAccessor",
     "client.LevelRendererMixin",
     "client.RecipeBookComponentAccessor",

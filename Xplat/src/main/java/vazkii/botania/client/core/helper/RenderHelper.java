@@ -8,8 +8,6 @@
  */
 package vazkii.botania.client.core.helper;
 
-import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
@@ -22,23 +20,13 @@ import net.minecraft.util.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.*;
-import net.minecraft.client.resources.model.geometry.BakedQuad;
 import net.minecraft.client.renderer.blockentity.TheEndPortalRenderer;
-import net.minecraft.client.renderer.entity.ItemRenderer;
-import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.resources.model.BakedModel;
-import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
-import net.minecraft.util.RandomSource;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 
-import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11;
 
@@ -47,7 +35,6 @@ import vazkii.botania.client.lib.ResourcesLib;
 import vazkii.botania.client.render.block_entity.PylonBlockEntityRenderer;
 import vazkii.botania.common.helper.VecHelper;
 import vazkii.botania.common.item.equipment.bauble.FlugelTiaraItem;
-import vazkii.botania.mixin.client.ItemRendererAccessor;
 import vazkii.botania.mixin.client.RenderTypeAccessor;
 
 import java.util.Arrays;
@@ -396,64 +383,6 @@ public final class RenderHelper extends RenderType {
 	}
 
 	/**
-	 * @param color Must include alpha
-	 */
-	// [VanillaCopy] ItemRenderer.renderItem with simplifications + color support + custom model
-	public static void renderItemCustomColor(LivingEntity entity, ItemStack stack, int color, PoseStack ms, MultiBufferSource buffers, int light, int overlay, @Nullable BakedModel model) {
-		ms.pushPose();
-		if (model == null) {
-			model = Minecraft.getInstance().getItemRenderer().getModel(stack, entity.level(), entity, entity.getId());
-		}
-		model.getTransforms().getTransform(ItemDisplayContext.NONE).apply(false, ms);
-		ms.translate(-0.5D, -0.5D, -0.5D);
-
-		if (!model.isCustomRenderer() && !stack.is(Items.TRIDENT)) {
-			RenderType rendertype = ItemBlockRenderTypes.getRenderType(stack, true);
-			VertexConsumer ivertexbuilder = ItemRenderer.getFoilBufferDirect(buffers, rendertype, true, stack.hasFoil());
-			renderBakedItemModel(model, stack, color, light, overlay, ms, ivertexbuilder);
-		} else {
-			throw new IllegalArgumentException("Custom renderer items not supported");
-		}
-
-		ms.popPose();
-	}
-
-	public static void renderItemCustomColor(LivingEntity entity, ItemStack stack, int color, PoseStack ms, MultiBufferSource buffers, int light, int overlay) {
-		renderItemCustomColor(entity, stack, color, ms, buffers, light, overlay, null);
-	}
-
-	// [VanillaCopy] ItemRenderer with custom color
-	private static void renderBakedItemModel(BakedModel model, ItemStack stack, int color, int light, int overlay, PoseStack ms, VertexConsumer buffer) {
-		var random = RandomSource.create();
-		long i = 42L;
-
-		for (Direction direction : Direction.values()) {
-			random.setSeed(42L);
-			renderBakedItemQuads(ms, buffer, color, model.getQuads(null, direction, random), stack, light, overlay);
-		}
-
-		random.setSeed(42L);
-		renderBakedItemQuads(ms, buffer, color, model.getQuads(null, null, random), stack, light, overlay);
-	}
-
-	// Wraps ItemRenderer#renderQuadList for custom color support
-	private static void renderBakedItemQuads(PoseStack ms, VertexConsumer buffer, int color, List<BakedQuad> quads, ItemStack stack, int light, int overlay) {
-		float a = ((color >> 24) & 0xFF) / 255.0F;
-		float r = (float) (color >> 16 & 0xFF) / 255.0F;
-		float g = (float) (color >> 8 & 0xFF) / 255.0F;
-		float b = (float) (color & 0xFF) / 255.0F;
-
-		buffer = new DelegatedVertexConsumer(buffer) {
-			@Override
-			public VertexConsumer color(float red, float green, float blue, float alpha) {
-				return super.color(r, g, b, a);
-			}
-		};
-		((ItemRendererAccessor) Minecraft.getInstance().getItemRenderer())
-				.callRenderQuadList(ms, buffer, quads, stack, light, overlay);
-	}
-
-	/**
 	 * Draw an icon into the buffer, using the {@link RenderHelper#ICON_OVERLAY} vertex format
 	 *
 	 * @param startX   Start x position in blocks
@@ -548,60 +477,6 @@ public final class RenderHelper extends RenderType {
 						RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 					});
 		}
-	}
-
-	public static void renderGuiItemAlpha(ItemStack stack, int x, int y, int alpha, ItemRenderer renderer) {
-		renderGuiItemAlpha(stack, x, y, alpha, renderer.getModel(stack, null, null, 0), renderer);
-	}
-
-	/**
-	 * Like {@link ItemRenderer::renderGuiItem} but with alpha
-	 */
-	// [VanillaCopy] with a small change
-	public static void renderGuiItemAlpha(ItemStack stack, int x, int y, int alpha, BakedModel model, ItemRenderer renderer) {
-		Minecraft.getInstance().getTextureManager().getTexture(TextureAtlas.LOCATION_BLOCKS).setFilter(false, false);
-
-		RenderSystem.setShaderTexture(0, TextureAtlas.LOCATION_BLOCKS);
-
-		RenderSystem.enableBlend();
-		RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
-		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-
-		PoseStack modelViewStack = RenderSystem.getModelViewStack();
-		modelViewStack.pushPose();
-		modelViewStack.translate(x, y, 100.0F);
-		modelViewStack.translate(8.0D, 8.0D, 0.0D);
-		modelViewStack.scale(1.0F, -1.0F, 1.0F);
-		modelViewStack.scale(16.0F, 16.0F, 16.0F);
-		RenderSystem.applyModelViewMatrix();
-
-		boolean flatLight = !model.usesBlockLight();
-		if (flatLight) {
-			Lighting.setupForFlatItems();
-		}
-
-		MultiBufferSource.BufferSource buffer = Minecraft.getInstance().renderBuffers().bufferSource();
-		renderer.render(
-				stack,
-				ItemDisplayContext.GUI,
-				false,
-				new PoseStack(),
-				// This part differs from vanilla. We wrap the buffer to allow drawing translucently
-				wrapBuffer(buffer, alpha, alpha < 255),
-				LightTexture.FULL_BRIGHT,
-				OverlayTexture.NO_OVERLAY,
-				model
-		);
-		buffer.endBatch();
-
-		RenderSystem.enableDepthTest();
-
-		if (flatLight) {
-			Lighting.setupFor3DItems();
-		}
-
-		modelViewStack.popPose();
-		RenderSystem.applyModelViewMatrix();
 	}
 
 	private static MultiBufferSource wrapBuffer(MultiBufferSource buffer, int alpha, boolean forceTranslucent) {

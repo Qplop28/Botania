@@ -117,7 +117,12 @@ public class BotaniaTags {
 		/**
 		 * Items in this tag cannot give mana to the terra pick
 		 */
-		public static final TagKey<Item> TERRA_PICK_BLACKLIST = tag("terra_pick_blacklist");
+		public static final TagKey<Item> TERRA_PICK_BLACKLIST =
+				tag("terra_pick_blacklist");
+
+		public static final TagKey<Item> VITREOUS_PICKAXE_REPAIR_ITEMS =
+				tag("vitreous_pickaxe_repair_items");
+
 		public static final TagKey<Item> RODS = tag("rods");
 		/**
 		 * Items in this tag may consume mana

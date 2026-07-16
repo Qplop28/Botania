@@ -42,6 +42,7 @@ public class ItemTagProvider extends ItemTagsProvider {
 		this.tag(ItemTags.AXES).add(manasteelAxe, elementiumAxe, terraAxe);
 		this.tag(ItemTags.HOES).add(manasteelHoe, elementiumHoe);
 		this.tag(ItemTags.PICKAXES).add(manasteelPick, elementiumPick, terraPick, glassPick);
+		this.tag(BotaniaTags.Items.VITREOUS_PICKAXE_REPAIR_ITEMS).add(Items.GLASS);
 		this.tag(ItemTags.SHOVELS).add(manasteelShovel, elementiumShovel);
 		this.tag(ItemTags.SWORDS).add(manasteelSword, elementiumSword, terraSword, thunderSword, starSword);
 

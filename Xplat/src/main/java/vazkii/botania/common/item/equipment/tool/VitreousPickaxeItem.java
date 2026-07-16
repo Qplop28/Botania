@@ -9,20 +9,20 @@
 package vazkii.botania.common.item.equipment.tool;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Tier;
-import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.ToolMaterial;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 
 import vazkii.botania.common.annotations.SoftImplement;
 import vazkii.botania.common.item.equipment.tool.manasteel.ManasteelPickaxeItem;
+import vazkii.botania.common.lib.BotaniaTags;
 import vazkii.botania.xplat.XplatAbstractions;
 
 import java.util.Map;
@@ -30,37 +30,14 @@ import java.util.Map;
 public class VitreousPickaxeItem extends ManasteelPickaxeItem {
 	private static final String TAG_SILK_HACK = "botania:silk_hack";
 	private static final int MANA_PER_DAMAGE = 160;
-	private static final Tier MATERIAL = new Tier() {
-		@Override
-		public int getUses() {
-			return 125;
-		}
-
-		@Override
-		public float getSpeed() {
-			return 4.8F;
-		}
-
-		@Override
-		public float getAttackDamageBonus() {
-			return 0;
-		}
-
-		@Override
-		public int getLevel() {
-			return 0;
-		}
-
-		@Override
-		public int getEnchantmentValue() {
-			return 10;
-		}
-
-		@Override
-		public Ingredient getRepairIngredient() {
-			return Ingredient.of(Blocks.GLASS);
-		}
-	};
+	private static final ToolMaterial MATERIAL = new ToolMaterial(
+			BlockTags.INCORRECT_FOR_WOODEN_TOOL,
+			125,
+			4.8F,
+			0.0F,
+			10,
+			BotaniaTags.Items.VITREOUS_PICKAXE_REPAIR_ITEMS
+	);
 
 	public VitreousPickaxeItem(Properties props) {
 		super(MATERIAL, props, -1);

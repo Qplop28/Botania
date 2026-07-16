@@ -1,88 +1,77 @@
 /*
  * This class is distributed as part of the Botania Mod.
  * Get the Source Code in github:
- * https://github.com/Vazkii/Botania
+ * https://github.com/VazkiiMods/Botania
  *
  * Botania is Open Source and distributed under the
  * Botania License: http://botaniamod.net/license.php
  */
 package vazkii.botania.common.crafting.recipe;
 
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.resources.Identifier;
-import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
+import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
-
-import org.jetbrains.annotations.NotNull;
 
 import vazkii.botania.common.item.BotaniaItems;
 import vazkii.botania.common.item.ManaBlasterItem;
 
 public class ManaBlasterClipRecipe extends CustomRecipe {
-	public static final NoOpRecipeSerializer<ManaBlasterClipRecipe> SERIALIZER = new NoOpRecipeSerializer<>(ManaBlasterClipRecipe::new);
+	public static final RecipeSerializer<ManaBlasterClipRecipe> SERIALIZER =
+			NoOpRecipeSerializer.create(ManaBlasterClipRecipe::new);
 
-	public ManaBlasterClipRecipe(Identifier id) {
-		super(id, CraftingBookCategory.EQUIPMENT);
+	@Override
+	public RecipeSerializer<ManaBlasterClipRecipe> getSerializer() {
+		return SERIALIZER;
 	}
 
 	@Override
-	public boolean matches(@NotNull CraftingContainer inv, @NotNull Level world) {
+	public CraftingBookCategory category() {
+		return CraftingBookCategory.EQUIPMENT;
+	}
+
+	@Override
+	public boolean matches(CraftingInput input, Level level) {
 		boolean foundGun = false;
 		boolean foundClip = false;
 
-		for (int i = 0; i < inv.getContainerSize(); i++) {
-			ItemStack stack = inv.getItem(i);
-			if (!stack.isEmpty()) {
-				if (stack.getItem() instanceof ManaBlasterItem
-						&& !ManaBlasterItem.hasClip(stack) && !foundGun) {
-					foundGun = true;
-				} else if (stack.is(BotaniaItems.clip) && !foundClip) {
-					foundClip = true;
-				} else {
-					return false; // Found an invalid item, breaking the recipe
-				}
+		for (ItemStack stack : input.items()) {
+			if (stack.isEmpty()) {
+				continue;
+			}
+
+			if (stack.getItem() instanceof ManaBlasterItem
+					&& !ManaBlasterItem.hasClip(stack)
+					&& !foundGun) {
+				foundGun = true;
+			} else if (stack.is(BotaniaItems.clip) && !foundClip) {
+				foundClip = true;
+			} else {
+				return false;
 			}
 		}
 
 		return foundGun && foundClip;
 	}
 
-	@NotNull
 	@Override
-	public ItemStack assemble(@NotNull CraftingContainer inv, @NotNull RegistryAccess registries) {
-		ItemStack gun = ItemStack.EMPTY;
+	public ItemStack assemble(CraftingInput input) {
+		for (ItemStack stack : input.items()) {
+			if (!stack.isEmpty()
+					&& stack.getItem() instanceof ManaBlasterItem) {
+				ItemStack result = stack.copyWithCount(1);
+				ItemStack lens = ManaBlasterItem.getLens(stack);
 
-		for (int i = 0; i < inv.getContainerSize(); i++) {
-			ItemStack stack = inv.getItem(i);
-			if (!stack.isEmpty() && stack.getItem() instanceof ManaBlasterItem) {
-				gun = stack;
+				ManaBlasterItem.setLens(result, ItemStack.EMPTY);
+				ManaBlasterItem.setClip(result, true);
+				ManaBlasterItem.setLensAtPos(result, lens, 0);
+
+				return result;
 			}
 		}
 
-		if (gun.isEmpty()) {
-			return ItemStack.EMPTY;
-		}
-
-		ItemStack lens = ManaBlasterItem.getLens(gun);
-		ItemStack gunCopy = gun.copy();
-		ManaBlasterItem.setLens(gunCopy, ItemStack.EMPTY);
-		ManaBlasterItem.setClip(gunCopy, true);
-		ManaBlasterItem.setLensAtPos(gunCopy, lens, 0);
-		return gunCopy;
-	}
-
-	@Override
-	public boolean canCraftInDimensions(int width, int height) {
-		return width * height >= 2;
-	}
-
-	@NotNull
-	@Override
-	public RecipeSerializer<?> getSerializer() {
-		return SERIALIZER;
+		return ItemStack.EMPTY;
 	}
 }

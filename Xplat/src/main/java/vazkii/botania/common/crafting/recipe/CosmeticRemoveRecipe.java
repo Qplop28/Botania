@@ -9,89 +9,101 @@
 package vazkii.botania.common.crafting.recipe;
 
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.resources.Identifier;
-import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
+import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
-
-import org.jetbrains.annotations.NotNull;
 
 import vazkii.botania.api.item.CosmeticAttachable;
 import vazkii.botania.api.item.CosmeticBauble;
 import vazkii.botania.common.item.equipment.bauble.BaubleItem;
 
 public class CosmeticRemoveRecipe extends CustomRecipe {
-	public static final NoOpRecipeSerializer<CosmeticRemoveRecipe> SERIALIZER = new NoOpRecipeSerializer<>(CosmeticRemoveRecipe::new);
+	public static final RecipeSerializer<CosmeticRemoveRecipe> SERIALIZER =
+			NoOpRecipeSerializer.create(CosmeticRemoveRecipe::new);
 
-	public CosmeticRemoveRecipe(Identifier id) {
-		super(id, CraftingBookCategory.EQUIPMENT);
+	@Override
+	public RecipeSerializer<CosmeticRemoveRecipe> getSerializer() {
+		return SERIALIZER;
 	}
 
 	@Override
-	public boolean matches(@NotNull CraftingContainer inv, @NotNull Level world) {
+	public CraftingBookCategory category() {
+		return CraftingBookCategory.EQUIPMENT;
+	}
+
+	@Override
+	public boolean matches(CraftingInput input, Level level) {
 		boolean foundAttachable = false;
 
-		for (int i = 0; i < inv.getContainerSize(); i++) {
-			ItemStack stack = inv.getItem(i);
-			if (!stack.isEmpty()) {
-				if (stack.getItem() instanceof CosmeticAttachable attachable && !(stack.getItem() instanceof CosmeticBauble) && !attachable.getCosmeticItem(stack).isEmpty()) {
-					foundAttachable = true;
-				} else {
-					return false;
-				}
+		for (ItemStack stack : input.items()) {
+			if (stack.isEmpty()) {
+				continue;
+			}
+
+			if (stack.getItem() instanceof CosmeticAttachable attachable
+					&& !(stack.getItem() instanceof CosmeticBauble)
+					&& !attachable.getCosmeticItem(stack).isEmpty()
+					&& !foundAttachable) {
+				foundAttachable = true;
+			} else {
+				return false;
 			}
 		}
 
 		return foundAttachable;
 	}
 
-	@NotNull
 	@Override
-	public ItemStack assemble(@NotNull CraftingContainer inv, @NotNull RegistryAccess registries) {
-		ItemStack attachableItem = ItemStack.EMPTY;
+	public ItemStack assemble(CraftingInput input) {
+		ItemStack attachableStack = ItemStack.EMPTY;
 
-		for (int i = 0; i < inv.getContainerSize(); i++) {
-			ItemStack stack = inv.getItem(i);
-			if (!stack.isEmpty()) {
-				attachableItem = stack;
+		for (ItemStack stack : input.items()) {
+			if (stack.isEmpty()) {
+				continue;
 			}
+
+			if (!(stack.getItem() instanceof CosmeticAttachable)
+					|| stack.getItem() instanceof CosmeticBauble
+					|| !attachableStack.isEmpty()) {
+				return ItemStack.EMPTY;
+			}
+
+			attachableStack = stack;
 		}
 
-		CosmeticAttachable attachable = (CosmeticAttachable) attachableItem.getItem();
-		if (attachable.getCosmeticItem(attachableItem).isEmpty()) {
+		if (attachableStack.isEmpty()
+				|| !(attachableStack.getItem()
+						instanceof CosmeticAttachable attachable)
+				|| attachable.getCosmeticItem(attachableStack).isEmpty()) {
 			return ItemStack.EMPTY;
 		}
 
-		ItemStack copy = attachableItem.copyWithCount(1);
-		attachable.setCosmeticItem(copy, ItemStack.EMPTY);
-		return copy;
+		ItemStack result = attachableStack.copyWithCount(1);
+		attachable.setCosmeticItem(result, ItemStack.EMPTY);
+		return result;
 	}
 
 	@Override
-	public boolean canCraftInDimensions(int width, int height) {
-		return width * height > 0;
-	}
+	public NonNullList<ItemStack> getRemainingItems(CraftingInput input) {
+		NonNullList<ItemStack> remaining =
+				CraftingRecipe.defaultCraftingReminder(input);
 
-	@NotNull
-	@Override
-	public RecipeSerializer<?> getSerializer() {
-		return SERIALIZER;
-	}
+		for (int i = 0; i < input.size(); i++) {
+			ItemStack stack = input.getItem(i);
 
-	@NotNull
-	@Override
-	public NonNullList<ItemStack> getRemainingItems(@NotNull CraftingContainer inv) {
-		return RecipeUtils.getRemainingItemsSub(inv, s -> {
-			if (s.getItem() instanceof BaubleItem bauble) {
-				ItemStack stack = bauble.getCosmeticItem(s);
-				stack.setCount(1);
-				return stack;
+			if (stack.getItem() instanceof BaubleItem bauble) {
+				ItemStack cosmetic = bauble.getCosmeticItem(stack);
+
+				if (!cosmetic.isEmpty()) {
+					remaining.set(i, cosmetic.copyWithCount(1));
+				}
 			}
-			return null;
-		});
+		}
+
+		return remaining;
 	}
 }

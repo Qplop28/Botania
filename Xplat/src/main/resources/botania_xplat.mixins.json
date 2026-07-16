@@ -68,7 +68,6 @@
  "client": [
     "BlockModelGeneratorsAccessor",
     "client.AbstractContainerScreenAccessor",
-    "client.AbstractContainerScreenAccessor",
     "client.ClientLevelDataMixin",
     "client.ItemInHandRendererMixin",
     "client.LevelRendererAccessor",

@@ -16,8 +16,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
@@ -36,7 +34,6 @@ import org.lwjgl.opengl.GL11;
 
 import vazkii.botania.api.mana.ManaItemHandler;
 import vazkii.botania.client.core.handler.ClientTickHandler;
-import vazkii.botania.client.core.handler.MiscellaneousModels;
 import vazkii.botania.client.core.helper.RenderHelper;
 import vazkii.botania.client.fx.SparkleParticleData;
 import vazkii.botania.client.lib.ResourcesLib;
@@ -52,7 +49,6 @@ import vazkii.botania.common.item.BotaniaItems;
 import vazkii.botania.common.item.CustomCreativeTabContents;
 import vazkii.botania.common.item.StoneOfTemperanceItem;
 import vazkii.botania.common.proxy.Proxy;
-import vazkii.botania.xplat.ClientXplatAbstractions;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -282,177 +278,23 @@ public class FlugelTiaraItem extends BaubleItem implements CustomCreativeTabCont
 	}
 
 	public static class Renderer implements AccessoryRenderer {
-		/*
-			NB: All of the following methods are somewhat similar, but they are split apart to isolate the logic.
-			Trying too hard to factor things out of each case led to very spaghetti-looking code.
-			As such, only Jibril's is commented, the rest are variations on the same theme
-		*/
-
-		private static void renderBasic(HumanoidModel<?> bipedModel, BakedModel model, ItemStack stack, PoseStack ms, MultiBufferSource buffers, int light, float flap) {
-			ms.pushPose();
-
-			// attach to body
-			bipedModel.body.translateAndRotate(ms);
-
-			// position on body
-			ms.translate(0, 0.5, 0.2);
-
-			for (int i = 0; i < 2; i++) {
-				ms.pushPose();
-				ms.mulPose(VecHelper.rotateY(i == 0 ? flap : 180 - flap));
-
-				// move so flapping about the edge instead of center of texture
-				ms.translate(-1, 0, 0);
-
-				// rotate since the textures are stored rotated
-				ms.mulPose(VecHelper.rotateZ(-60));
-				ms.scale(1.5F, -1.5F, -1.5F);
-				Minecraft.getInstance().getItemRenderer().render(stack, ItemDisplayContext.NONE, false, ms, buffers, light, OverlayTexture.NO_OVERLAY, model);
-				ms.popPose();
-			}
-
-			ms.popPose();
-		}
-
-		private static void renderSephiroth(HumanoidModel<?> bipedModel, BakedModel model, ItemStack stack, PoseStack ms, MultiBufferSource buffers, int light, float flap) {
-			ms.pushPose();
-			bipedModel.body.translateAndRotate(ms);
-			ms.translate(0, 0.5, 0.2);
-
-			ms.mulPose(VecHelper.rotateY(flap));
-			ms.translate(-1.1, 0, 0);
-
-			ms.mulPose(VecHelper.rotateZ(-60));
-			ms.scale(1.6F, -1.6F, -1.6F);
-			Minecraft.getInstance().getItemRenderer().render(stack, ItemDisplayContext.NONE, false, ms, buffers, light, OverlayTexture.NO_OVERLAY, model);
-			ms.popPose();
-		}
-
-		private static void renderCirno(HumanoidModel<?> bipedModel, BakedModel model, ItemStack stack, PoseStack ms, MultiBufferSource buffers, int light) {
-			ms.pushPose();
-			bipedModel.body.translateAndRotate(ms);
-			ms.translate(-0.8, 0.15, 0.25);
-
-			for (int i = 0; i < 2; i++) {
-				ms.pushPose();
-
-				if (i == 1) {
-					ms.mulPose(VecHelper.rotateY(180));
-					ms.translate(-1.6, 0, 0);
-				}
-
-				ms.scale(1.6F, -1.6F, -1.6F);
-				Minecraft.getInstance().getItemRenderer().render(stack, ItemDisplayContext.NONE, false, ms, buffers, light, OverlayTexture.NO_OVERLAY, model);
-				ms.popPose();
-			}
-
-			ms.popPose();
-		}
-
-		private static void renderPhoenix(HumanoidModel<?> bipedModel, BakedModel model, ItemStack stack, PoseStack ms, MultiBufferSource buffers, float flap) {
-			ms.pushPose();
-			bipedModel.body.translateAndRotate(ms);
-			ms.translate(0, -0.2, 0.2);
-
-			for (int i = 0; i < 2; i++) {
-				ms.pushPose();
-				ms.mulPose(VecHelper.rotateY(i == 0 ? flap : 180 - flap));
-
-				ms.translate(-0.9, 0, 0);
-
-				ms.scale(1.7F, -1.7F, -1.7F);
-				Minecraft.getInstance().getItemRenderer().render(stack, ItemDisplayContext.NONE, false, ms, buffers, 0xF000F0, OverlayTexture.NO_OVERLAY, model);
-				ms.popPose();
-			}
-
-			ms.popPose();
-		}
-
-		private static void renderKuroyukihime(HumanoidModel<?> bipedModel, BakedModel model, ItemStack stack, PoseStack ms, MultiBufferSource buffers, float flap) {
-			ms.pushPose();
-			bipedModel.body.translateAndRotate(ms);
-			ms.translate(0, -0.4, 0.2);
-
-			for (int i = 0; i < 2; i++) {
-				ms.pushPose();
-				ms.mulPose(VecHelper.rotateY(i == 0 ? flap : 180 - flap));
-
-				ms.translate(-1.3, 0, 0);
-
-				ms.scale(2.5F, -2.5F, -2.5F);
-				Minecraft.getInstance().getItemRenderer().render(stack, ItemDisplayContext.NONE, false, ms, buffers, 0xF000F0, OverlayTexture.NO_OVERLAY, model);
-				ms.popPose();
-			}
-
-			ms.popPose();
-		}
-
-		private static void renderCustomColor(HumanoidModel<?> bipedModel, BakedModel model, LivingEntity living, ItemStack stack, PoseStack ms, MultiBufferSource buffers, float flap, int color) {
-			ms.pushPose();
-			bipedModel.body.translateAndRotate(ms);
-			ms.translate(0, 0, 0.2);
-
-			for (int i = 0; i < 2; i++) {
-				ms.pushPose();
-				ms.mulPose(VecHelper.rotateY(i == 0 ? flap : 180 - flap));
-				ms.translate(-0.7, 0, 0);
-
-				ms.scale(1.5F, -1.5F, -1.5F);
-
-				RenderHelper.renderItemCustomColor(living, stack, color, ms, buffers, 0xF000F0, OverlayTexture.NO_OVERLAY, model);
-				ms.popPose();
-			}
-
-			ms.popPose();
-		}
-
 		@Override
-		public void doRender(HumanoidModel<?> bipedModel, ItemStack stack, LivingEntity living, PoseStack ms, MultiBufferSource buffers, int light, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
-			int meta = getVariant(stack);
-			if (meta <= 0 || meta >= MiscellaneousModels.INSTANCE.tiaraWingIcons.length + 1) {
-				return;
-			}
-
-			BakedModel model = MiscellaneousModels.INSTANCE.tiaraWingIcons[meta - 1];
-			ClientXplatAbstractions.instance().markSpriteActive(model.getParticleIcon());
-			boolean flying = living instanceof Player player && player.getAbilities().flying;
-			float flap = 20F + (float) ((Math.sin((double) (living.tickCount + partialTicks) * (flying ? 0.4F : 0.2F)) + 0.5F) * (flying ? 30F : 5F));
-
-			switch (meta) {
-				case 1:
-					renderBasic(bipedModel, model, stack, ms, buffers, light, flap);
-					ms.pushPose();
-					ClientLogic.renderHalo(bipedModel, living, ms, buffers, partialTicks);
-					ms.popPose();
-					break;
-				case 2:
-					renderSephiroth(bipedModel, model, stack, ms, buffers, light, flap);
-					break;
-				case 3:
-					renderCirno(bipedModel, model, stack, ms, buffers, light);
-					break;
-				case 4:
-					renderPhoenix(bipedModel, model, stack, ms, buffers, flap);
-					break;
-				case 5:
-					renderKuroyukihime(bipedModel, model, stack, ms, buffers, flap);
-					break;
-				case 6:
-				case 8:
-					renderBasic(bipedModel, model, stack, ms, buffers, light, flap);
-					break;
-				case 7:
-					float alpha = 0.5F + (float) Math.cos((double) (living.tickCount + partialTicks) * 0.3F) * 0.2F;
-					int color = 0xFFFFFF | ((int) (alpha * 255F)) << 24;
-					renderCustomColor(bipedModel, model, living, stack, ms, buffers, flap, color);
-					break;
-				case 9:
-					flap = -(float) ((Math.sin((double) (living.tickCount + partialTicks) * 0.2F) + 0.6F) * (flying ? 12F : 5F));
-					alpha = 0.5F + (flying ? (float) Math.cos((double) (living.tickCount + partialTicks) * 0.3F) * 0.25F + 0.25F : 0F);
-					color = 0xFFFFFF | ((int) (alpha * 255F)) << 24;
-					renderCustomColor(bipedModel, model, living, stack, ms, buffers, flap, color);
-					break;
-			}
+		public void doRender(
+				HumanoidModel<?> bipedModel,
+				ItemStack stack,
+				LivingEntity living,
+				PoseStack ms,
+				MultiBufferSource buffers,
+				int light,
+				float limbSwing,
+				float limbSwingAmount,
+				float partialTicks,
+				float ageInTicks,
+				float netHeadYaw,
+				float headPitch
+		) {
+			// Flugel Tiara wings must be migrated to Minecraft 26.1's
+			// item-model and render-state pipeline.
 		}
 	}
 

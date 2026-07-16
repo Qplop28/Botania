@@ -3,14 +3,11 @@ package vazkii.botania.fabric.client;
 import com.mojang.blaze3d.vertex.PoseStack;
 
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.texture.AbstractTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.util.RandomSource;
 import net.minecraft.util.Unit;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
@@ -64,11 +61,30 @@ public class FabricClientXplatImpl implements ClientXplatAbstractions {
 	}
 
 	@Override
-	public void tessellateBlock(Level level, BlockState state, BlockPos pos, PoseStack ps, MultiBufferSource buffers, int overlay) {
+	public void tessellateBlock(
+			Level level,
+			BlockState state,
+			BlockPos pos,
+			PoseStack ps,
+			MultiBufferSource buffers,
+			int overlay
+	) {
 		var brd = Minecraft.getInstance().getBlockRenderer();
-		var buffer = buffers.getBuffer(ItemBlockRenderTypes.getRenderType(state, false));
-		brd.getModelRenderer().tesselateBlock(level, brd.getBlockModel(state), state, pos, ps,
-				buffer, true, RandomSource.create(), state.getSeed(pos), overlay);
+		var buffer = buffers.getBuffer(
+				ItemBlockRenderTypes.getRenderType(state, false)
+		);
+		brd.getModelRenderer().tesselateBlock(
+				level,
+				brd.getBlockModel(state),
+				state,
+				pos,
+				ps,
+				buffer,
+				true,
+				RandomSource.create(),
+				state.getSeed(pos),
+				overlay
+		);
 	}
 
 	@Override

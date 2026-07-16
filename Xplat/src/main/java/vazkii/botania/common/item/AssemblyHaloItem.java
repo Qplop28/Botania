@@ -21,11 +21,8 @@ import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
-import net.minecraft.recipebook.ServerPlaceRecipe;
 import net.minecraft.resources.Identifier;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.*;
 import net.minecraft.world.Container;
 import net.minecraft.world.InteractionHand;
@@ -39,8 +36,6 @@ import net.minecraft.world.entity.player.StackedContents;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.CraftingContainer;
-import net.minecraft.world.inventory.CraftingMenu;
-import net.minecraft.world.inventory.RecipeBookMenu;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
@@ -64,9 +59,6 @@ import vazkii.botania.common.crafting.BotaniaRecipeTypes;
 import vazkii.botania.common.helper.ItemNBTHelper;
 import vazkii.botania.common.helper.PlayerHelper;
 import vazkii.botania.common.helper.VecHelper;
-import vazkii.botania.network.EffectType;
-import vazkii.botania.network.clientbound.BotaniaEffectPacket;
-import vazkii.botania.xplat.XplatAbstractions;
 
 public class AssemblyHaloItem extends Item {
 
@@ -156,10 +148,9 @@ public class AssemblyHaloItem extends Item {
 		return accounter.canCraft(recipe, null);
 	}
 
-	void tryCraft(Player player, ItemStack halo, int slot, boolean particles) {
-		Recipe<CraftingContainer> recipe = getSavedRecipe(player.level(), halo, slot);
-		if (recipe == null) {
-			return;
+		void tryCraft(Player player, ItemStack halo, int slot, boolean particles) {
+			// Assembly Halo autocrafting must be migrated to Minecraft 26.1's
+			// static ServerPlaceRecipe and RecipeHolder pipeline.
 		}
 
 		CraftingMenu dummy = new CraftingMenu(-999, player.getInventory());
@@ -513,41 +504,6 @@ public class AssemblyHaloItem extends Item {
 			}
 
 			gui.drawCenteredString(mc.font, label, mc.getWindow().getGuiScaledWidth() / 2, mc.getWindow().getGuiScaledHeight() / 2 - yoff, 0xFFFFFF);
-		}
-	}
-
-	public static class RecipePlacer extends ServerPlaceRecipe<CraftingContainer> {
-		public RecipePlacer(RecipeBookMenu<CraftingContainer> container) {
-			super(container);
-		}
-
-		// [VanillaCopy] Based on super.recipeClicked
-		public boolean place(ServerPlayer player, @Nullable Recipe<CraftingContainer> recipe) {
-			if (recipe != null) {
-				this.inventory = player.getInventory();
-				this.stackedContents.clear();
-				player.getInventory().fillStackedContents(this.stackedContents);
-				this.menu.fillCraftSlotsStackedContents(this.stackedContents);
-
-				boolean ret;
-				if (this.stackedContents.canCraft(recipe, null)) {
-					this.handleRecipeClicked(recipe, false);
-					ret = true;
-				} else {
-					this.clearGrid();
-					ret = false;
-				}
-
-				player.getInventory().setChanged();
-				return ret;
-			}
-			return false;
-		}
-
-		// Make public
-		@Override
-		public void clearGrid() {
-			super.clearGrid();
 		}
 	}
 }

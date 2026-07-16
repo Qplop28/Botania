@@ -8,86 +8,78 @@
  */
 package vazkii.botania.common.crafting.recipe;
 
-import net.minecraft.core.NonNullList;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.resources.Identifier;
-import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
+import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CustomRecipe;
-import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
 
-import org.jetbrains.annotations.NotNull;
-
+import vazkii.botania.common.helper.ItemNBTHelper;
 import vazkii.botania.common.item.BotaniaItems;
 import vazkii.botania.common.item.LaputaShardItem;
 
 public class LaputaShardUpgradeRecipe extends CustomRecipe {
-	public static final NoOpRecipeSerializer<LaputaShardUpgradeRecipe> SERIALIZER = new NoOpRecipeSerializer<>(LaputaShardUpgradeRecipe::new);
+	public static final RecipeSerializer<LaputaShardUpgradeRecipe> SERIALIZER =
+			NoOpRecipeSerializer.create(LaputaShardUpgradeRecipe::new);
 
-	public LaputaShardUpgradeRecipe(Identifier id) {
-		super(id, CraftingBookCategory.MISC);
+	@Override
+	public RecipeSerializer<LaputaShardUpgradeRecipe> getSerializer() {
+		return SERIALIZER;
 	}
 
 	@Override
-	public boolean matches(@NotNull CraftingContainer inv, @NotNull Level worldIn) {
+	public CraftingBookCategory category() {
+		return CraftingBookCategory.MISC;
+	}
+
+	@Override
+	public boolean matches(CraftingInput input, Level level) {
 		boolean foundShard = false;
-		boolean foundSpirit = false;
-		for (int i = 0; i < inv.getContainerSize(); i++) {
-			ItemStack stack = inv.getItem(i);
+		boolean foundLifeEssence = false;
+
+		for (ItemStack stack : input.items()) {
 			if (stack.isEmpty()) {
 				continue;
 			}
-			if (stack.is(BotaniaItems.laputaShard) && !foundShard
+
+			if (stack.is(BotaniaItems.laputaShard)
+					&& !foundShard
 					&& LaputaShardItem.getShardLevel(stack) < 19) {
 				foundShard = true;
-			} else if (stack.is(BotaniaItems.lifeEssence) && !foundSpirit) {
-				foundSpirit = true;
+			} else if (stack.is(BotaniaItems.lifeEssence)
+					&& !foundLifeEssence) {
+				foundLifeEssence = true;
 			} else {
 				return false;
 			}
 		}
-		return foundShard && foundSpirit;
+
+		return foundShard && foundLifeEssence;
 	}
 
-	@NotNull
 	@Override
-	public ItemStack getResultItem(@NotNull RegistryAccess registries) {
-		return new ItemStack(BotaniaItems.laputaShard);
-	}
-
-	@NotNull
-	@Override
-	public NonNullList<Ingredient> getIngredients() {
-		return NonNullList.of(Ingredient.EMPTY,
-				Ingredient.of(BotaniaItems.laputaShard),
-				Ingredient.of(BotaniaItems.lifeEssence));
-	}
-
-	@NotNull
-	@Override
-	public ItemStack assemble(@NotNull CraftingContainer inv, @NotNull RegistryAccess registries) {
-		for (int i = 0; i < inv.getContainerSize(); i++) {
-			ItemStack stack = inv.getItem(i);
-			if (stack.is(BotaniaItems.laputaShard)) {
-				ItemStack result = stack.copy();
-				result.getOrCreateTag().putInt(LaputaShardItem.TAG_LEVEL, LaputaShardItem.getShardLevel(stack) + 1);
-				return result;
+	public ItemStack assemble(CraftingInput input) {
+		for (ItemStack stack : input.items()) {
+			if (!stack.is(BotaniaItems.laputaShard)) {
+				continue;
 			}
+
+			int shardLevel = LaputaShardItem.getShardLevel(stack);
+
+			if (shardLevel >= 19) {
+				return ItemStack.EMPTY;
+			}
+
+			ItemStack result = stack.copyWithCount(1);
+			ItemNBTHelper.setInt(
+					result,
+					LaputaShardItem.TAG_LEVEL,
+					shardLevel + 1
+			);
+			return result;
 		}
+
 		return ItemStack.EMPTY;
-	}
-
-	@Override
-	public boolean canCraftInDimensions(int width, int height) {
-		return width * height >= 2;
-	}
-
-	@NotNull
-	@Override
-	public RecipeSerializer<?> getSerializer() {
-		return SERIALIZER;
 	}
 }

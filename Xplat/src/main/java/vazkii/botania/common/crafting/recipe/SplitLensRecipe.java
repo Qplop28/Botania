@@ -9,82 +9,89 @@
 package vazkii.botania.common.crafting.recipe;
 
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.resources.Identifier;
-import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
+import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
 
-import org.jetbrains.annotations.NotNull;
-
 import vazkii.botania.api.mana.BasicLensItem;
 
 public class SplitLensRecipe extends CustomRecipe {
-	public static final NoOpRecipeSerializer<SplitLensRecipe> SERIALIZER = new NoOpRecipeSerializer<>(SplitLensRecipe::new);
+	public static final RecipeSerializer<SplitLensRecipe> SERIALIZER =
+			NoOpRecipeSerializer.create(SplitLensRecipe::new);
 
-	public SplitLensRecipe(Identifier id) {
-		super(id, CraftingBookCategory.REDSTONE);
+	@Override
+	public RecipeSerializer<SplitLensRecipe> getSerializer() {
+		return SERIALIZER;
 	}
 
 	@Override
-	public boolean matches(@NotNull CraftingContainer inv, @NotNull Level level) {
-		return !assemble(inv, level.registryAccess()).isEmpty();
+	public CraftingBookCategory category() {
+		return CraftingBookCategory.REDSTONE;
 	}
 
-	@NotNull
 	@Override
-	public ItemStack assemble(CraftingContainer inv, @NotNull RegistryAccess registries) {
-		ItemStack found = ItemStack.EMPTY;
-		for (int i = 0; i < inv.getContainerSize(); i++) {
-			ItemStack candidate = inv.getItem(i);
+	public boolean matches(CraftingInput input, Level level) {
+		return !assemble(input).isEmpty();
+	}
+
+	@Override
+	public ItemStack assemble(CraftingInput input) {
+		ItemStack compositeLens = ItemStack.EMPTY;
+
+		for (ItemStack candidate : input.items()) {
 			if (candidate.isEmpty()) {
 				continue;
 			}
-			if (!found.isEmpty() || (found = getComposite(candidate)).isEmpty()) {
+
+			if (!compositeLens.isEmpty()) {
+				return ItemStack.EMPTY;
+			}
+
+			compositeLens = getComposite(candidate);
+
+			if (compositeLens.isEmpty()) {
 				return ItemStack.EMPTY;
 			}
 		}
-		if (!found.isEmpty()) {
-			found = found.copyWithCount(1);
-		}
-		return found;
+
+		return compositeLens.isEmpty()
+				? ItemStack.EMPTY
+				: compositeLens.copyWithCount(1);
 	}
 
 	private ItemStack getComposite(ItemStack stack) {
 		Item item = stack.getItem();
+
 		if (!(item instanceof BasicLensItem basicLens)) {
 			return ItemStack.EMPTY;
 		}
+
 		return basicLens.getCompositeLens(stack);
 	}
 
-	@NotNull
 	@Override
-	public NonNullList<ItemStack> getRemainingItems(CraftingContainer inv) {
-		NonNullList<ItemStack> remaining = NonNullList.withSize(inv.getContainerSize(), ItemStack.EMPTY);
-		for (int i = 0; i < inv.getContainerSize(); i++) {
-			ItemStack candidate = inv.getItem(i);
-			if (candidate.getItem() instanceof BasicLensItem basicLensItem) {
-				ItemStack newLens = candidate.copyWithCount(1);
-				basicLensItem.setCompositeLens(newLens, ItemStack.EMPTY);
-				remaining.set(i, newLens);
+	public NonNullList<ItemStack> getRemainingItems(CraftingInput input) {
+		NonNullList<ItemStack> remaining =
+				CraftingRecipe.defaultCraftingReminder(input);
+
+		for (int i = 0; i < input.size(); i++) {
+			ItemStack candidate = input.getItem(i);
+
+			if (candidate.getItem() instanceof BasicLensItem basicLens) {
+				ItemStack separatedLens = candidate.copyWithCount(1);
+				separatedLens = basicLens.setCompositeLens(
+						separatedLens,
+						ItemStack.EMPTY
+				);
+				remaining.set(i, separatedLens);
 			}
 		}
+
 		return remaining;
-	}
-
-	@Override
-	public boolean canCraftInDimensions(int width, int height) {
-		return width * height >= 1;
-	}
-
-	@NotNull
-	@Override
-	public RecipeSerializer<?> getSerializer() {
-		return SERIALIZER;
 	}
 }

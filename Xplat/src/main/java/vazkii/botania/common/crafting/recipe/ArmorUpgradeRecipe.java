@@ -8,68 +8,127 @@
  */
 package vazkii.botania.common.crafting.recipe;
 
-import com.google.gson.JsonObject;
+import com.mojang.serialization.MapCodec;
 
-import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.Identifier;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CraftingBookCategory;
+import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.item.crafting.PlacementInfo;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.ShapedRecipe;
+import net.minecraft.world.item.crafting.display.RecipeDisplay;
 import net.minecraft.world.item.equipment.Equippable;
+import net.minecraft.world.level.Level;
 
-import org.jetbrains.annotations.NotNull;
+import java.util.List;
 
-public class ArmorUpgradeRecipe extends ShapedRecipe {
-	public ArmorUpgradeRecipe(ShapedRecipe compose) {
-		super(compose.getId(), compose.getGroup(), compose.category(), compose.getWidth(), compose.getHeight(),
-				compose.getIngredients(),
-				// XXX: Hacky, but compose should always be a vanilla shaped recipe which doesn't do anything with the
-				// RegistryAccess
-				compose.getResultItem(RegistryAccess.EMPTY));
+public final class ArmorUpgradeRecipe implements CraftingRecipe {
+	private static final MapCodec<ArmorUpgradeRecipe> CODEC =
+			ShapedRecipe.MAP_CODEC.xmap(
+					ArmorUpgradeRecipe::new,
+					ArmorUpgradeRecipe::delegate
+			);
+
+	private static final StreamCodec<
+			RegistryFriendlyByteBuf,
+			ArmorUpgradeRecipe
+	> STREAM_CODEC = new StreamCodec<>() {
+		@Override
+		public ArmorUpgradeRecipe decode(
+				RegistryFriendlyByteBuf buffer
+		) {
+			return new ArmorUpgradeRecipe(
+					ShapedRecipe.STREAM_CODEC.decode(buffer)
+			);
+		}
+
+		@Override
+		public void encode(
+				RegistryFriendlyByteBuf buffer,
+				ArmorUpgradeRecipe recipe
+		) {
+			ShapedRecipe.STREAM_CODEC.encode(
+					buffer,
+					recipe.delegate
+			);
+		}
+	};
+
+	public static final RecipeSerializer<ArmorUpgradeRecipe> SERIALIZER =
+			new RecipeSerializer<>(CODEC, STREAM_CODEC);
+
+	private final ShapedRecipe delegate;
+
+	public ArmorUpgradeRecipe(ShapedRecipe delegate) {
+		this.delegate = delegate;
 	}
 
-	@NotNull
+	private ShapedRecipe delegate() {
+		return this.delegate;
+	}
+
 	@Override
-	public ItemStack assemble(@NotNull CraftingContainer inv, @NotNull RegistryAccess registries) {
-		ItemStack out = super.assemble(inv, registries);
-		for (int i = 0; i < inv.getContainerSize(); i++) {
-			ItemStack stack = inv.getItem(i);
-			Equippable equippable = stack.get(DataComponents.EQUIPPABLE);
+	public boolean matches(CraftingInput input, Level level) {
+		return this.delegate.matches(input, level);
+	}
+
+	@Override
+	public ItemStack assemble(CraftingInput input) {
+		ItemStack result = this.delegate.assemble(input);
+
+		for (ItemStack stack : input.items()) {
+			if (stack.isEmpty()) {
+				continue;
+			}
+
+			Equippable equippable =
+					stack.get(DataComponents.EQUIPPABLE);
+
 			if (equippable != null
-					&& equippable.slot().getType() == EquipmentSlot.Type.HUMANOID_ARMOR) {
-				out.applyComponentsAndValidate(stack.getComponentsPatch());
+					&& equippable.slot().getType()
+							== EquipmentSlot.Type.HUMANOID_ARMOR) {
+				result.applyComponentsAndValidate(
+						stack.getComponentsPatch()
+				);
 				break;
 			}
 		}
-		return out;
+
+		return result;
 	}
 
-	@NotNull
 	@Override
-	public RecipeSerializer<?> getSerializer() {
+	public boolean showNotification() {
+		return this.delegate.showNotification();
+	}
+
+	@Override
+	public String group() {
+		return this.delegate.group();
+	}
+
+	@Override
+	public RecipeSerializer<ArmorUpgradeRecipe> getSerializer() {
 		return SERIALIZER;
 	}
 
-	public static final RecipeSerializer<ArmorUpgradeRecipe> SERIALIZER = new Serializer();
+	@Override
+	public PlacementInfo placementInfo() {
+		return this.delegate.placementInfo();
+	}
 
-	private static class Serializer implements RecipeSerializer<ArmorUpgradeRecipe> {
-		@Override
-		public ArmorUpgradeRecipe fromJson(@NotNull Identifier recipeId, @NotNull JsonObject json) {
-			return new ArmorUpgradeRecipe(SHAPED_RECIPE.fromJson(recipeId, json));
-		}
+	@Override
+	public CraftingBookCategory category() {
+		return this.delegate.category();
+	}
 
-		@Override
-		public ArmorUpgradeRecipe fromNetwork(@NotNull Identifier recipeId, @NotNull FriendlyByteBuf buffer) {
-			return new ArmorUpgradeRecipe(SHAPED_RECIPE.fromNetwork(recipeId, buffer));
-		}
-
-		@Override
-		public void toNetwork(@NotNull FriendlyByteBuf buffer, @NotNull ArmorUpgradeRecipe recipe) {
-			SHAPED_RECIPE.toNetwork(buffer, recipe);
-		}
+	@Override
+	public List<RecipeDisplay> display() {
+		return this.delegate.display();
 	}
 }

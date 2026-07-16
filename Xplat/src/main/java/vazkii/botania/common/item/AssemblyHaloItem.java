@@ -153,46 +153,6 @@ public class AssemblyHaloItem extends Item {
 			// static ServerPlaceRecipe and RecipeHolder pipeline.
 		}
 
-		CraftingMenu dummy = new CraftingMenu(-999, player.getInventory());
-		CraftingContainer craftInv = (CraftingContainer) dummy.getSlot(1).container;
-		RecipePlacer placer = new RecipePlacer(dummy);
-
-		// Try placing the recipe into the dummy workbench, extracting items from player's inventory to do so
-		if (!placer.place((ServerPlayer) player, recipe)) {
-			return;
-		}
-
-		// Double check that the recipe matches
-		if (!recipe.matches(craftInv, player.level())) {
-			// If the placer worked but the recipe still didn't, this might be a dynamic recipe with special conditions.
-			// Return items to the inventory and bail.
-			placer.clearGrid();
-			return;
-		}
-
-		ItemStack result = recipe.assemble(craftInv, player.level().registryAccess());
-
-		// Check if we have room for the result
-		if (!hasRoomFor(player.getInventory(), result)) {
-			placer.clearGrid();
-			return;
-		}
-
-		// Now we are good to go. Give the result
-		player.getInventory().add(result);
-
-		// Give or toss all byproducts
-		NonNullList<ItemStack> remainingItems = recipe.getRemainingItems(craftInv);
-		remainingItems.forEach(s -> player.getInventory().placeItemBackInInventory(s));
-
-		// The items we consumed will stay in the dummy workbench and get deleted
-
-		if (particles) {
-			XplatAbstractions.INSTANCE.sendToTracking(player, new BotaniaEffectPacket(EffectType.HALO_CRAFT,
-					player.getX(), player.getY(), player.getZ(), player.getId()));
-		}
-	}
-
 	@SoftImplement("IForgeItem")
 	public boolean onEntitySwing(ItemStack stack, LivingEntity living) {
 		int segment = getSegmentLookedAt(stack, living);

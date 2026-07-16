@@ -1,33 +1,29 @@
 package vazkii.botania.common.crafting.recipe;
 
-import com.google.gson.JsonObject;
+import com.mojang.serialization.MapCodec;
 
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 
 import java.util.function.Function;
 
-// Serializer for dynamic recipes that don't have a json/network representation
-// The recipe type fully identifies the recipe
-public class NoOpRecipeSerializer<T extends Recipe<?>> implements RecipeSerializer<T> {
-	private final Function<Identifier, T> constructor;
+// Serializer for dynamic recipes that have no JSON or network representation.
+// The registered recipe ID fully identifies the recipe.
+public final class NoOpRecipeSerializer {
+	private NoOpRecipeSerializer() {}
 
-	public NoOpRecipeSerializer(Function<Identifier, T> constructor) {
-		this.constructor = constructor;
+	public static <T extends Recipe<?>> RecipeSerializer<T> create(
+			Identifier recipeId,
+			Function<Identifier, T> constructor
+	) {
+		T recipe = constructor.apply(recipeId);
+
+		return new RecipeSerializer<>(
+				MapCodec.unit(recipe),
+				StreamCodec.<RegistryFriendlyByteBuf, T>unit(recipe)
+		);
 	}
-
-	@Override
-	public T fromJson(Identifier recipeId, JsonObject serializedRecipe) {
-		return this.constructor.apply(recipeId);
-	}
-
-	@Override
-	public T fromNetwork(Identifier recipeId, FriendlyByteBuf buffer) {
-		return this.constructor.apply(recipeId);
-	}
-
-	@Override
-	public void toNetwork(FriendlyByteBuf buffer, T recipe) {}
 }

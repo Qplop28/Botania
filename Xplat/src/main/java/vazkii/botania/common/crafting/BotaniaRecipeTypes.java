@@ -28,13 +28,15 @@ import java.util.function.BiConsumer;
 import static vazkii.botania.common.lib.ResourceLocationHelper.prefix;
 
 public class BotaniaRecipeTypes {
+
+	public class BotaniaRecipeTypes {
+	private static final Identifier LEXICON_ELVEN_TRADE_ID = prefix("elven_trade_lexicon");
 	public static final RecipeType<vazkii.botania.api.recipe.ManaInfusionRecipe> MANA_INFUSION_TYPE = new ModRecipeType<>();
 	public static final RecipeSerializer<ManaInfusionRecipe> MANA_INFUSION_SERIALIZER = new ManaInfusionRecipe.Serializer();
 
 	public static final RecipeType<vazkii.botania.api.recipe.ElvenTradeRecipe> ELVEN_TRADE_TYPE = new ModRecipeType<>();
 	public static final RecipeSerializer<ElvenTradeRecipe> ELVEN_TRADE_SERIALIZER = new ElvenTradeRecipe.Serializer();
-	public static final RecipeSerializer<LexiconElvenTradeRecipe> LEXICON_ELVEN_TRADE_SERIALIZER = new NoOpRecipeSerializer<>(LexiconElvenTradeRecipe::new);
-
+	public static final RecipeSerializer<LexiconElvenTradeRecipe> LEXICON_ELVEN_TRADE_SERIALIZER = NoOpRecipeSerializer.create(LEXICON_ELVEN_TRADE_ID, LexiconElvenTradeRecipe::new);
 	public static final RecipeType<vazkii.botania.api.recipe.PureDaisyRecipe> PURE_DAISY_TYPE = new ModRecipeType<>();
 	public static final RecipeSerializer<PureDaisyRecipe> PURE_DAISY_SERIALIZER = new PureDaisyRecipe.Serializer();
 	public static final RecipeSerializer<StateCopyingPureDaisyRecipe> COPYING_PURE_DAISY_SERIALIZER = new StateCopyingPureDaisyRecipe.Serializer();
@@ -76,7 +78,7 @@ public class BotaniaRecipeTypes {
 
 	public static void submitRecipeSerializers(BiConsumer<RecipeSerializer<?>, Identifier> r) {
 		r.accept(ELVEN_TRADE_SERIALIZER, vazkii.botania.api.recipe.ElvenTradeRecipe.TYPE_ID);
-		r.accept(LEXICON_ELVEN_TRADE_SERIALIZER, prefix("elven_trade_lexicon"));
+		r.accept(LEXICON_ELVEN_TRADE_SERIALIZER, LEXICON_ELVEN_TRADE_ID);
 		r.accept(MANA_INFUSION_SERIALIZER, vazkii.botania.api.recipe.ManaInfusionRecipe.TYPE_ID);
 		r.accept(PURE_DAISY_SERIALIZER, vazkii.botania.api.recipe.PureDaisyRecipe.TYPE_ID);
 		r.accept(COPYING_PURE_DAISY_SERIALIZER, prefix("state_copying_pure_daisy"));

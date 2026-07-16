@@ -28,8 +28,7 @@ import java.util.function.BiConsumer;
 import static vazkii.botania.common.lib.ResourceLocationHelper.prefix;
 
 public class BotaniaRecipeTypes {
-
-	public class BotaniaRecipeTypes {
+	
 	private static final Identifier LEXICON_ELVEN_TRADE_ID = prefix("elven_trade_lexicon");
 	public static final RecipeType<vazkii.botania.api.recipe.ManaInfusionRecipe> MANA_INFUSION_TYPE = new ModRecipeType<>();
 	public static final RecipeSerializer<ManaInfusionRecipe> MANA_INFUSION_SERIALIZER = new ManaInfusionRecipe.Serializer();

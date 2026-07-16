@@ -69,22 +69,8 @@ public class FabricClientXplatImpl implements ClientXplatAbstractions {
 			MultiBufferSource buffers,
 			int overlay
 	) {
-		var brd = Minecraft.getInstance().getBlockRenderer();
-		var buffer = buffers.getBuffer(
-				ItemBlockRenderTypes.getRenderType(state, false)
-		);
-		brd.getModelRenderer().tesselateBlock(
-				level,
-				brd.getBlockModel(state),
-				state,
-				pos,
-				ps,
-				buffer,
-				true,
-				RandomSource.create(),
-				state.getSeed(pos),
-				overlay
-		);
+		// Block model submission must be migrated to the Minecraft 26.1
+		// render-state pipeline.
 	}
 
 	@Override

@@ -9,150 +9,144 @@
 package vazkii.botania.common.crafting;
 
 import com.google.common.base.Preconditions;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.Identifier;
-import net.minecraft.util.GsonHelper;
-import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.PlacementInfo;
+import net.minecraft.world.item.crafting.RecipeInput;
 import net.minecraft.world.item.crafting.RecipeSerializer;
-import net.minecraft.world.item.crafting.ShapedRecipe;
 import net.minecraft.world.level.Level;
-
-import org.jetbrains.annotations.NotNull;
 
 import vazkii.botania.api.recipe.PetalApothecaryRecipe;
 import vazkii.botania.common.block.BotaniaBlocks;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class PetalsRecipe implements PetalApothecaryRecipe {
-	private final Identifier id;
-	private final ItemStack output;
+	private static final MapCodec<PetalsRecipe> CODEC =
+			RecordCodecBuilder.mapCodec(instance -> instance.group(
+					ItemStackTemplate.CODEC.fieldOf("output")
+							.forGetter(recipe -> recipe.output),
+					Ingredient.CODEC.fieldOf("reagent")
+							.forGetter(recipe -> recipe.reagent),
+					Ingredient.CODEC.listOf().fieldOf("ingredients")
+							.forGetter(recipe -> recipe.inputs)
+			).apply(instance, PetalsRecipe::new));
+
+	private static final StreamCodec<RegistryFriendlyByteBuf, PetalsRecipe>
+			STREAM_CODEC = ByteBufCodecs.fromCodecWithRegistries(CODEC.codec());
+
+	public static final RecipeSerializer<PetalsRecipe> SERIALIZER =
+			new RecipeSerializer<>(CODEC, STREAM_CODEC);
+
+	private final ItemStackTemplate output;
 	private final Ingredient reagent;
 	private final NonNullList<Ingredient> inputs;
+	private final PlacementInfo placementInfo;
 
-	public PetalsRecipe(Identifier id, ItemStack output, Ingredient reagent, Ingredient... inputs) {
-		Preconditions.checkArgument(inputs.length <= 16, "Cannot have more than 16 ingredients");
-		this.id = id;
+	public PetalsRecipe(
+			ItemStackTemplate output,
+			Ingredient reagent,
+			List<Ingredient> inputs
+	) {
+		Preconditions.checkArgument(
+				inputs.size() <= 16,
+				"Cannot have more than 16 ingredients"
+		);
 		this.output = output;
 		this.reagent = reagent;
-		this.inputs = NonNullList.of(Ingredient.EMPTY, inputs);
+		this.inputs = NonNullList.create();
+		this.inputs.addAll(inputs);
+		this.placementInfo = PlacementInfo.create(this.inputs);
+	}
+
+	/** Transitional constructor for existing data generators and addons. */
+	@Deprecated
+	public PetalsRecipe(
+			Identifier ignoredId,
+			ItemStack output,
+			Ingredient reagent,
+			Ingredient... inputs
+	) {
+		this(
+				ItemStackTemplate.fromNonEmptyStack(output),
+				reagent,
+				Arrays.asList(inputs)
+		);
 	}
 
 	@Override
 	public Ingredient getReagent() {
-		return reagent;
+		return this.reagent;
 	}
 
 	@Override
-	public boolean matches(Container inv, @NotNull Level world) {
-		List<Ingredient> ingredientsMissing = new ArrayList<>(inputs);
+	public boolean matches(RecipeInput input, Level level) {
+		List<Ingredient> ingredientsMissing = new ArrayList<>(this.inputs);
 
-		for (int i = 0; i < inv.getContainerSize(); i++) {
-			ItemStack input = inv.getItem(i);
-			if (input.isEmpty()) {
+		for (int slot = 0; slot < input.size(); slot++) {
+			ItemStack stack = input.getItem(slot);
+			if (stack.isEmpty()) {
 				break;
 			}
 
-			int stackIndex = -1;
-
-			for (int j = 0; j < ingredientsMissing.size(); j++) {
-				Ingredient ingr = ingredientsMissing.get(j);
-				if (ingr.test(input)) {
-					stackIndex = j;
+			int ingredientIndex = -1;
+			for (int index = 0; index < ingredientsMissing.size(); index++) {
+				if (ingredientsMissing.get(index).test(stack)) {
+					ingredientIndex = index;
 					break;
 				}
 			}
 
-			if (stackIndex != -1) {
-				ingredientsMissing.remove(stackIndex);
-			} else {
+			if (ingredientIndex < 0) {
 				return false;
 			}
+			ingredientsMissing.remove(ingredientIndex);
 		}
 
 		return ingredientsMissing.isEmpty();
 	}
 
-	@NotNull
 	@Override
-	public final ItemStack getResultItem(@NotNull RegistryAccess registries) {
-		return output;
+	public ItemStack assemble(RecipeInput input) {
+		return this.output.create();
 	}
 
-	@NotNull
 	@Override
-	public ItemStack assemble(@NotNull Container inv, @NotNull RegistryAccess registries) {
-		return getResultItem(registries).copy();
+	public PlacementInfo placementInfo() {
+		return this.placementInfo;
 	}
 
-	@NotNull
+	@Deprecated
+	public ItemStack getResultItem(RegistryAccess registries) {
+		return this.output.create();
+	}
+
 	@Override
+	@Deprecated
 	public NonNullList<Ingredient> getIngredients() {
-		return inputs;
+		return this.inputs;
 	}
 
-	@NotNull
-	@Override
+	/** Transitional toast icon accessor for older integrations. */
+	@Deprecated
 	public ItemStack getToastSymbol() {
 		return new ItemStack(BotaniaBlocks.defaultAltar);
 	}
 
-	@NotNull
 	@Override
-	public Identifier getId() {
-		return id;
+	public RecipeSerializer<PetalsRecipe> getSerializer() {
+		return SERIALIZER;
 	}
-
-	@NotNull
-	@Override
-	public RecipeSerializer<?> getSerializer() {
-		return BotaniaRecipeTypes.PETAL_SERIALIZER;
-	}
-
-	public static class Serializer implements RecipeSerializer<PetalsRecipe> {
-		@NotNull
-		@Override
-		public PetalsRecipe fromJson(@NotNull Identifier id, @NotNull JsonObject json) {
-			ItemStack output = ShapedRecipe.itemStackFromJson(GsonHelper.getAsJsonObject(json, "output"));
-			Ingredient reagent = Ingredient.fromJson(json.get("reagent"));
-			JsonArray ingrs = GsonHelper.getAsJsonArray(json, "ingredients");
-			List<Ingredient> inputs = new ArrayList<>();
-			for (JsonElement e : ingrs) {
-				inputs.add(Ingredient.fromJson(e));
-			}
-			return new PetalsRecipe(id, output, reagent, inputs.toArray(new Ingredient[0]));
-		}
-
-		@Override
-		public PetalsRecipe fromNetwork(@NotNull Identifier id, @NotNull FriendlyByteBuf buf) {
-			Ingredient[] inputs = new Ingredient[buf.readVarInt()];
-			for (int i = 0; i < inputs.length; i++) {
-				inputs[i] = Ingredient.fromNetwork(buf);
-			}
-			Ingredient reagent = Ingredient.fromNetwork(buf);
-			ItemStack output = buf.readItem();
-			return new PetalsRecipe(id, output, reagent, inputs);
-		}
-
-		@Override
-		public void toNetwork(@NotNull FriendlyByteBuf buf, @NotNull PetalsRecipe recipe) {
-			buf.writeVarInt(recipe.getIngredients().size());
-			for (Ingredient input : recipe.getIngredients()) {
-				input.toNetwork(buf);
-			}
-			recipe.reagent.toNetwork(buf);
-			buf.writeItem(recipe.output);
-		}
-
-	}
-
 }

@@ -12,16 +12,20 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.crafting.RecipeType;
 
-import org.jetbrains.annotations.NotNull;
-
 import vazkii.botania.api.BotaniaAPI;
 
-public interface PetalApothecaryRecipe extends RecipeWithReagent {
-	Identifier TYPE_ID = new Identifier(BotaniaAPI.MODID, "petal_apothecary");
+import java.util.Objects;
 
-	@NotNull
+public interface PetalApothecaryRecipe extends RecipeWithReagent {
+	Identifier TYPE_ID = Identifier.fromNamespaceAndPath(
+			BotaniaAPI.MODID,
+			"petal_apothecary"
+	);
+
 	@Override
-	default RecipeType<?> getType() {
-		return BuiltInRegistries.RECIPE_TYPE.get(TYPE_ID);
+	@SuppressWarnings("unchecked")
+	default RecipeType<PetalApothecaryRecipe> getType() {
+		return (RecipeType<PetalApothecaryRecipe>) Objects.requireNonNull(
+				BuiltInRegistries.RECIPE_TYPE.getValue(TYPE_ID));
 	}
 }

@@ -35,7 +35,6 @@ import vazkii.botania.client.lib.ResourcesLib;
 import vazkii.botania.client.render.block_entity.PylonBlockEntityRenderer;
 import vazkii.botania.common.helper.VecHelper;
 import vazkii.botania.common.item.equipment.bauble.FlugelTiaraItem;
-import vazkii.botania.mixin.client.RenderTypeAccessor;
 
 import java.util.Arrays;
 import java.util.List;
@@ -93,7 +92,7 @@ public final class RenderHelper extends RenderType {
 
 	private static RenderType makeLayer(String name, VertexFormat format, VertexFormat.Mode mode,
 			int bufSize, boolean hasCrumbling, boolean sortOnUpload, CompositeState glState) {
-		return RenderTypeAccessor.create(name, format, mode, bufSize, hasCrumbling, sortOnUpload, glState);
+		return RenderType.create(name, format, mode, bufSize, hasCrumbling, sortOnUpload, glState);
 	}
 
 	private static RenderType makeLayer(String name, VertexFormat format, VertexFormat.Mode mode,

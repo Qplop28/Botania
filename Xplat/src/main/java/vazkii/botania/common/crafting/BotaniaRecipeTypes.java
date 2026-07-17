@@ -114,7 +114,7 @@ public class BotaniaRecipeTypes {
 
 	public static final RecipeSerializer<OrechidIgnemRecipe>
 			ORECHID_IGNEM_SERIALIZER =
-			new OrechidIgnemRecipe.Serializer();
+			OrechidIgnemRecipe.SERIALIZER;
 
 	public static final RecipeType<MarimorphosisRecipe>
 			MARIMORPHOSIS_TYPE = new ModRecipeType<>();

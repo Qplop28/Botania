@@ -39,7 +39,7 @@ public class BotaniaRecipeTypes {
 
 	public static final RecipeSerializer<ManaInfusionRecipe>
 			MANA_INFUSION_SERIALIZER =
-			new ManaInfusionRecipe.Serializer();
+			ManaInfusionRecipe.SERIALIZER;
 
 	public static final RecipeType<
 			vazkii.botania.api.recipe.ElvenTradeRecipe
@@ -47,7 +47,7 @@ public class BotaniaRecipeTypes {
 
 	public static final RecipeSerializer<ElvenTradeRecipe>
 			ELVEN_TRADE_SERIALIZER =
-			new ElvenTradeRecipe.Serializer();
+			ElvenTradeRecipe.SERIALIZER;
 
 	public static final RecipeSerializer<LexiconElvenTradeRecipe>
 			LEXICON_ELVEN_TRADE_SERIALIZER =
@@ -74,14 +74,14 @@ public class BotaniaRecipeTypes {
 
 	public static final RecipeSerializer<BotanicalBreweryRecipe>
 			BREW_SERIALIZER =
-			new BotanicalBreweryRecipe.Serializer();
+			BotanicalBreweryRecipe.SERIALIZER;
 
 	public static final RecipeType<PetalApothecaryRecipe>
 			PETAL_TYPE = new ModRecipeType<>();
 
 	public static final RecipeSerializer<PetalsRecipe>
 			PETAL_SERIALIZER =
-			new PetalsRecipe.Serializer();
+			PetalsRecipe.SERIALIZER;
 
 	public static final RecipeType<
 			vazkii.botania.api.recipe.RunicAltarRecipe
@@ -89,7 +89,7 @@ public class BotaniaRecipeTypes {
 
 	public static final RecipeSerializer<RunicAltarRecipe>
 			RUNE_SERIALIZER =
-			new RunicAltarRecipe.Serializer();
+			RunicAltarRecipe.SERIALIZER;
 
 	public static final RecipeSerializer<HeadRecipe>
 			RUNE_HEAD_SERIALIZER =

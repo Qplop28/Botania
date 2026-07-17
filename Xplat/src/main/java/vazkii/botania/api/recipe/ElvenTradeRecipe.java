@@ -12,22 +12,27 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.PlacementInfo;
 import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeBookCategories;
+import net.minecraft.world.item.crafting.RecipeBookCategory;
+import net.minecraft.world.item.crafting.RecipeInput;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
-
-import org.jetbrains.annotations.NotNull;
 
 import vazkii.botania.api.BotaniaAPI;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
-public interface ElvenTradeRecipe extends Recipe<Container> {
-	Identifier TYPE_ID = new Identifier(BotaniaAPI.MODID, "elven_trade");
+public interface ElvenTradeRecipe extends Recipe<RecipeInput> {
+	Identifier TYPE_ID = Identifier.fromNamespaceAndPath(
+			BotaniaAPI.MODID,
+			"elven_trade"
+	);
 
 	/**
 	 * Attempts to match the recipe
@@ -46,8 +51,7 @@ public interface ElvenTradeRecipe extends Recipe<Container> {
 	/**
 	 * @return Preview of the inputs
 	 */
-	@NotNull
-	@Override
+	@Deprecated
 	NonNullList<Ingredient> getIngredients();
 
 	/**
@@ -60,32 +64,47 @@ public interface ElvenTradeRecipe extends Recipe<Container> {
 	 */
 	List<ItemStack> getOutputs(List<ItemStack> inputs);
 
-	@NotNull
 	@Override
-	default RecipeType<?> getType() {
-		return BuiltInRegistries.RECIPE_TYPE.get(TYPE_ID);
+	@SuppressWarnings("unchecked")
+	default RecipeType<ElvenTradeRecipe> getType() {
+		return (RecipeType<ElvenTradeRecipe>) Objects.requireNonNull(
+				BuiltInRegistries.RECIPE_TYPE.getValue(TYPE_ID));
 	}
 
 	// Ignored IRecipe boilerplate
 
 	@Override
-	default boolean matches(@NotNull Container inv, @NotNull Level world) {
+	default boolean matches(RecipeInput input, Level level) {
 		return false;
 	}
 
-	@NotNull
 	@Override
-	default ItemStack assemble(@NotNull Container inv, @NotNull RegistryAccess registries) {
+	default ItemStack assemble(RecipeInput input) {
 		return ItemStack.EMPTY;
 	}
 
 	@Override
-	default boolean canCraftInDimensions(int width, int height) {
+	default PlacementInfo placementInfo() {
+		return PlacementInfo.create(List.<Ingredient>of());
+	}
+
+	@Override
+	default boolean showNotification() {
 		return false;
 	}
 
 	@Override
-	default ItemStack getResultItem(@NotNull RegistryAccess registries) {
+	default String group() {
+		return "";
+	}
+
+	@Override
+	default RecipeBookCategory recipeBookCategory() {
+		return RecipeBookCategories.CRAFTING_MISC;
+	}
+
+	@Deprecated
+	default ItemStack getResultItem(RegistryAccess registries) {
 		return ItemStack.EMPTY;
 	}
 

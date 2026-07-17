@@ -46,6 +46,7 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
 import vazkii.botania.common.crafting.RunicAltarRecipe;
+import vazkii.botania.common.crafting.RecipeCodecs;
 import vazkii.botania.common.helper.ItemNBTHelper;
 
 import java.net.URL;
@@ -60,7 +61,7 @@ import java.util.regex.Pattern;
 public class HeadRecipe extends RunicAltarRecipe {
 	private static final MapCodec<HeadRecipe> CODEC =
 			RecordCodecBuilder.mapCodec(instance -> instance.group(
-					ItemStackTemplate.CODEC.fieldOf("output")
+					RecipeCodecs.ITEM_STACK_TEMPLATE.fieldOf("output")
 							.forGetter(recipe -> recipe.output),
 					Codec.INT.fieldOf("mana")
 							.forGetter(HeadRecipe::getManaUsage),

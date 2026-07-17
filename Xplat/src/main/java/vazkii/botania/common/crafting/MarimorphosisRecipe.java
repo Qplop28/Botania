@@ -8,16 +8,20 @@
  */
 package vazkii.botania.common.crafting;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonSyntaxException;
+import com.google.common.base.Preconditions;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import net.minecraft.commands.CacheableFunction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
-import net.minecraft.util.GsonHelper;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
@@ -28,78 +32,55 @@ import org.jetbrains.annotations.Nullable;
 
 import vazkii.botania.api.recipe.StateIngredient;
 
+import java.util.Optional;
+
 public class MarimorphosisRecipe extends OrechidRecipe {
+	private static final Codec<Integer> WEIGHT_CODEC = Codec.INT.validate(weight -> weight > 0
+			? DataResult.success(weight)
+			: DataResult.error(() -> "Weight must be positive"));
+	private static final MapCodec<MarimorphosisRecipe> CODEC =
+			RecordCodecBuilder.mapCodec(instance -> instance.group(
+					StateIngredientHelper.CODEC.fieldOf("input").forGetter(recipe -> recipe.input),
+					StateIngredientHelper.CODEC.fieldOf("output").forGetter(recipe -> recipe.output),
+					WEIGHT_CODEC.fieldOf("weight").forGetter(recipe -> recipe.weight),
+					Identifier.CODEC.optionalFieldOf("success_function").forGetter(recipe ->
+							Optional.ofNullable(recipe.successFunction).map(CacheableFunction::getId)),
+					Codec.INT.optionalFieldOf("biome_bonus", 0).forGetter(recipe -> recipe.weightBonus),
+					TagKey.codec(Registries.BIOME).fieldOf("biome_bonus_tag").forGetter(recipe -> recipe.biomes)
+			).apply(instance, (input, output, weight, function, bonus, biomes) ->
+					new MarimorphosisRecipe(input, output, weight,
+							function.map(CacheableFunction::new).orElse(null), bonus, biomes)));
+	private static final StreamCodec<RegistryFriendlyByteBuf, MarimorphosisRecipe> STREAM_CODEC =
+			ByteBufCodecs.fromCodecWithRegistries(CODEC.codec());
+	public static final RecipeSerializer<MarimorphosisRecipe> SERIALIZER =
+			new RecipeSerializer<>(CODEC, STREAM_CODEC);
+
 	private final int weightBonus;
 	private final TagKey<Biome> biomes;
 
-	public MarimorphosisRecipe(Identifier id, StateIngredient input, StateIngredient output, int weight,
-			@Nullable CacheableFunction successFunction,
-			int weightBonus, TagKey<Biome> biomes) {
-		super(id, input, output, weight, successFunction);
+	public MarimorphosisRecipe(StateIngredient input, StateIngredient output, int weight,
+			@Nullable CacheableFunction successFunction, int weightBonus, TagKey<Biome> biomes) {
+		super(input, output, weight, successFunction);
+		Preconditions.checkArgument(weight + weightBonus > 0,
+				"Weight combined with bonus must be positive");
 		this.weightBonus = weightBonus;
 		this.biomes = biomes;
 	}
 
+	/** Transitional constructor for existing data generators and addons. */
+	@Deprecated
+	public MarimorphosisRecipe(Identifier ignoredId, StateIngredient input, StateIngredient output, int weight,
+			@Nullable CacheableFunction successFunction, int weightBonus, TagKey<Biome> biomes) {
+		this(input, output, weight, successFunction, weightBonus, biomes);
+	}
+
 	@Override
 	public int getWeight(@NotNull Level level, @NotNull BlockPos pos) {
-		if (level.getBiome(pos).is(this.biomes)) {
-			return getWeight() + weightBonus;
-		}
-		return getWeight();
+		return level.getBiome(pos).is(this.biomes) ? getWeight() + weightBonus : getWeight();
 	}
 
-	@NotNull
-	@Override
-	public RecipeType<? extends MarimorphosisRecipe> getType() {
-		return BotaniaRecipeTypes.MARIMORPHOSIS_TYPE;
-	}
-
-	@Override
-	public RecipeSerializer<?> getSerializer() {
-		return BotaniaRecipeTypes.MARIMORPHOSIS_SERIALIZER;
-	}
-
-	public static class Serializer implements RecipeSerializer<MarimorphosisRecipe> {
-		@Override
-		public MarimorphosisRecipe fromJson(@NotNull Identifier recipeId, @NotNull JsonObject json) {
-			OrechidRecipe base = BotaniaRecipeTypes.ORECHID_SERIALIZER.fromJson(recipeId, json);
-
-			var biomes = TagKey.create(Registries.BIOME,
-					new Identifier(GsonHelper.getAsString(json, "biome_bonus_tag")));
-			int weightBonus = GsonHelper.getAsInt(json, "biome_bonus", 0);
-			if (base.getWeight() + weightBonus <= 0) {
-				throw new JsonSyntaxException("Weight combined with bonus cannot be 0 or less");
-			}
-
-			return new MarimorphosisRecipe(recipeId, base.getInput(), base.getOutput(),
-					base.getWeight(), base.getSuccessFunction(), weightBonus, biomes);
-		}
-
-		@Override
-		public MarimorphosisRecipe fromNetwork(@NotNull Identifier recipeId, @NotNull FriendlyByteBuf buffer) {
-			OrechidRecipe base = BotaniaRecipeTypes.ORECHID_SERIALIZER.fromNetwork(recipeId, buffer);
-
-			TagKey<Biome> biomes = TagKey.create(Registries.BIOME, buffer.readResourceLocation());
-			int weightBonus = buffer.readVarInt();
-
-			return new MarimorphosisRecipe(recipeId, base.getInput(), base.getOutput(),
-					base.getWeight(), base.getSuccessFunction(), weightBonus, biomes);
-		}
-
-		@Override
-		public void toNetwork(@NotNull FriendlyByteBuf buffer, @NotNull MarimorphosisRecipe recipe) {
-			BotaniaRecipeTypes.ORECHID_SERIALIZER.toNetwork(buffer, recipe);
-
-			buffer.writeResourceLocation(recipe.biomes.location());
-			buffer.writeVarInt(recipe.weightBonus);
-		}
-	}
-
-	public int getWeightBonus() {
-		return weightBonus;
-	}
-
-	public TagKey<Biome> getBiomes() {
-		return biomes;
-	}
+	@Override public RecipeType<MarimorphosisRecipe> getType() { return BotaniaRecipeTypes.MARIMORPHOSIS_TYPE; }
+	@Override public RecipeSerializer<MarimorphosisRecipe> getSerializer() { return SERIALIZER; }
+	public int getWeightBonus() { return weightBonus; }
+	public TagKey<Biome> getBiomes() { return biomes; }
 }

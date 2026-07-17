@@ -36,7 +36,7 @@ import java.util.List;
 public class PetalsRecipe implements PetalApothecaryRecipe {
 	private static final MapCodec<PetalsRecipe> CODEC =
 			RecordCodecBuilder.mapCodec(instance -> instance.group(
-					ItemStackTemplate.CODEC.fieldOf("output")
+					RecipeCodecs.ITEM_STACK_TEMPLATE.fieldOf("output")
 							.forGetter(recipe -> recipe.output),
 					Ingredient.CODEC.fieldOf("reagent")
 							.forGetter(recipe -> recipe.reagent),

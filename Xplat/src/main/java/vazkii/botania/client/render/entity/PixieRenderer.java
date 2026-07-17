@@ -3,7 +3,6 @@ package vazkii.botania.client.render.entity;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;
 import net.minecraft.client.renderer.rendertype.RenderType;
-import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.resources.Identifier;
 
 import vazkii.botania.client.core.helper.RenderHelper;
@@ -42,14 +41,17 @@ public class PixieRenderer extends MobRenderer<PixieEntity, PixieRenderState, Pi
 
 	@Override
 	protected RenderType getRenderType(PixieRenderState state, boolean bodyVisible,
-			boolean translucent, boolean glowing) {
-		return state.evil ? RenderHelper.getDopplegangerLayer(state.texture)
-				: RenderTypes.entityCutoutNoCull(state.texture);
+			boolean forceTransparent, boolean glowing) {
+		if (state.evil && bodyVisible && !forceTransparent) {
+			return RenderHelper.getDopplegangerLayer(state.texture);
+		}
+
+		return super.getRenderType(state, bodyVisible, forceTransparent, glowing);
 	}
 
 	@Override
 	protected int getModelTint(PixieRenderState state) {
-		return state.evil && BotaniaConfig.client().useShaders()
+		return state.evil && !state.isInvisible && BotaniaConfig.client().useShaders()
 				? GaiaGuardianRenderer.shaderValues(state.grainIntensity, state.disfiguration)
 				: -1;
 	}

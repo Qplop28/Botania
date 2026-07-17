@@ -16,8 +16,8 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.HumanoidMobRenderer;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.resources.DefaultPlayerSkin;
-import net.minecraft.client.resources.PlayerSkin;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.entity.player.PlayerModelType;
 
 import vazkii.botania.client.core.helper.RenderHelper;
 import vazkii.botania.client.model.armor.ArmorModels;
@@ -59,12 +59,14 @@ public class GaiaGuardianRenderer extends HumanoidMobRenderer<GaiaGuardianEntity
 
 		var view = Minecraft.getInstance().getCameraEntity();
 		if (view instanceof AbstractClientPlayer player) {
-			PlayerSkin skin = player.getSkin();
-			state.slimModel = skin.model() == PlayerSkin.Model.SLIM;
-			state.texture = skin.texture();
+			var skin = player.getSkin();
+			state.slimModel = skin.model() == PlayerModelType.SLIM;
+			state.texture = skin.body().texturePath();
 		} else {
 			state.slimModel = false;
-			state.texture = DefaultPlayerSkin.get(entity.getUUID()).texture();
+			state.texture = DefaultPlayerSkin.get(entity.getUUID())
+					.body()
+					.texturePath();
 		}
 	}
 

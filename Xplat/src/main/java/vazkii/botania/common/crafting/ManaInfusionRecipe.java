@@ -9,147 +9,153 @@
 package vazkii.botania.common.crafting;
 
 import com.google.common.base.Preconditions;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.Identifier;
-import net.minecraft.util.GsonHelper;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.PlacementInfo;
 import net.minecraft.world.item.crafting.RecipeSerializer;
-import net.minecraft.world.item.crafting.ShapedRecipe;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import vazkii.botania.api.recipe.StateIngredient;
 import vazkii.botania.common.block.BotaniaBlocks;
 
-import java.util.Objects;
+import java.util.Optional;
 
-public class ManaInfusionRecipe implements vazkii.botania.api.recipe.ManaInfusionRecipe {
-	private final Identifier id;
-	private final ItemStack output;
+public class ManaInfusionRecipe
+		implements vazkii.botania.api.recipe.ManaInfusionRecipe {
+	private static final MapCodec<ManaInfusionRecipe> CODEC =
+			RecordCodecBuilder.mapCodec(instance -> instance.group(
+					Ingredient.CODEC.fieldOf("input")
+							.forGetter(recipe -> recipe.input),
+					ItemStackTemplate.CODEC.fieldOf("output")
+							.forGetter(recipe -> recipe.output),
+					Codec.INT.fieldOf("mana")
+							.forGetter(recipe -> recipe.mana),
+					Codec.STRING.optionalFieldOf("group", "")
+							.forGetter(recipe -> recipe.group),
+					StateIngredientHelper.CODEC.optionalFieldOf("catalyst")
+							.forGetter(recipe -> Optional.ofNullable(recipe.catalyst))
+			).apply(instance, (input, output, mana, group, catalyst) ->
+					new ManaInfusionRecipe(
+							output, input, mana, group, catalyst.orElse(null))));
+
+	private static final StreamCodec<RegistryFriendlyByteBuf, ManaInfusionRecipe>
+			STREAM_CODEC = ByteBufCodecs.fromCodecWithRegistries(CODEC.codec());
+
+	public static final RecipeSerializer<ManaInfusionRecipe> SERIALIZER =
+			new RecipeSerializer<>(CODEC, STREAM_CODEC);
+
+	private final ItemStackTemplate output;
 	private final Ingredient input;
 	private final int mana;
 	@Nullable
 	private final StateIngredient catalyst;
 	private final String group;
+	private final PlacementInfo placementInfo;
 
-	public ManaInfusionRecipe(Identifier id, ItemStack output, Ingredient input, int mana,
-			@Nullable String group, @Nullable StateIngredient catalyst) {
+	public ManaInfusionRecipe(
+			ItemStackTemplate output,
+			Ingredient input,
+			int mana,
+			String group,
+			@Nullable StateIngredient catalyst
+	) {
 		Preconditions.checkArgument(mana > 0, "Mana cost must be positive");
-		Preconditions.checkArgument(mana <= 1_000_001, "Mana cost must be at most a pool"); // Leaving wiggle room for a certain modpack having creative-pool-only recipes
-		this.id = id;
+		Preconditions.checkArgument(
+				mana <= 1_000_001,
+				"Mana cost must be at most a pool"
+		);
 		this.output = output;
 		this.input = input;
 		this.mana = mana;
-		this.group = group == null ? "" : group;
+		this.group = group;
 		this.catalyst = catalyst;
+		this.placementInfo = PlacementInfo.create(input);
 	}
 
-	@NotNull
-	@Override
-	public final Identifier getId() {
-		return id;
+	/** Transitional constructor for existing data generators and addons. */
+	@Deprecated
+	public ManaInfusionRecipe(
+			Identifier ignoredId,
+			ItemStack output,
+			Ingredient input,
+			int mana,
+			@Nullable String group,
+			@Nullable StateIngredient catalyst
+	) {
+		this(
+				ItemStackTemplate.fromNonEmptyStack(output),
+				input,
+				mana,
+				group == null ? "" : group,
+				catalyst
+		);
 	}
 
-	@NotNull
 	@Override
 	public RecipeSerializer<ManaInfusionRecipe> getSerializer() {
-		return BotaniaRecipeTypes.MANA_INFUSION_SERIALIZER;
+		return SERIALIZER;
 	}
 
 	@Override
 	public boolean matches(ItemStack stack) {
-		return input.test(stack);
+		return this.input.test(stack);
 	}
 
 	@Override
+	@Nullable
 	public StateIngredient getRecipeCatalyst() {
-		return catalyst;
+		return this.catalyst;
 	}
 
 	@Override
 	public int getManaToConsume() {
-		return mana;
+		return this.mana;
 	}
 
-	@NotNull
 	@Override
-	public ItemStack getResultItem(@NotNull RegistryAccess registries) {
-		return output;
+	public ItemStack getResultItem(RegistryAccess registries) {
+		return this.output.create();
 	}
 
-	@NotNull
 	@Override
+	public PlacementInfo placementInfo() {
+		return this.placementInfo;
+	}
+
+	@Override
+	public String group() {
+		return this.group;
+	}
+
+	/** Transitional accessor for existing integrations. */
+	@Deprecated
 	public NonNullList<Ingredient> getIngredients() {
-		return NonNullList.of(Ingredient.EMPTY, input);
+		NonNullList<Ingredient> ingredients = NonNullList.create();
+		ingredients.add(this.input);
+		return ingredients;
 	}
 
-	@NotNull
-	@Override
+	/** Transitional accessor for callers using the old recipe API. */
+	@Deprecated
 	public String getGroup() {
-		return group;
+		return this.group;
 	}
 
-	@NotNull
-	@Override
+	/** Transitional toast icon accessor for older integrations. */
+	@Deprecated
 	public ItemStack getToastSymbol() {
 		return new ItemStack(BotaniaBlocks.manaPool);
-	}
-
-	public static class Serializer implements RecipeSerializer<ManaInfusionRecipe> {
-
-		@NotNull
-		@Override
-		public ManaInfusionRecipe fromJson(@NotNull Identifier id, @NotNull JsonObject json) {
-			JsonElement input = Objects.requireNonNull(json.get("input"));
-			Ingredient ing = Ingredient.fromJson(input);
-			ItemStack output = ShapedRecipe.itemStackFromJson(GsonHelper.getAsJsonObject(json, "output"));
-			int mana = GsonHelper.getAsInt(json, "mana");
-			String group = GsonHelper.getAsString(json, "group", "");
-			StateIngredient catalyst = null;
-			if (json.has("catalyst")) {
-				JsonElement element = json.get("catalyst");
-				if (!element.isJsonObject() || !element.getAsJsonObject().has("type")) {
-					throw new JsonParseException("Legacy mana infusion catalyst syntax used");
-				}
-				catalyst = StateIngredientHelper.deserialize(element.getAsJsonObject());
-			}
-
-			return new ManaInfusionRecipe(id, output, ing, mana, group, catalyst);
-		}
-
-		@Nullable
-		@Override
-		public ManaInfusionRecipe fromNetwork(@NotNull Identifier id, @NotNull FriendlyByteBuf buf) {
-			Ingredient input = Ingredient.fromNetwork(buf);
-			ItemStack output = buf.readItem();
-			int mana = buf.readVarInt();
-			StateIngredient catalyst = null;
-			if (buf.readBoolean()) {
-				catalyst = StateIngredientHelper.read(buf);
-			}
-			String group = buf.readUtf();
-			return new ManaInfusionRecipe(id, output, input, mana, group, catalyst);
-		}
-
-		@Override
-		public void toNetwork(@NotNull FriendlyByteBuf buf, @NotNull ManaInfusionRecipe recipe) {
-			recipe.getIngredients().get(0).toNetwork(buf);
-			buf.writeItem(recipe.output);
-			buf.writeVarInt(recipe.getManaToConsume());
-			boolean hasCatalyst = recipe.getRecipeCatalyst() != null;
-			buf.writeBoolean(hasCatalyst);
-			if (hasCatalyst) {
-				recipe.getRecipeCatalyst().write(buf);
-			}
-			buf.writeUtf(recipe.getGroup());
-		}
 	}
 }

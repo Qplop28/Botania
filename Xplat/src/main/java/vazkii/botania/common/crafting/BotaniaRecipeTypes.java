@@ -39,7 +39,7 @@ public class BotaniaRecipeTypes {
 
 	public static final RecipeSerializer<ManaInfusionRecipe>
 			MANA_INFUSION_SERIALIZER =
-			new ManaInfusionRecipe.Serializer();
+			ManaInfusionRecipe.SERIALIZER;
 
 	public static final RecipeType<
 			vazkii.botania.api.recipe.ElvenTradeRecipe

@@ -9,21 +9,31 @@
 package vazkii.botania.api.recipe;
 
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.NonNullList;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.PlacementInfo;
 import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeBookCategories;
+import net.minecraft.world.item.crafting.RecipeBookCategory;
+import net.minecraft.world.item.crafting.RecipeInput;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import vazkii.botania.api.BotaniaAPI;
 
-public interface ManaInfusionRecipe extends Recipe<Container> {
-	Identifier TYPE_ID = new Identifier(BotaniaAPI.MODID, "mana_infusion");
+import java.util.List;
+import java.util.Objects;
+
+public interface ManaInfusionRecipe extends Recipe<RecipeInput> {
+	Identifier TYPE_ID = Identifier.fromNamespaceAndPath(
+			BotaniaAPI.MODID,
+			"mana_infusion"
+	);
 
 	/**
 	 * Attempts to match the recipe.
@@ -40,9 +50,7 @@ public interface ManaInfusionRecipe extends Recipe<Container> {
 	 *
 	 * @return The output stack of the recipe.
 	 */
-	@NotNull
-	@Override
-	ItemStack getResultItem(@NotNull RegistryAccess registries);
+	ItemStack getResultItem(RegistryAccess registries);
 
 	/**
 	 * Get the actual recipe output, not just for display. Defaults to a copy of {@link #getResultItem}.
@@ -50,8 +58,7 @@ public interface ManaInfusionRecipe extends Recipe<Container> {
 	 * @param input The whole stack that is in the Mana Pool, not a copy.
 	 * @return The output stack of the recipe for the specific input.
 	 */
-	@NotNull
-	default ItemStack getRecipeOutput(@NotNull RegistryAccess registries, @NotNull ItemStack input) {
+	default ItemStack getRecipeOutput(RegistryAccess registries, ItemStack input) {
 		return getResultItem(registries).copy();
 	}
 
@@ -68,28 +75,56 @@ public interface ManaInfusionRecipe extends Recipe<Container> {
 	 */
 	int getManaToConsume();
 
-	@NotNull
+	/**
+	 * Transitional ingredient accessor for integrations using the pre-1.21
+	 * recipe API.
+	 */
+	@Deprecated
+	NonNullList<Ingredient> getIngredients();
+
+	/** Transitional group accessor for older integrations. */
+	@Deprecated
+	default String getGroup() {
+		return group();
+	}
+
 	@Override
-	default RecipeType<?> getType() {
-		return BuiltInRegistries.RECIPE_TYPE.get(TYPE_ID);
+	@SuppressWarnings("unchecked")
+	default RecipeType<ManaInfusionRecipe> getType() {
+		return (RecipeType<ManaInfusionRecipe>) Objects.requireNonNull(
+				BuiltInRegistries.RECIPE_TYPE.getValue(TYPE_ID));
 	}
 
 	// Ignored IRecipe stuff
 
-	@NotNull
 	@Override
-	default ItemStack assemble(@NotNull Container inv, @NotNull RegistryAccess registries) {
+	default ItemStack assemble(RecipeInput input) {
 		return ItemStack.EMPTY;
 	}
 
 	@Override
-	default boolean matches(@NotNull Container inv, @NotNull Level world) {
+	default boolean matches(RecipeInput input, Level level) {
 		return false;
 	}
 
 	@Override
-	default boolean canCraftInDimensions(int width, int height) {
+	default PlacementInfo placementInfo() {
+		return PlacementInfo.create(List.<Ingredient>of());
+	}
+
+	@Override
+	default boolean showNotification() {
 		return false;
+	}
+
+	@Override
+	default String group() {
+		return "";
+	}
+
+	@Override
+	default RecipeBookCategory recipeBookCategory() {
+		return RecipeBookCategories.CRAFTING_MISC;
 	}
 
 	@Override

@@ -35,8 +35,8 @@ public class ElvenTradeRecipe
 		implements vazkii.botania.api.recipe.ElvenTradeRecipe {
 	private static final Codec<List<ItemStackTemplate>> OUTPUT_CODEC =
 			Codec.either(
-					ItemStackTemplate.CODEC.listOf(),
-					ItemStackTemplate.CODEC
+					RecipeCodecs.ITEM_STACK_TEMPLATE.listOf(),
+					RecipeCodecs.ITEM_STACK_TEMPLATE
 			).xmap(
 					either -> either.map(
 							outputs -> outputs,

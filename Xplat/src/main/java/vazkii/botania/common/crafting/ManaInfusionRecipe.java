@@ -38,7 +38,7 @@ public class ManaInfusionRecipe
 			RecordCodecBuilder.mapCodec(instance -> instance.group(
 					Ingredient.CODEC.fieldOf("input")
 							.forGetter(recipe -> recipe.input),
-					ItemStackTemplate.CODEC.fieldOf("output")
+					RecipeCodecs.ITEM_STACK_TEMPLATE.fieldOf("output")
 							.forGetter(recipe -> recipe.output),
 					Codec.INT.fieldOf("mana")
 							.forGetter(recipe -> recipe.mana),

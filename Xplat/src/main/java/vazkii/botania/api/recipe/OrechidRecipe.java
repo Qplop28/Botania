@@ -10,11 +10,15 @@ package vazkii.botania.api.recipe;
 
 import net.minecraft.commands.CacheableFunction;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.PlacementInfo;
 import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeBookCategories;
+import net.minecraft.world.item.crafting.RecipeBookCategory;
+import net.minecraft.world.item.crafting.RecipeInput;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
 
@@ -23,33 +27,24 @@ import org.jetbrains.annotations.Nullable;
 
 import vazkii.botania.api.BotaniaAPI;
 
-public interface OrechidRecipe extends Recipe<Container> {
-	Identifier TYPE_ID = new Identifier(BotaniaAPI.MODID, "orechid");
-	Identifier IGNEM_TYPE_ID = new Identifier(BotaniaAPI.MODID, "orechid_ignem");
-	Identifier MARIMORPHOSIS_TYPE_ID = new Identifier(BotaniaAPI.MODID, "marimorphosis");
+import java.util.List;
+import java.util.Objects;
 
-	/** Valid inputs for the recipe */
+public interface OrechidRecipe extends Recipe<RecipeInput> {
+	Identifier TYPE_ID = Identifier.fromNamespaceAndPath(BotaniaAPI.MODID, "orechid");
+	Identifier IGNEM_TYPE_ID = Identifier.fromNamespaceAndPath(BotaniaAPI.MODID, "orechid_ignem");
+	Identifier MARIMORPHOSIS_TYPE_ID = Identifier.fromNamespaceAndPath(BotaniaAPI.MODID, "marimorphosis");
+
 	StateIngredient getInput();
 
-	/** Output to display in recipes and to be used by default. */
 	StateIngredient getOutput();
 
-	@NotNull
-	@Override
-	RecipeType<? extends OrechidRecipe> getType();
-
-	/** Location-sensitive output, called with the position of the block to convert. */
 	default StateIngredient getOutput(@NotNull Level level, @NotNull BlockPos pos) {
 		return getOutput();
 	}
 
-	/**
-	 * Default weight, used if no special weight logic is provided, and to display
-	 * in recipes (the JEI/REI displayed output per 64 input depends on the sum of default weights).
-	 */
 	int getWeight();
 
-	/** Location-sensitive weight, called with the position of the block to convert. */
 	default int getWeight(@NotNull Level level, @NotNull BlockPos pos) {
 		return getWeight();
 	}
@@ -58,23 +53,40 @@ public interface OrechidRecipe extends Recipe<Container> {
 	CacheableFunction getSuccessFunction();
 
 	@Override
-	default boolean matches(Container c, Level l) {
+	@SuppressWarnings("unchecked")
+	default RecipeType<? extends OrechidRecipe> getType() {
+		return (RecipeType<? extends OrechidRecipe>) Objects.requireNonNull(
+				BuiltInRegistries.RECIPE_TYPE.getValue(TYPE_ID));
+	}
+
+	@Override
+	default boolean matches(RecipeInput input, Level level) {
 		return false;
 	}
 
 	@Override
-	default ItemStack assemble(Container c, @NotNull RegistryAccess registries) {
+	default ItemStack assemble(RecipeInput input) {
 		return ItemStack.EMPTY;
 	}
 
 	@Override
-	default boolean canCraftInDimensions(int width, int height) {
+	default PlacementInfo placementInfo() {
+		return PlacementInfo.create(List.<Ingredient>of());
+	}
+
+	@Override
+	default boolean showNotification() {
 		return false;
 	}
 
 	@Override
-	default ItemStack getResultItem(@NotNull RegistryAccess registries) {
-		return ItemStack.EMPTY;
+	default String group() {
+		return "";
+	}
+
+	@Override
+	default RecipeBookCategory recipeBookCategory() {
+		return RecipeBookCategories.CRAFTING_MISC;
 	}
 
 	@Override

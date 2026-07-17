@@ -13,13 +13,16 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeType;
 
-import org.jetbrains.annotations.NotNull;
-
 import vazkii.botania.api.BotaniaAPI;
 import vazkii.botania.common.block.BotaniaBlocks;
 
+import java.util.Objects;
+
 public interface RunicAltarRecipe extends RecipeWithReagent {
-	Identifier TYPE_ID = new Identifier(BotaniaAPI.MODID, "runic_altar");
+	Identifier TYPE_ID = Identifier.fromNamespaceAndPath(
+			BotaniaAPI.MODID,
+			"runic_altar"
+	);
 
 	// TODO: read from recipe definition
 	@Override
@@ -29,9 +32,10 @@ public interface RunicAltarRecipe extends RecipeWithReagent {
 
 	int getManaUsage();
 
-	@NotNull
 	@Override
-	default RecipeType<?> getType() {
-		return BuiltInRegistries.RECIPE_TYPE.get(TYPE_ID);
+	@SuppressWarnings("unchecked")
+	default RecipeType<RunicAltarRecipe> getType() {
+		return (RecipeType<RunicAltarRecipe>) Objects.requireNonNull(
+				BuiltInRegistries.RECIPE_TYPE.getValue(TYPE_ID));
 	}
 }

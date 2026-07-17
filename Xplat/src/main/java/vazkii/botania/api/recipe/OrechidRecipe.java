@@ -12,9 +12,13 @@ import net.minecraft.commands.CacheableFunction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.PlacementInfo;
 import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeBookCategories;
+import net.minecraft.world.item.crafting.RecipeBookCategory;
+import net.minecraft.world.item.crafting.RecipeInput;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
 
@@ -23,10 +27,12 @@ import org.jetbrains.annotations.Nullable;
 
 import vazkii.botania.api.BotaniaAPI;
 
-public interface OrechidRecipe extends Recipe<Container> {
-	Identifier TYPE_ID = new Identifier(BotaniaAPI.MODID, "orechid");
-	Identifier IGNEM_TYPE_ID = new Identifier(BotaniaAPI.MODID, "orechid_ignem");
-	Identifier MARIMORPHOSIS_TYPE_ID = new Identifier(BotaniaAPI.MODID, "marimorphosis");
+import java.util.List;
+
+public interface OrechidRecipe extends Recipe<RecipeInput> {
+	Identifier TYPE_ID = Identifier.fromNamespaceAndPath(BotaniaAPI.MODID, "orechid");
+	Identifier IGNEM_TYPE_ID = Identifier.fromNamespaceAndPath(BotaniaAPI.MODID, "orechid_ignem");
+	Identifier MARIMORPHOSIS_TYPE_ID = Identifier.fromNamespaceAndPath(BotaniaAPI.MODID, "marimorphosis");
 
 	/** Valid inputs for the recipe */
 	StateIngredient getInput();
@@ -58,21 +64,36 @@ public interface OrechidRecipe extends Recipe<Container> {
 	CacheableFunction getSuccessFunction();
 
 	@Override
-	default boolean matches(Container c, Level l) {
+	default boolean matches(RecipeInput input, Level level) {
 		return false;
 	}
 
 	@Override
-	default ItemStack assemble(Container c, @NotNull RegistryAccess registries) {
+	default ItemStack assemble(RecipeInput input) {
 		return ItemStack.EMPTY;
 	}
 
 	@Override
-	default boolean canCraftInDimensions(int width, int height) {
+	default PlacementInfo placementInfo() {
+		return PlacementInfo.create(List.<Ingredient>of());
+	}
+
+	@Override
+	default boolean showNotification() {
 		return false;
 	}
 
 	@Override
+	default String group() {
+		return "";
+	}
+
+	@Override
+	default RecipeBookCategory recipeBookCategory() {
+		return RecipeBookCategories.CRAFTING_MISC;
+	}
+
+	@Deprecated
 	default ItemStack getResultItem(@NotNull RegistryAccess registries) {
 		return ItemStack.EMPTY;
 	}

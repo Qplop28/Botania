@@ -1,10 +1,16 @@
 package vazkii.botania.api.recipe;
 
-import net.minecraft.world.Container;
+import net.minecraft.core.NonNullList;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.PlacementInfo;
 import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeBookCategories;
+import net.minecraft.world.item.crafting.RecipeBookCategory;
+import net.minecraft.world.item.crafting.RecipeInput;
 
-public interface RecipeWithReagent extends Recipe<Container> {
+import java.util.List;
+
+public interface RecipeWithReagent extends Recipe<RecipeInput> {
 	/**
 	 * @return Ingredient matching the final item that needs to be thrown into the apothecary
 	 *         to perform a craft after a matching recipe is in.
@@ -12,9 +18,28 @@ public interface RecipeWithReagent extends Recipe<Container> {
 	Ingredient getReagent();
 
 	@Override
-	default boolean canCraftInDimensions(int width, int height) {
+	default PlacementInfo placementInfo() {
+		return PlacementInfo.create(List.<Ingredient>of());
+	}
+
+	@Override
+	default boolean showNotification() {
 		return false;
 	}
+
+	@Override
+	default String group() {
+		return "";
+	}
+
+	@Override
+	default RecipeBookCategory recipeBookCategory() {
+		return RecipeBookCategories.CRAFTING_MISC;
+	}
+
+	/** Transitional ingredient accessor for existing integrations. */
+	@Deprecated
+	NonNullList<Ingredient> getIngredients();
 
 	@Override
 	default boolean isSpecial() {

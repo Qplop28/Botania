@@ -9,124 +9,124 @@
 package vazkii.botania.common.crafting;
 
 import com.google.common.base.Preconditions;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.Identifier;
-import net.minecraft.util.GsonHelper;
-import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.PlacementInfo;
+import net.minecraft.world.item.crafting.RecipeInput;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
-import net.minecraft.world.item.crafting.ShapedRecipe;
 import net.minecraft.world.level.Level;
-
-import org.jetbrains.annotations.NotNull;
 
 import vazkii.botania.common.block.BotaniaBlocks;
 import vazkii.botania.common.crafting.recipe.RecipeUtils;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-public class RunicAltarRecipe implements vazkii.botania.api.recipe.RunicAltarRecipe {
-	private final Identifier id;
-	private final ItemStack output;
-	private final NonNullList<Ingredient> inputs;
+public class RunicAltarRecipe
+		implements vazkii.botania.api.recipe.RunicAltarRecipe {
+	protected static final MapCodec<RunicAltarRecipe> CODEC =
+			RecordCodecBuilder.mapCodec(instance -> instance.group(
+					ItemStackTemplate.CODEC.fieldOf("output")
+							.forGetter(recipe -> recipe.output),
+					Codec.INT.fieldOf("mana")
+							.forGetter(recipe -> recipe.mana),
+					Ingredient.CODEC.listOf().fieldOf("ingredients")
+							.forGetter(recipe -> recipe.inputs)
+			).apply(instance, RunicAltarRecipe::new));
+
+	private static final StreamCodec<RegistryFriendlyByteBuf, RunicAltarRecipe>
+			STREAM_CODEC = ByteBufCodecs.fromCodecWithRegistries(CODEC.codec());
+
+	public static final RecipeSerializer<RunicAltarRecipe> SERIALIZER =
+			new RecipeSerializer<>(CODEC, STREAM_CODEC);
+
+	protected final ItemStackTemplate output;
+	protected final NonNullList<Ingredient> inputs;
 	private final int mana;
+	private final PlacementInfo placementInfo;
 
-	public RunicAltarRecipe(Identifier id, ItemStack output, int mana, Ingredient... inputs) {
-		Preconditions.checkArgument(inputs.length <= 16, "Cannot have more than 16 ingredients");
-		this.id = id;
+	public RunicAltarRecipe(
+			ItemStackTemplate output,
+			int mana,
+			List<Ingredient> inputs
+	) {
+		Preconditions.checkArgument(
+				inputs.size() <= 16,
+				"Cannot have more than 16 ingredients"
+		);
 		this.output = output;
-		this.inputs = NonNullList.of(Ingredient.EMPTY, inputs);
+		this.inputs = NonNullList.create();
+		this.inputs.addAll(inputs);
 		this.mana = mana;
+		this.placementInfo = PlacementInfo.create(this.inputs);
+	}
+
+	/** Transitional constructor for existing data generators and addons. */
+	@Deprecated
+	public RunicAltarRecipe(
+			Identifier ignoredId,
+			ItemStack output,
+			int mana,
+			Ingredient... inputs
+	) {
+		this(
+				ItemStackTemplate.fromNonEmptyStack(output),
+				mana,
+				Arrays.asList(inputs)
+		);
 	}
 
 	@Override
-	public boolean matches(Container inv, @NotNull Level world) {
-		return RecipeUtils.matches(inputs, inv, null);
+	public boolean matches(RecipeInput input, Level level) {
+		return RecipeUtils.matches(this.inputs, input, null);
 	}
 
-	@NotNull
 	@Override
-	public final ItemStack getResultItem(@NotNull RegistryAccess registries) {
-		return output;
+	public ItemStack assemble(RecipeInput input) {
+		return this.output.create();
 	}
 
-	@NotNull
 	@Override
-	public ItemStack assemble(@NotNull Container inv, @NotNull RegistryAccess registries) {
-		return getResultItem(registries).copy();
+	public PlacementInfo placementInfo() {
+		return this.placementInfo;
 	}
 
-	@NotNull
+	@Deprecated
+	public ItemStack getResultItem(RegistryAccess registries) {
+		return this.output.create();
+	}
+
 	@Override
+	@Deprecated
 	public NonNullList<Ingredient> getIngredients() {
-		return inputs;
+		return this.inputs;
 	}
 
-	@NotNull
-	@Override
+	/** Transitional toast icon accessor for older integrations. */
+	@Deprecated
 	public ItemStack getToastSymbol() {
 		return new ItemStack(BotaniaBlocks.runeAltar);
 	}
 
-	@NotNull
 	@Override
-	public Identifier getId() {
-		return id;
-	}
-
-	@NotNull
-	@Override
-	public RecipeSerializer<?> getSerializer() {
-		return BotaniaRecipeTypes.RUNE_SERIALIZER;
+	public RecipeSerializer<? extends Recipe<RecipeInput>> getSerializer() {
+		return SERIALIZER;
 	}
 
 	@Override
 	public int getManaUsage() {
-		return mana;
+		return this.mana;
 	}
-
-	public static class Serializer implements RecipeSerializer<RunicAltarRecipe> {
-		@NotNull
-		@Override
-		public RunicAltarRecipe fromJson(@NotNull Identifier id, @NotNull JsonObject json) {
-			ItemStack output = ShapedRecipe.itemStackFromJson(GsonHelper.getAsJsonObject(json, "output"));
-			int mana = GsonHelper.getAsInt(json, "mana");
-			JsonArray ingrs = GsonHelper.getAsJsonArray(json, "ingredients");
-			List<Ingredient> inputs = new ArrayList<>();
-			for (JsonElement e : ingrs) {
-				inputs.add(Ingredient.fromJson(e));
-			}
-			return new RunicAltarRecipe(id, output, mana, inputs.toArray(new Ingredient[0]));
-		}
-
-		@Override
-		public RunicAltarRecipe fromNetwork(@NotNull Identifier id, @NotNull FriendlyByteBuf buf) {
-			Ingredient[] inputs = new Ingredient[buf.readVarInt()];
-			for (int i = 0; i < inputs.length; i++) {
-				inputs[i] = Ingredient.fromNetwork(buf);
-			}
-			ItemStack output = buf.readItem();
-			int mana = buf.readVarInt();
-			return new RunicAltarRecipe(id, output, mana, inputs);
-		}
-
-		@Override
-		public void toNetwork(@NotNull FriendlyByteBuf buf, @NotNull RunicAltarRecipe recipe) {
-			buf.writeVarInt(recipe.getIngredients().size());
-			for (Ingredient input : recipe.getIngredients()) {
-				input.toNetwork(buf);
-			}
-			buf.writeItem(recipe.output);
-			buf.writeVarInt(recipe.getManaUsage());
-		}
-	}
-
 }

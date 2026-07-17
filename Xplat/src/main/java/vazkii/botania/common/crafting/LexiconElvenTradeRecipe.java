@@ -45,13 +45,11 @@ public class LexiconElvenTradeRecipe implements ElvenTradeRecipe {
 	}
 
 	@NotNull
-	@Override
 	public ItemStack getToastSymbol() {
 		return new ItemStack(BotaniaBlocks.alfPortal);
 	}
 
 	@NotNull
-	@Override
 	public Identifier getId() {
 		return id;
 	}

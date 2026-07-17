@@ -28,9 +28,9 @@ out vec4 lightMapColor;
 out vec4 overlayColor;
 out vec2 texCoord0;
 out vec4 normal;
+flat out vec2 botaniaShaderValues;
 
 uniform float GameTime;
-uniform float BotaniaDisfiguration;
 
 float rand(vec2 co) {
     return (fract(sin(dot(co.xy, vec2(12.9898,78.233))) * 43758.5453) - 0.5) * 2;
@@ -39,7 +39,9 @@ float rand(vec2 co) {
 void main() {
     // Botania: Blur Position using disfiguration
     float seed = rand(vec2(GameTime, GameTime));
-    vec3 offset = BotaniaDisfiguration * vec3(
+    // The model tint carries submission-local grain (R) and disfiguration (G).
+    float disfiguration = Color.g;
+    vec3 offset = disfiguration * vec3(
         rand(seed * Position.yz),
         rand(seed * Position.xz),
         rand(seed * Position.xy)
@@ -48,7 +50,8 @@ void main() {
     gl_Position = ProjMat * ModelViewMat * vec4(modifiedPos, 1.0);
 
     vertexDistance = fog_distance(ModelViewMat, IViewRotMat * Position, FogShape);
-    vertexColor = minecraft_mix_light(Light0_Direction, Light1_Direction, Normal, Color);
+    vertexColor = minecraft_mix_light(Light0_Direction, Light1_Direction, Normal, vec4(1.0));
+    botaniaShaderValues = Color.rg;
     lightMapColor = texelFetch(Sampler2, UV2 / 16, 0);
     overlayColor = texelFetch(Sampler1, UV1, 0);
     texCoord0 = UV0;

@@ -1,5 +1,5 @@
 {
-  "__comment": "[VanillaCopy] rendertype_entity_translucent.json with extra uniforms and custom shaders",
+  "__comment": "[VanillaCopy] rendertype_entity_translucent.json with custom shaders",
   "blend": {
     "func": "add",
     "srcrgb": "srcalpha",
@@ -32,8 +32,6 @@
     { "name": "FogColor", "type": "float", "count": 4, "values": [ 0.0, 0.0, 0.0, 0.0 ] },
     { "name": "FogShape", "type": "int", "count": 1, "values": [ 0 ] },
 
-    { "name": "GameTime", "type": "float", "count": 1, "values": [ 0.0 ] },
-    { "name": "BotaniaDisfiguration", "type": "float", "count": 1, "values": [ 0.025 ] },
-    { "name": "BotaniaGrainIntensity", "type": "float", "count": 1, "values": [ 0.05 ] }
+    { "name": "GameTime", "type": "float", "count": 1, "values": [ 0.0 ] }
   ]
 }

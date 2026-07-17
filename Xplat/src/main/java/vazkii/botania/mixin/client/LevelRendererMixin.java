@@ -4,24 +4,28 @@
  */
 package vazkii.botania.mixin.client;
 
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import com.llamalad7.mixinextras.sugar.Local;
+import com.mojang.blaze3d.framegraph.FramePass;
 import com.mojang.blaze3d.vertex.PoseStack;
 
-import net.minecraft.client.Camera;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.RenderBuffers;
 
 import org.jetbrains.annotations.Nullable;
+import org.joml.Matrix4f;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import vazkii.botania.client.core.handler.ClientTickHandler;
 import vazkii.botania.client.render.world.WorldOverlays;
 
-/** Keeps Botania's world-last submission at the end of level extraction. */
+/** Keeps Botania's world-last submission inside the main frame-graph pass. */
 @Mixin(value = LevelRenderer.class, priority = 900)
 public class LevelRendererMixin {
 	@Shadow
@@ -31,11 +35,21 @@ public class LevelRendererMixin {
 	@Nullable
 	private ClientLevel level;
 
-	@Inject(method = "renderLevel", at = @At("TAIL"))
-	private void botania$renderOverlays(CallbackInfo ci) {
-		var minecraft = net.minecraft.client.Minecraft.getInstance();
-		Camera camera = minecraft.gameRenderer.getMainCamera();
-		WorldOverlays.renderWorldLast(camera, minecraft.getDeltaTracker().getGameTimeDeltaPartialTick(false),
-				new PoseStack(), renderBuffers, level);
+	@WrapOperation(
+			method = "addMainPass",
+			at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/framegraph/FramePass;executes(Ljava/lang/Runnable;)V")
+	)
+	private void botania$appendWorldOverlays(FramePass pass, Runnable vanillaPass, Operation<Void> original,
+			@Local Matrix4f modelViewMatrix) {
+		original.call(pass, (Runnable) () -> {
+			vanillaPass.run();
+			Minecraft minecraft = Minecraft.getInstance();
+			if (level != null) {
+				PoseStack pose = new PoseStack();
+				pose.last().pose().set(modelViewMatrix);
+				WorldOverlays.renderWorldLast(minecraft.gameRenderer.getMainCamera(), ClientTickHandler.partialTicks,
+						pose, renderBuffers, level);
+			}
+		});
 	}
 }

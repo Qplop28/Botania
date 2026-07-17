@@ -68,17 +68,10 @@ public class FabricClientInitializer implements ClientModInitializer {
 		MenuScreens.register(BotaniaItems.BAUBLE_BOX_CONTAINER, BaubleBoxGui::new);
 
 		// Blocks and Items
-		PreparableModelLoadingPlugin.register(new Identifier(LibMisc.MOD_ID, "miscellaneous_models"), new PreparableModelLoadingPlugin<>() {
-			@Override
-			public java.util.concurrent.CompletableFuture<java.util.Map<Identifier, net.fabricmc.fabric.api.client.model.loading.v1.ExtraModelKey<net.minecraft.client.renderer.block.dispatch.BlockStateModel>>> prepare(
-					net.minecraft.server.packs.resources.ResourceManager resourceManager, java.util.concurrent.Executor executor) {
-				return java.util.concurrent.CompletableFuture.supplyAsync(
-						() -> MiscellaneousModels.discoverTinyPotatoes(resourceManager), executor);
-			}
-
-			@Override
-			public void initialize(java.util.Map<Identifier, net.fabricmc.fabric.api.client.model.loading.v1.ExtraModelKey<net.minecraft.client.renderer.block.dispatch.BlockStateModel>> data,
-					net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin.Context context) {
+		PreparableModelLoadingPlugin.register(
+				(sharedState, executor) -> java.util.concurrent.CompletableFuture.supplyAsync(
+						() -> MiscellaneousModels.discoverTinyPotatoes(sharedState.resourceManager()), executor),
+				(data, context) -> {
 				MiscellaneousModels.register(context, data);
 				context.modifyBlockModelAfterBake().register((model, modifierContext) -> {
 					var block = modifierContext.state().getBlock();
@@ -90,11 +83,11 @@ public class FabricClientInitializer implements ClientModInitializer {
 					return model;
 				});
 				context.modifyItemModelAfterBake().register((model, modifierContext) ->
-						modifierContext.item() == vazkii.botania.common.block.BotaniaBlocks.tinyPotato.asItem()
+						modifierContext.itemId().equals(BuiltInRegistries.ITEM.getKey(
+								vazkii.botania.common.block.BotaniaBlocks.tinyPotato.asItem()))
 								? new TinyPotatoModel(model)
 								: model);
-			}
-		});
+				});
 
 		// BE/Entity Renderer
 		BotaniaLayerDefinitions.init((loc, supplier) -> EntityModelLayerRegistry.registerModelLayer(loc, supplier::get));

@@ -14,6 +14,7 @@ import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
 import net.fabricmc.fabric.api.client.model.loading.v1.SimpleUnbakedExtraModel;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
+import net.minecraft.client.renderer.item.ItemModel;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.world.item.DyeColor;
@@ -71,25 +72,32 @@ public final class MiscellaneousModels {
 					color -> key(prefix("block/" + color.getSerializedName() + "_spreader_padding")))));
 
 	private static volatile Map<Identifier, ExtraModelKey<BlockStateModel>> tinyPotatoKeys = Map.of();
+	private static volatile Map<Identifier, ExtraModelKey<ItemModel>> tinyPotatoItemKeys = Map.of();
 	public static final MiscellaneousModels INSTANCE = new MiscellaneousModels();
 
 	private MiscellaneousModels() {}
 
-	public static Map<Identifier, ExtraModelKey<BlockStateModel>> discoverTinyPotatoes(ResourceManager resources) {
-		return resources.listResources(ResourcesLib.PREFIX_MODELS + ResourcesLib.PREFIX_TINY_POTATO,
+	public static TinyPotatoModels discoverTinyPotatoes(ResourceManager resources) {
+		Map<Identifier, ExtraModelKey<BlockStateModel>> blockModels = resources.listResources(ResourcesLib.PREFIX_MODELS + ResourcesLib.PREFIX_TINY_POTATO,
 				id -> id.getPath().endsWith(ResourcesLib.ENDING_JSON)).keySet().stream()
 				.filter(id -> LibMisc.MOD_ID.equals(id.getNamespace()))
 				.map(id -> new Identifier(id.getNamespace(), id.getPath().substring(ResourcesLib.PREFIX_MODELS.length(),
 						id.getPath().length() - ResourcesLib.ENDING_JSON.length())))
-				.collect(Collectors.toUnmodifiableMap(Function.identity(), ExtraModelKey::create));
+				.collect(Collectors.toUnmodifiableMap(Function.identity(), id -> ExtraModelKey.create(id::toString)));
+		Map<Identifier, ExtraModelKey<ItemModel>> itemModels = blockModels.keySet().stream()
+				.collect(Collectors.toUnmodifiableMap(Function.identity(),
+						id -> ExtraModelKey.create(() -> id + " (item)")));
+		return new TinyPotatoModels(blockModels, itemModels);
 	}
 
 	public static void register(ModelLoadingPlugin.Context context,
-			Map<Identifier, ExtraModelKey<BlockStateModel>> preparedTinyPotatoes) {
+			TinyPotatoModels preparedTinyPotatoes) {
 		registerIslands();
 		KEYS.forEach((id, key) -> context.addModel(key, SimpleUnbakedExtraModel.blockStateModel(id)));
-		preparedTinyPotatoes.forEach((id, key) -> context.addModel(key, SimpleUnbakedExtraModel.blockStateModel(id)));
-		tinyPotatoKeys = Map.copyOf(preparedTinyPotatoes);
+		preparedTinyPotatoes.blockModels.forEach((id, key) -> context.addModel(key, SimpleUnbakedExtraModel.blockStateModel(id)));
+		preparedTinyPotatoes.itemModels.forEach((id, key) -> context.addModel(key, SimpleUnbakedExtraModel.itemModel(id)));
+		tinyPotatoKeys = preparedTinyPotatoes.blockModels;
+		tinyPotatoItemKeys = preparedTinyPotatoes.itemModels;
 	}
 
 	public BlockStateModel get(ExtraModelKey<BlockStateModel> key) {
@@ -111,6 +119,27 @@ public final class MiscellaneousModels {
 		}
 		return key == null ? Minecraft.getInstance().getModelManager().getMissingBlockStateModel() : get(key);
 	}
+
+	public ItemModel getTinyPotatoItemModel(Identifier id) {
+		ExtraModelKey<ItemModel> key = tinyPotatoItemKeys.get(id);
+		if (key == null) {
+			String fallback = ClientProxy.dootDoot ? "halloween" : "default";
+			key = tinyPotatoItemKeys.get(prefix(ResourcesLib.PREFIX_TINY_POTATO + "/" + fallback));
+		}
+		if (key == null) {
+			BotaniaAPI.LOGGER.error("No Tiny Potato item model was registered for {}", id);
+			return Minecraft.getInstance().getItemModelResolver().getMissingModel();
+		}
+		ItemModel model = ((FabricModelManager) Minecraft.getInstance().getModelManager()).getModel(key);
+		if (model == null) {
+			BotaniaAPI.LOGGER.error("Missing registered Tiny Potato item model; identifier={}, key={}", id, key);
+			return Minecraft.getInstance().getItemModelResolver().getMissingModel();
+		}
+		return model;
+	}
+
+	public record TinyPotatoModels(Map<Identifier, ExtraModelKey<BlockStateModel>> blockModels,
+			Map<Identifier, ExtraModelKey<ItemModel>> itemModels) {}
 
 	public BlockStateModel goldfishModel() { return get(GOLDFISH); }
 	public BlockStateModel phiFlowerModel() { return get(PHI_FLOWER); }
@@ -139,7 +168,7 @@ public final class MiscellaneousModels {
 	public BlockStateModel spreaderPadding(DyeColor color) { return get(SPREADER_PADDINGS.get(color)); }
 
 	private static ExtraModelKey<BlockStateModel> key(Identifier id) {
-		ExtraModelKey<BlockStateModel> key = ExtraModelKey.create(id);
+		ExtraModelKey<BlockStateModel> key = ExtraModelKey.create(id::toString);
 		KEYS.put(id, key);
 		return key;
 	}

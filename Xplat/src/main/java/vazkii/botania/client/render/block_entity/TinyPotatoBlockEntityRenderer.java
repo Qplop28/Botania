@@ -21,6 +21,7 @@ import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.entity.ItemRenderer;
+import net.minecraft.client.renderer.item.ItemModel;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
 import net.minecraft.network.chat.Component;
@@ -70,6 +71,13 @@ public class TinyPotatoBlockEntityRenderer implements BlockEntityRenderer<TinyPo
 		var nameBuilder = new StringBuilder();
 		TinyPotatoBlockItem.isEnchantedName(displayName, nameBuilder);
 		return getModel(nameBuilder.toString().toLowerCase(Locale.ROOT));
+	}
+
+	public static ItemModel getItemModelFromDisplayName(Component displayName) {
+		var nameBuilder = new StringBuilder();
+		TinyPotatoBlockItem.isEnchantedName(displayName, nameBuilder);
+		return MiscellaneousModels.INSTANCE.getTinyPotatoItemModel(
+				taterLocation(nameBuilder.toString().toLowerCase(Locale.ROOT)));
 	}
 
 	private static BlockStateModel getModel(String name) {

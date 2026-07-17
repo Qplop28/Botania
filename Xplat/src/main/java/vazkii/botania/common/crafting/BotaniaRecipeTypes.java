@@ -121,7 +121,7 @@ public class BotaniaRecipeTypes {
 
 	public static final RecipeSerializer<MarimorphosisRecipe>
 			MARIMORPHOSIS_SERIALIZER =
-			new MarimorphosisRecipe.Serializer();
+			MarimorphosisRecipe.SERIALIZER;
 
 	public static void submitRecipeTypes(
 			BiConsumer<RecipeType<?>, Identifier> registrar

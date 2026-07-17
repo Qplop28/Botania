@@ -115,7 +115,7 @@ public class SnowflakePendantItem extends BaubleItem {
 							ms.last(),
 							buffer,
 							null,
-							MiscellaneousModels.INSTANCE.snowflakePendantGem,
+							MiscellaneousModels.INSTANCE.snowflakePendantGem(),
 							1,
 							1,
 							1,

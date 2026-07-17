@@ -5,6 +5,7 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
+import net.fabricmc.fabric.api.client.model.loading.v1.PreparableModelLoadingPlugin;
 import net.fabricmc.fabric.api.client.particle.v1.ParticleProviderRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.*;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
@@ -26,6 +27,7 @@ import vazkii.botania.api.BotaniaFabricClientCapabilities;
 import vazkii.botania.client.core.handler.ClientTickHandler;
 import vazkii.botania.client.core.handler.CorporeaInputHandler;
 import vazkii.botania.client.core.handler.KonamiHandler;
+import vazkii.botania.client.core.handler.MiscellaneousModels;
 import vazkii.botania.client.core.proxy.ClientProxy;
 import vazkii.botania.client.fx.BotaniaParticles;
 import vazkii.botania.client.gui.HUDHandler;
@@ -35,6 +37,7 @@ import vazkii.botania.client.gui.bag.FlowerPouchGui;
 import vazkii.botania.client.gui.box.BaubleBoxGui;
 import vazkii.botania.client.integration.ears.EarsIntegration;
 import vazkii.botania.client.model.BotaniaLayerDefinitions;
+import vazkii.botania.client.model.TinyPotatoModel;
 import vazkii.botania.client.model.armor.ArmorModels;
 import vazkii.botania.client.render.ColorHandler;
 import vazkii.botania.client.render.entity.*;
@@ -65,6 +68,26 @@ public class FabricClientInitializer implements ClientModInitializer {
 		MenuScreens.register(BotaniaItems.BAUBLE_BOX_CONTAINER, BaubleBoxGui::new);
 
 		// Blocks and Items
+		PreparableModelLoadingPlugin.register(
+				(sharedState, executor) -> java.util.concurrent.CompletableFuture.supplyAsync(
+						() -> MiscellaneousModels.discoverTinyPotatoes(sharedState.resourceManager()), executor),
+				(data, context) -> {
+				MiscellaneousModels.register(context, data);
+				context.modifyBlockModelAfterBake().register((model, modifierContext) -> {
+					var block = modifierContext.state().getBlock();
+					if (block == vazkii.botania.common.block.BotaniaBlocks.abstrusePlatform
+							|| block == vazkii.botania.common.block.BotaniaBlocks.spectralPlatform
+							|| block == vazkii.botania.common.block.BotaniaBlocks.infrangiblePlatform) {
+						return ClientXplatAbstractions.INSTANCE.wrapPlatformModel(model);
+					}
+					return model;
+				});
+				context.modifyItemModelAfterBake().register((model, modifierContext) ->
+						modifierContext.itemId().equals(BuiltInRegistries.ITEM.getKey(
+								vazkii.botania.common.block.BotaniaBlocks.tinyPotato.asItem()))
+								? new TinyPotatoModel(model)
+								: model);
+				});
 
 		// BE/Entity Renderer
 		BotaniaLayerDefinitions.init((loc, supplier) -> EntityModelLayerRegistry.registerModelLayer(loc, supplier::get));

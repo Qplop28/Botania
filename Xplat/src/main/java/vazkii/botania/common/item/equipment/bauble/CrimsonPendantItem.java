@@ -61,7 +61,7 @@ public class CrimsonPendantItem extends BaubleItem {
 							ms.last(),
 							buffer,
 							null,
-							MiscellaneousModels.INSTANCE.crimsonGem,
+							MiscellaneousModels.INSTANCE.crimsonGem(),
 							1,
 							1,
 							1,

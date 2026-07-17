@@ -8,8 +8,13 @@
  */
 package vazkii.botania.client.core.handler;
 
-import net.minecraft.client.resources.model.BakedModel;
-import net.minecraft.client.resources.model.ModelBakery;
+import net.fabricmc.fabric.api.client.model.loading.v1.ExtraModelKey;
+import net.fabricmc.fabric.api.client.model.loading.v1.FabricModelManager;
+import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
+import net.fabricmc.fabric.api.client.model.loading.v1.SimpleUnbakedExtraModel;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
+import net.minecraft.client.renderer.item.ItemModel;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.world.item.DyeColor;
@@ -18,98 +23,159 @@ import vazkii.botania.api.BotaniaAPI;
 import vazkii.botania.api.BotaniaAPIClient;
 import vazkii.botania.api.block.FloatingFlower;
 import vazkii.botania.client.lib.ResourcesLib;
-import vazkii.botania.client.model.TinyPotatoModel;
-import vazkii.botania.client.render.block_entity.CorporeaCrystalCubeBlockEntityRenderer;
-import vazkii.botania.client.render.block_entity.ManaPumpBlockEntityRenderer;
+import vazkii.botania.client.core.proxy.ClientProxy;
 import vazkii.botania.common.helper.ColorHelper;
 import vazkii.botania.common.item.equipment.bauble.FlugelTiaraItem;
 import vazkii.botania.common.item.equipment.bauble.ThirdEyeItem;
 import vazkii.botania.common.item.relic.KeyOfTheKingsLawItem;
-import vazkii.botania.common.lib.LibBlockNames;
 import vazkii.botania.common.lib.LibMisc;
-import vazkii.botania.xplat.ClientXplatAbstractions;
 
-import java.util.*;
-import java.util.function.Consumer;
+import java.util.EnumMap;
+import java.util.Map;
+import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static vazkii.botania.common.lib.ResourceLocationHelper.prefix;
 
-public class MiscellaneousModels {
-	private static final Identifier goldfishModelId = prefix("icon/goldfish");
-	private static final Identifier phiFlowerModelId = prefix("icon/phiflower");
-	private static final Identifier nerfBatModelId = prefix("icon/nerfbat");
-	private static final Identifier bloodPendantChainId = prefix("icon/blood_pendant_chain");
-	private static final Identifier bloodPendantGemId = prefix("icon/blood_pendant_gem");
-	private static final Identifier[] kingKeyWeaponModelIds = IntStream.range(0, KeyOfTheKingsLawItem.WEAPON_TYPES)
-			.mapToObj(i -> prefix("icon/gate_weapon_" + i)).toArray(Identifier[]::new);
-	private static final Identifier terrasteelHelmWillModelId = prefix("icon/will_flame");
-	private static final Identifier[] thirdEyeLayerIds = IntStream.range(0, ThirdEyeItem.Renderer.NUM_LAYERS)
-			.mapToObj(i -> prefix("icon/third_eye_" + i)).toArray(Identifier[]::new);
-	private static final Identifier pyroclastGemId = prefix("icon/lava_pendant_gem");
-	private static final Identifier crimsonGemId = prefix("icon/super_lava_pendant_gem");
-	private static final Identifier itemFinderGemId = prefix("icon/itemfinder_gem");
-	private static final Identifier cirrusGemId = prefix("icon/cloud_pendant_gem");
-	private static final Identifier nimbusGemId = prefix("icon/super_cloud_pendant_gem");
-	private static final Identifier snowflakePendantGemId = prefix("icon/ice_pendant_gem");
-	private static final Identifier[] tiaraWingIconIds = IntStream.range(0, FlugelTiaraItem.WING_TYPES)
-			.mapToObj(i -> prefix("icon/tiara_wing_" + (i + 1))).toArray(Identifier[]::new);
-	private static final Identifier corporeaCrystalCubeGlassId = prefix("block/corporea_crystal_cube_glass");
-	private static final Identifier manaPumpHead = prefix("block/pump_head");
-	private static final Identifier elvenSpreaderCoreId = prefix("block/elven_spreader_core");
-	private static final Identifier gaiaSpreaderCoreId = prefix("block/gaia_spreader_core");
-	private static final Identifier manaSpreaderCoreId = prefix("block/mana_spreader_core");
-	private static final Identifier redstoneSpreaderCoreId = prefix("block/redstone_spreader_core");
-	private static final Identifier manaSpreaderScaffoldingId = prefix("block/mana_spreader_scaffolding");
-	private static final Identifier elvenSpreaderScaffoldingId = prefix("block/elven_spreader_scaffolding");
-	private static final Identifier gaiaSpreaderScaffoldingId = prefix("block/gaia_spreader_scaffolding");
-	private static final Map<DyeColor, Identifier> spreaderPaddingIds = new EnumMap<>(ColorHelper.supportedColors().collect(Collectors.toMap(Function.identity(), color -> prefix("block/" + color.getSerializedName() + "_spreader_padding"))));
+/** The extra block-state models which are not reachable from a block state definition. */
+public final class MiscellaneousModels {
+	private static final Map<Identifier, ExtraModelKey<BlockStateModel>> KEYS = new java.util.LinkedHashMap<>();
 
+	public static final ExtraModelKey<BlockStateModel> GOLDFISH = key(prefix("icon/goldfish"));
+	public static final ExtraModelKey<BlockStateModel> PHI_FLOWER = key(prefix("icon/phiflower"));
+	public static final ExtraModelKey<BlockStateModel> NERF_BAT = key(prefix("icon/nerfbat"));
+	public static final ExtraModelKey<BlockStateModel> BLOOD_PENDANT_CHAIN = key(prefix("icon/blood_pendant_chain"));
+	public static final ExtraModelKey<BlockStateModel> BLOOD_PENDANT_GEM = key(prefix("icon/blood_pendant_gem"));
+	public static final List<ExtraModelKey<BlockStateModel>> KING_KEY_WEAPONS = keys("icon/gate_weapon_", 0, KeyOfTheKingsLawItem.WEAPON_TYPES);
+	public static final ExtraModelKey<BlockStateModel> TERRASTEEL_HELM_WILL = key(prefix("icon/will_flame"));
+	public static final List<ExtraModelKey<BlockStateModel>> THIRD_EYE_LAYERS = keys("icon/third_eye_", 0, ThirdEyeItem.Renderer.NUM_LAYERS);
+	public static final ExtraModelKey<BlockStateModel> PYROCLAST_GEM = key(prefix("icon/lava_pendant_gem"));
+	public static final ExtraModelKey<BlockStateModel> CRIMSON_GEM = key(prefix("icon/super_lava_pendant_gem"));
+	public static final ExtraModelKey<BlockStateModel> ITEM_FINDER_GEM = key(prefix("icon/itemfinder_gem"));
+	public static final ExtraModelKey<BlockStateModel> CIRRUS_GEM = key(prefix("icon/cloud_pendant_gem"));
+	public static final ExtraModelKey<BlockStateModel> NIMBUS_GEM = key(prefix("icon/super_cloud_pendant_gem"));
+	public static final ExtraModelKey<BlockStateModel> SNOWFLAKE_PENDANT_GEM = key(prefix("icon/ice_pendant_gem"));
+	public static final List<ExtraModelKey<BlockStateModel>> TIARA_WINGS = keys("icon/tiara_wing_", 1, FlugelTiaraItem.WING_TYPES);
+	public static final ExtraModelKey<BlockStateModel> CORPOREA_CRYSTAL_CUBE_GLASS = key(prefix("block/corporea_crystal_cube_glass"));
+	public static final ExtraModelKey<BlockStateModel> MANA_PUMP_HEAD = key(prefix("block/pump_head"));
+	public static final ExtraModelKey<BlockStateModel> ELVEN_SPREADER_CORE = key(prefix("block/elven_spreader_core"));
+	public static final ExtraModelKey<BlockStateModel> GAIA_SPREADER_CORE = key(prefix("block/gaia_spreader_core"));
+	public static final ExtraModelKey<BlockStateModel> MANA_SPREADER_CORE = key(prefix("block/mana_spreader_core"));
+	public static final ExtraModelKey<BlockStateModel> REDSTONE_SPREADER_CORE = key(prefix("block/redstone_spreader_core"));
+	public static final ExtraModelKey<BlockStateModel> MANA_SPREADER_SCAFFOLDING = key(prefix("block/mana_spreader_scaffolding"));
+	public static final ExtraModelKey<BlockStateModel> ELVEN_SPREADER_SCAFFOLDING = key(prefix("block/elven_spreader_scaffolding"));
+	public static final ExtraModelKey<BlockStateModel> GAIA_SPREADER_SCAFFOLDING = key(prefix("block/gaia_spreader_scaffolding"));
+	public static final Map<DyeColor, ExtraModelKey<BlockStateModel>> SPREADER_PADDINGS = new EnumMap<>(
+			ColorHelper.supportedColors().collect(Collectors.toMap(Function.identity(),
+					color -> key(prefix("block/" + color.getSerializedName() + "_spreader_padding")))));
+
+	private static volatile Map<Identifier, ExtraModelKey<BlockStateModel>> tinyPotatoKeys = Map.of();
+	private static volatile Map<Identifier, ExtraModelKey<ItemModel>> tinyPotatoItemKeys = Map.of();
 	public static final MiscellaneousModels INSTANCE = new MiscellaneousModels();
 
-	private final Map<Identifier, Function<BakedModel, BakedModel>> afterBakeModifiers;
-	private final Map<Identifier, Consumer<BakedModel>> modelConsumers;
+	private MiscellaneousModels() {}
 
-	public boolean registeredModels = false;
+	public static TinyPotatoModels discoverTinyPotatoes(ResourceManager resources) {
+		Map<Identifier, ExtraModelKey<BlockStateModel>> blockModels = resources.listResources(ResourcesLib.PREFIX_MODELS + ResourcesLib.PREFIX_TINY_POTATO,
+				id -> id.getPath().endsWith(ResourcesLib.ENDING_JSON)).keySet().stream()
+				.filter(id -> LibMisc.MOD_ID.equals(id.getNamespace()))
+				.map(id -> new Identifier(id.getNamespace(), id.getPath().substring(ResourcesLib.PREFIX_MODELS.length(),
+						id.getPath().length() - ResourcesLib.ENDING_JSON.length())))
+				.collect(Collectors.toUnmodifiableMap(Function.identity(), id -> ExtraModelKey.create(id::toString)));
+		Map<Identifier, ExtraModelKey<ItemModel>> itemModels = blockModels.keySet().stream()
+				.collect(Collectors.toUnmodifiableMap(Function.identity(),
+						id -> ExtraModelKey.create(() -> id + " (item)")));
+		return new TinyPotatoModels(blockModels, itemModels);
+	}
 
-	public final BakedModel[] tiaraWingIcons;
-	public final BakedModel[] thirdEyeLayers;
-
-	public BakedModel goldfishModel,
-			phiFlowerModel,
-			nerfBatModel,
-			bloodPendantChain,
-			bloodPendantGem,
-			snowflakePendantGem,
-			itemFinderGem,
-			pyroclastGem,
-			crimsonGem,
-			cirrusGem,
-			nimbusGem,
-			terrasteelHelmWillModel,
-			elvenSpreaderCore,
-			gaiaSpreaderCore,
-			manaSpreaderCore,
-			redstoneSpreaderCore,
-			manaSpreaderScaffolding,
-			elvenSpreaderScaffolding,
-			gaiaSpreaderScaffolding;
-
-	public final HashMap<DyeColor, BakedModel> spreaderPaddings = new HashMap<>();
-
-	public final BakedModel[] kingKeyWeaponModels;
-
-	public void onModelRegister(ResourceManager rm, Consumer<Identifier> consumer) {
-		modelConsumers.keySet().forEach(consumer);
-
+	public static void register(ModelLoadingPlugin.Context context,
+			TinyPotatoModels preparedTinyPotatoes) {
 		registerIslands();
-		registerTaters(rm, consumer);
+		KEYS.forEach((id, key) -> context.addModel(key, SimpleUnbakedExtraModel.blockStateModel(id)));
+		preparedTinyPotatoes.blockModels.forEach((id, key) -> context.addModel(key, SimpleUnbakedExtraModel.blockStateModel(id)));
+		preparedTinyPotatoes.itemModels.forEach((id, key) -> context.addModel(key, SimpleUnbakedExtraModel.itemModel(id)));
+		tinyPotatoKeys = preparedTinyPotatoes.blockModels;
+		tinyPotatoItemKeys = preparedTinyPotatoes.itemModels;
+	}
 
-		if (!registeredModels) {
-			registeredModels = true;
+	public BlockStateModel get(ExtraModelKey<BlockStateModel> key) {
+		BlockStateModel model = ((FabricModelManager) Minecraft.getInstance().getModelManager()).getModel(key);
+		if (model == null) {
+			Identifier id = KEYS.entrySet().stream().filter(entry -> entry.getValue().equals(key))
+					.map(Map.Entry::getKey).findFirst().orElse(null);
+			BotaniaAPI.LOGGER.error("Missing registered Botania extra model; identifier={}, key={}", id, key);
+			return Minecraft.getInstance().getModelManager().getMissingBlockStateModel();
 		}
+		return model;
+	}
+
+	public BlockStateModel getTinyPotatoModel(Identifier id) {
+		ExtraModelKey<BlockStateModel> key = tinyPotatoKeys.get(id);
+		if (key == null) {
+			String fallback = ClientProxy.dootDoot ? "halloween" : "default";
+			key = tinyPotatoKeys.get(prefix(ResourcesLib.PREFIX_TINY_POTATO + "/" + fallback));
+		}
+		return key == null ? Minecraft.getInstance().getModelManager().getMissingBlockStateModel() : get(key);
+	}
+
+	public ItemModel getTinyPotatoItemModel(Identifier id) {
+		ExtraModelKey<ItemModel> key = tinyPotatoItemKeys.get(id);
+		if (key == null) {
+			String fallback = ClientProxy.dootDoot ? "halloween" : "default";
+			key = tinyPotatoItemKeys.get(prefix(ResourcesLib.PREFIX_TINY_POTATO + "/" + fallback));
+		}
+		if (key == null) {
+			BotaniaAPI.LOGGER.error("No Tiny Potato item model was registered for {}", id);
+			return Minecraft.getInstance().getItemModelResolver().getMissingModel();
+		}
+		ItemModel model = ((FabricModelManager) Minecraft.getInstance().getModelManager()).getModel(key);
+		if (model == null) {
+			BotaniaAPI.LOGGER.error("Missing registered Tiny Potato item model; identifier={}, key={}", id, key);
+			return Minecraft.getInstance().getItemModelResolver().getMissingModel();
+		}
+		return model;
+	}
+
+	public record TinyPotatoModels(Map<Identifier, ExtraModelKey<BlockStateModel>> blockModels,
+			Map<Identifier, ExtraModelKey<ItemModel>> itemModels) {}
+
+	public BlockStateModel goldfishModel() { return get(GOLDFISH); }
+	public BlockStateModel phiFlowerModel() { return get(PHI_FLOWER); }
+	public BlockStateModel nerfBatModel() { return get(NERF_BAT); }
+	public BlockStateModel bloodPendantChain() { return get(BLOOD_PENDANT_CHAIN); }
+	public BlockStateModel bloodPendantGem() { return get(BLOOD_PENDANT_GEM); }
+	public BlockStateModel terrasteelHelmWillModel() { return get(TERRASTEEL_HELM_WILL); }
+	public BlockStateModel pyroclastGem() { return get(PYROCLAST_GEM); }
+	public BlockStateModel crimsonGem() { return get(CRIMSON_GEM); }
+	public BlockStateModel itemFinderGem() { return get(ITEM_FINDER_GEM); }
+	public BlockStateModel cirrusGem() { return get(CIRRUS_GEM); }
+	public BlockStateModel nimbusGem() { return get(NIMBUS_GEM); }
+	public BlockStateModel snowflakePendantGem() { return get(SNOWFLAKE_PENDANT_GEM); }
+	public BlockStateModel corporeaCrystalCubeGlass() { return get(CORPOREA_CRYSTAL_CUBE_GLASS); }
+	public BlockStateModel manaPumpHead() { return get(MANA_PUMP_HEAD); }
+	public BlockStateModel elvenSpreaderCore() { return get(ELVEN_SPREADER_CORE); }
+	public BlockStateModel gaiaSpreaderCore() { return get(GAIA_SPREADER_CORE); }
+	public BlockStateModel manaSpreaderCore() { return get(MANA_SPREADER_CORE); }
+	public BlockStateModel redstoneSpreaderCore() { return get(REDSTONE_SPREADER_CORE); }
+	public BlockStateModel manaSpreaderScaffolding() { return get(MANA_SPREADER_SCAFFOLDING); }
+	public BlockStateModel elvenSpreaderScaffolding() { return get(ELVEN_SPREADER_SCAFFOLDING); }
+	public BlockStateModel gaiaSpreaderScaffolding() { return get(GAIA_SPREADER_SCAFFOLDING); }
+	public BlockStateModel kingKeyWeaponModel(int index) { return get(KING_KEY_WEAPONS.get(index)); }
+	public BlockStateModel thirdEyeLayer(int index) { return get(THIRD_EYE_LAYERS.get(index)); }
+	public BlockStateModel tiaraWing(int index) { return get(TIARA_WINGS.get(index)); }
+	public BlockStateModel spreaderPadding(DyeColor color) { return get(SPREADER_PADDINGS.get(color)); }
+
+	private static ExtraModelKey<BlockStateModel> key(Identifier id) {
+		ExtraModelKey<BlockStateModel> key = ExtraModelKey.create(id::toString);
+		KEYS.put(id, key);
+		return key;
+	}
+
+	private static List<ExtraModelKey<BlockStateModel>> keys(String prefix, int first, int count) {
+		return IntStream.range(first, first + count).mapToObj(i -> key(prefix(prefix + i)))
+				.toList();
 	}
 
 	private static void registerIslands() {
@@ -123,78 +189,5 @@ public class MiscellaneousModels {
 		BotaniaAPIClient.instance().registerIslandTypeModel(FloatingFlower.IslandType.SCORCHED, prefix("block/islands/island_scorched"));
 		BotaniaAPIClient.instance().registerIslandTypeModel(FloatingFlower.IslandType.INFUSED, prefix("block/islands/island_infused"));
 		BotaniaAPIClient.instance().registerIslandTypeModel(FloatingFlower.IslandType.MUTATED, prefix("block/islands/island_mutated"));
-	}
-
-	private static void registerTaters(ResourceManager rm, Consumer<Identifier> consumer) {
-		for (Identifier model : rm.listResources(ResourcesLib.PREFIX_MODELS + ResourcesLib.PREFIX_TINY_POTATO, s -> s.getPath().endsWith(ResourcesLib.ENDING_JSON)).keySet()) {
-			if (LibMisc.MOD_ID.equals(model.getNamespace())) {
-				String path = model.getPath();
-				path = path.substring(ResourcesLib.PREFIX_MODELS.length(), path.length() - ResourcesLib.ENDING_JSON.length());
-				consumer.accept(new Identifier(LibMisc.MOD_ID, path));
-			}
-		}
-	}
-
-	public void onModelBake(ModelBakery loader, Map<Identifier, BakedModel> map) {
-		if (!registeredModels) {
-			BotaniaAPI.LOGGER.error("Additional models failed to register! Aborting baking models to avoid early crashing.");
-			return;
-		}
-		afterBakeModifiers.forEach((Identifier, afterBakeModifier) -> map.computeIfPresent(Identifier, (resourceLoc, bakedModel) -> afterBakeModifier.apply(bakedModel)));
-		modelConsumers.forEach((Identifier, bakedModelConsumer) -> bakedModelConsumer.accept(map.get(Identifier)));
-	}
-
-	public BakedModel modifyModelAfterbake(BakedModel bakedModel, Identifier id) {
-		modelConsumers.getOrDefault(id, model -> {}).accept(bakedModel);
-		return afterBakeModifiers.getOrDefault(id, Function.identity()).apply(bakedModel);
-	}
-
-	private MiscellaneousModels() {
-		afterBakeModifiers = new HashMap<>();
-		afterBakeModifiers.put(prefix(LibBlockNames.PLATFORM_ABSTRUSE), ClientXplatAbstractions.INSTANCE::wrapPlatformModel);
-		afterBakeModifiers.put(prefix(LibBlockNames.PLATFORM_SPECTRAL), ClientXplatAbstractions.INSTANCE::wrapPlatformModel);
-		afterBakeModifiers.put(prefix(LibBlockNames.PLATFORM_INFRANGIBLE), ClientXplatAbstractions.INSTANCE::wrapPlatformModel);
-		afterBakeModifiers.put(prefix(LibBlockNames.TINY_POTATO), TinyPotatoModel::new);
-
-		modelConsumers = new HashMap<>();
-		modelConsumers.put(elvenSpreaderCoreId, bakedModel -> this.elvenSpreaderCore = bakedModel);
-		modelConsumers.put(gaiaSpreaderCoreId, bakedModel -> this.gaiaSpreaderCore = bakedModel);
-		modelConsumers.put(manaSpreaderCoreId, bakedModel -> this.manaSpreaderCore = bakedModel);
-		modelConsumers.put(redstoneSpreaderCoreId, bakedModel -> this.redstoneSpreaderCore = bakedModel);
-		modelConsumers.put(manaSpreaderScaffoldingId, bakedModel -> this.manaSpreaderScaffolding = bakedModel);
-		modelConsumers.put(elvenSpreaderScaffoldingId, bakedModel -> this.elvenSpreaderScaffolding = bakedModel);
-		modelConsumers.put(gaiaSpreaderScaffoldingId, bakedModel -> this.gaiaSpreaderScaffolding = bakedModel);
-		for (var color : spreaderPaddingIds.keySet()) {
-			modelConsumers.put(spreaderPaddingIds.get(color), bakedModel -> spreaderPaddings.put(color, bakedModel));
-		}
-
-		modelConsumers.put(corporeaCrystalCubeGlassId, bakedModel -> CorporeaCrystalCubeBlockEntityRenderer.cubeModel = bakedModel);
-		modelConsumers.put(manaPumpHead, bakedModel -> ManaPumpBlockEntityRenderer.headModel = bakedModel);
-
-		modelConsumers.put(goldfishModelId, bakedModel -> this.goldfishModel = bakedModel);
-		modelConsumers.put(phiFlowerModelId, bakedModel -> this.phiFlowerModel = bakedModel);
-		modelConsumers.put(nerfBatModelId, bakedModel -> this.nerfBatModel = bakedModel);
-		modelConsumers.put(bloodPendantChainId, bakedModel -> this.bloodPendantChain = bakedModel);
-		modelConsumers.put(bloodPendantGemId, bakedModel -> this.bloodPendantGem = bakedModel);
-		modelConsumers.put(terrasteelHelmWillModelId, bakedModel -> this.terrasteelHelmWillModel = bakedModel);
-		modelConsumers.put(pyroclastGemId, bakedModel -> this.pyroclastGem = bakedModel);
-		modelConsumers.put(crimsonGemId, bakedModel -> this.crimsonGem = bakedModel);
-		modelConsumers.put(itemFinderGemId, bakedModel -> this.itemFinderGem = bakedModel);
-		modelConsumers.put(cirrusGemId, bakedModel -> this.cirrusGem = bakedModel);
-		modelConsumers.put(nimbusGemId, bakedModel -> this.nimbusGem = bakedModel);
-		modelConsumers.put(snowflakePendantGemId, bakedModel -> this.snowflakePendantGem = bakedModel);
-
-		kingKeyWeaponModels = getBakedModels(modelConsumers, kingKeyWeaponModelIds);
-		thirdEyeLayers = getBakedModels(modelConsumers, thirdEyeLayerIds);
-		tiaraWingIcons = getBakedModels(modelConsumers, tiaraWingIconIds);
-	}
-
-	private static BakedModel[] getBakedModels(Map<Identifier, Consumer<BakedModel>> consumers, Identifier[] ids) {
-		final BakedModel[] bakedModels = new BakedModel[ids.length];
-		for (int i = 0; i < ids.length; i++) {
-			int index = i;
-			consumers.put(ids[index], bakedModel -> bakedModels[index] = bakedModel);
-		}
-		return bakedModels;
 	}
 }

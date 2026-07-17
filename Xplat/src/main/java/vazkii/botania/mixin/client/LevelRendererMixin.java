@@ -16,7 +16,7 @@ import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.RenderBuffers;
 
 import org.jetbrains.annotations.Nullable;
-import org.joml.Matrix4f;
+import org.joml.Matrix4fc;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -40,7 +40,7 @@ public class LevelRendererMixin {
 			at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/framegraph/FramePass;executes(Ljava/lang/Runnable;)V")
 	)
 	private void botania$appendWorldOverlays(FramePass pass, Runnable vanillaPass, Operation<Void> original,
-			@Local Matrix4f modelViewMatrix) {
+			@Local Matrix4fc modelViewMatrix) {
 		original.call(pass, (Runnable) () -> {
 			vanillaPass.run();
 			Minecraft minecraft = Minecraft.getInstance();

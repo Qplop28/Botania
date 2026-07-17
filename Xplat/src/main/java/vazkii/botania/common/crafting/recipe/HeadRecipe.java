@@ -15,43 +15,41 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.minecraft.MinecraftProfileTexture;
 import com.mojang.authlib.properties.Property;
 import com.mojang.authlib.yggdrasil.response.MinecraftTexturesPayload;
 import com.mojang.util.UUIDTypeAdapter;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 
-import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.nbt.Tag;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FormattedText;
 import net.minecraft.resources.Identifier;
-import net.minecraft.util.GsonHelper;
-import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.WrittenBookItem;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.RecipeInput;
 import net.minecraft.world.item.crafting.RecipeSerializer;
-import net.minecraft.world.item.crafting.ShapedRecipe;
 import net.minecraft.world.level.Level;
 
 import org.jetbrains.annotations.NotNull;
 
-import vazkii.botania.common.crafting.BotaniaRecipeTypes;
 import vazkii.botania.common.crafting.RunicAltarRecipe;
 import vazkii.botania.common.helper.ItemNBTHelper;
 
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
@@ -60,6 +58,22 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class HeadRecipe extends RunicAltarRecipe {
+	private static final MapCodec<HeadRecipe> CODEC =
+			RecordCodecBuilder.mapCodec(instance -> instance.group(
+					ItemStackTemplate.CODEC.fieldOf("output")
+							.forGetter(recipe -> recipe.output),
+					Codec.INT.fieldOf("mana")
+							.forGetter(HeadRecipe::getManaUsage),
+					Ingredient.CODEC.listOf().fieldOf("ingredients")
+							.forGetter(recipe -> recipe.inputs)
+			).apply(instance, HeadRecipe::new));
+
+	private static final StreamCodec<RegistryFriendlyByteBuf, HeadRecipe>
+			STREAM_CODEC = ByteBufCodecs.fromCodecWithRegistries(CODEC.codec());
+
+	public static final RecipeSerializer<HeadRecipe> SERIALIZER =
+			new RecipeSerializer<>(CODEC, STREAM_CODEC);
+
 	private static final Pattern PROFILE_PATTERN = Pattern.compile(
 			"(?<base64>[A-Za-z0-9+/]{100,}={0,2})" +
 					"|(?<url>(?=\\S{50,})https?://(?!bugs|education|feedback)\\w+\\.(?:minecraft\\.net|mojang\\.com)/\\S+)" +
@@ -82,14 +96,22 @@ public class HeadRecipe extends RunicAltarRecipe {
 		super(id, output, mana, inputs);
 	}
 
+	public HeadRecipe(
+			ItemStackTemplate output,
+			int mana,
+			List<Ingredient> inputs
+	) {
+		super(output, mana, inputs);
+	}
+
 	@Override
-	public boolean matches(Container inv, @NotNull Level world) {
-		boolean matches = super.matches(inv, world);
+	public boolean matches(RecipeInput input, Level level) {
+		boolean matches = super.matches(input, level);
 		boolean foundName = false;
 
 		if (matches) {
-			for (int i = 0; i < inv.getContainerSize(); i++) {
-				ItemStack stack = inv.getItem(i);
+			for (int slot = 0; slot < input.size(); slot++) {
+				ItemStack stack = input.getItem(slot);
 				if (stack.isEmpty()) {
 					break;
 				}
@@ -113,12 +135,11 @@ public class HeadRecipe extends RunicAltarRecipe {
 		return matches;
 	}
 
-	@NotNull
 	@Override
-	public ItemStack assemble(@NotNull Container inv, @NotNull RegistryAccess registries) {
-		ItemStack stack = getResultItem(registries).copy();
-		for (int i = 0; i < inv.getContainerSize(); i++) {
-			ItemStack ingr = inv.getItem(i);
+	public ItemStack assemble(RecipeInput input) {
+		ItemStack stack = this.output.create();
+		for (int slot = 0; slot < input.size(); slot++) {
+			ItemStack ingr = input.getItem(slot);
 			if (ingr.is(Items.NAME_TAG)) {
 				ItemNBTHelper.setString(stack, "SkullOwner", ingr.getHoverName().getString());
 				break;
@@ -206,36 +227,8 @@ public class HeadRecipe extends RunicAltarRecipe {
 		}
 	}
 
-	public static class Serializer implements RecipeSerializer<HeadRecipe> {
-
-		@NotNull
-		@Override
-		public HeadRecipe fromJson(@NotNull Identifier id, @NotNull JsonObject json) {
-			ItemStack output = ShapedRecipe.itemStackFromJson(GsonHelper.getAsJsonObject(json, "output"));
-			int mana = GsonHelper.getAsInt(json, "mana");
-			JsonArray ingrs = GsonHelper.getAsJsonArray(json, "ingredients");
-			List<Ingredient> inputs = new ArrayList<>();
-			for (JsonElement e : ingrs) {
-				inputs.add(Ingredient.fromJson(e));
-			}
-			return new HeadRecipe(id, output, mana, inputs.toArray(new Ingredient[0]));
-		}
-
-		@Override
-		public HeadRecipe fromNetwork(@NotNull Identifier id, @NotNull FriendlyByteBuf buf) {
-			Ingredient[] inputs = new Ingredient[buf.readVarInt()];
-			for (int i = 0; i < inputs.length; i++) {
-				inputs[i] = Ingredient.fromNetwork(buf);
-			}
-			ItemStack output = buf.readItem();
-			int mana = buf.readVarInt();
-			return new HeadRecipe(id, output, mana, inputs);
-		}
-
-		@Override
-		public void toNetwork(@NotNull FriendlyByteBuf buf, @NotNull HeadRecipe recipe) {
-			BotaniaRecipeTypes.RUNE_SERIALIZER.toNetwork(buf, recipe);
-		}
+	@Override
+	public RecipeSerializer<HeadRecipe> getSerializer() {
+		return SERIALIZER;
 	}
-
 }

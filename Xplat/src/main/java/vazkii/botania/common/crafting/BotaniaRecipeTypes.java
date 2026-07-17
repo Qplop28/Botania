@@ -93,7 +93,7 @@ public class BotaniaRecipeTypes {
 
 	public static final RecipeSerializer<HeadRecipe>
 			RUNE_HEAD_SERIALIZER =
-			new HeadRecipe.Serializer();
+			HeadRecipe.SERIALIZER;
 
 	public static final RecipeType<TerrestrialAgglomerationRecipe>
 			TERRA_PLATE_TYPE = new ModRecipeType<>();

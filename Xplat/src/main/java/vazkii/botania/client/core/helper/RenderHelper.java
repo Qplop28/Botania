@@ -219,7 +219,10 @@ public final class RenderHelper {
 	}
 
 	public static void renderStar(PoseStack ms, MultiBufferSource buffers, int color, float xScale, float yScale, float zScale, long seed) {
-		VertexConsumer buffer = buffers.getBuffer(STAR);
+		renderStar(ms, buffers.getBuffer(STAR), color, xScale, yScale, zScale, seed);
+	}
+
+	public static void renderStar(PoseStack ms, VertexConsumer buffer, int color, float xScale, float yScale, float zScale, long seed) {
 
 		float ticks = ClientTickHandler.ticksInGame + ClientTickHandler.partialTicks;
 		float semiPeriodTicks = 200;

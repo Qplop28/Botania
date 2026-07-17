@@ -62,11 +62,11 @@ public class BotaniaRecipeTypes {
 
 	public static final RecipeSerializer<PureDaisyRecipe>
 			PURE_DAISY_SERIALIZER =
-			new PureDaisyRecipe.Serializer();
+			PureDaisyRecipe.SERIALIZER;
 
 	public static final RecipeSerializer<StateCopyingPureDaisyRecipe>
 			COPYING_PURE_DAISY_SERIALIZER =
-			new StateCopyingPureDaisyRecipe.Serializer();
+			StateCopyingPureDaisyRecipe.SERIALIZER;
 
 	public static final RecipeType<
 			vazkii.botania.api.recipe.BotanicalBreweryRecipe
@@ -101,7 +101,7 @@ public class BotaniaRecipeTypes {
 	public static final RecipeSerializer<RecipeTerraPlate>
 			TERRA_PLATE_SERIALIZER =
 			RecipeTerraPlate.SERIALIZER;
-			
+
 	public static final RecipeType<OrechidRecipe>
 			ORECHID_TYPE = new ModRecipeType<>();
 
@@ -218,7 +218,8 @@ public class BotaniaRecipeTypes {
 		);
 		registrar.accept(
 				ORECHID_IGNEM_SERIALIZER,
-				vazkii.botania.api.recipe.OrechidRecipe.IGNEM_TYPE_ID
+				vazkii.botania.api.recipe.OrechidRecipe
+						.IGNEM_TYPE_ID
 		);
 		registrar.accept(
 				MARIMORPHOSIS_SERIALIZER,

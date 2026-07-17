@@ -8,148 +8,80 @@
  */
 package vazkii.botania.client.core.helper;
 
+import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormat;
 
-import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.client.renderer.ShaderInstance;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.resources.Identifier;
 
-import vazkii.botania.network.TriConsumer;
 import vazkii.botania.xplat.BotaniaConfig;
-
-import java.util.function.Consumer;
 
 import static vazkii.botania.common.lib.ResourceLocationHelper.prefix;
 
-public class CoreShaders {
-	private static ShaderInstance starfieldShaderInstance;
-	private static ShaderInstance doppleganger;
-	private static ShaderInstance manaPool;
-	private static ShaderInstance terraPlate;
-	private static ShaderInstance enchanter;
-	private static ShaderInstance pylon;
-	private static ShaderInstance halo;
-	private static ShaderInstance filmGrainParticle;
-	private static ShaderInstance dopplegangerBar;
+/** Botania shader programs expressed as immutable render pipelines. */
+public final class CoreShaders {
+	private CoreShaders() {}
 
-	// This is abstracted this way instead of just directly constructing the ShaderInstance
-	// Because Fabric is cute and hides the ResourceProvider from modders (why?)
-	public static void init(TriConsumer<Identifier, VertexFormat, Consumer<ShaderInstance>> registrations) {
-		registrations.accept(
-				prefix("starfield"),
-				DefaultVertexFormat.POSITION,
-				inst -> starfieldShaderInstance = inst
-		);
-		registrations.accept(
-				prefix("doppleganger"),
-				DefaultVertexFormat.NEW_ENTITY,
-				inst -> doppleganger = inst
-		);
-		registrations.accept(
-				prefix("mana_pool"),
-				DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP,
-				inst -> manaPool = inst
-		);
-		registrations.accept(
-				prefix("terra_plate_rune"),
-				DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP,
-				inst -> terraPlate = inst
-		);
-		registrations.accept(
-				prefix("enchanter_rune"),
-				DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP,
-				inst -> enchanter = inst
-		);
-		registrations.accept(
-				prefix("pylon"),
-				DefaultVertexFormat.NEW_ENTITY,
-				inst -> pylon = inst
-		);
-		registrations.accept(
-				prefix("halo"),
-				DefaultVertexFormat.POSITION_COLOR_TEX,
-				inst -> halo = inst
-		);
-		registrations.accept(
-				prefix("film_grain_particle"),
-				DefaultVertexFormat.PARTICLE,
-				inst -> filmGrainParticle = inst
-		);
-		registrations.accept(
-				prefix("doppleganger_bar"),
-				DefaultVertexFormat.POSITION_TEX,
-				inst -> dopplegangerBar = inst
-		);
+	private static RenderPipeline register(String name, RenderPipeline.Snippet snippet,
+			String vertexShader, VertexFormat format, VertexFormat.Mode mode) {
+		Identifier id = prefix(name);
+		return RenderPipelines.register(RenderPipeline.builder(snippet)
+				.withLocation(id)
+				.withVertexShader(vertexShader)
+				.withFragmentShader(id.toString())
+				.withVertexFormat(format, mode)
+				.build());
 	}
 
-	public static ShaderInstance starfield() {
-		// Intended to not respect useShaders config. The render kind of relies entirely
-		// on the shader, like the end portal.
-		return starfieldShaderInstance;
+	public static final RenderPipeline STARFIELD = register("starfield", RenderPipelines.END_PORTAL_SNIPPET,
+			"core/rendertype_end_portal", DefaultVertexFormat.POSITION, VertexFormat.Mode.QUADS);
+	public static final RenderPipeline DOPPLEGANGER = register("doppleganger", RenderPipelines.ENTITY_SNIPPET,
+			"botania:doppleganger", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS);
+	public static final RenderPipeline MANA_POOL = register("mana_pool", RenderPipelines.POSITION_COLOR_TEX_LIGHTMAP_SNIPPET,
+			"core/position_color_tex_lightmap", DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP, VertexFormat.Mode.QUADS);
+	public static final RenderPipeline TERRA_PLATE_RUNE = register("terra_plate_rune", RenderPipelines.POSITION_COLOR_TEX_LIGHTMAP_SNIPPET,
+			"core/position_color_tex_lightmap", DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP, VertexFormat.Mode.QUADS);
+	public static final RenderPipeline ENCHANTER_RUNE = register("enchanter_rune", RenderPipelines.POSITION_COLOR_TEX_LIGHTMAP_SNIPPET,
+			"core/position_color_tex_lightmap", DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP, VertexFormat.Mode.QUADS);
+	public static final RenderPipeline PYLON = register("pylon", RenderPipelines.ENTITY_SNIPPET,
+			"core/rendertype_entity_translucent", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS);
+	public static final RenderPipeline HALO = register("halo", RenderPipelines.POSITION_COLOR_TEX_SNIPPET,
+			"core/position_color_tex", DefaultVertexFormat.POSITION_COLOR_TEX, VertexFormat.Mode.QUADS);
+	public static final RenderPipeline FILM_GRAIN_PARTICLE = register("film_grain_particle", RenderPipelines.PARTICLE_SNIPPET,
+			"core/particle", DefaultVertexFormat.PARTICLE, VertexFormat.Mode.QUADS);
+	public static final RenderPipeline DOPPLEGANGER_BAR = register("doppleganger_bar", RenderPipelines.POSITION_TEX_SNIPPET,
+			"core/position_tex", DefaultVertexFormat.POSITION_TEX, VertexFormat.Mode.QUADS);
+
+	public static RenderPipeline doppleganger() {
+		return BotaniaConfig.client().useShaders() ? DOPPLEGANGER : RenderPipelines.ENTITY_TRANSLUCENT;
 	}
 
-	public static ShaderInstance doppleganger() {
-		if (BotaniaConfig.client().useShaders()) {
-			return doppleganger;
-		} else {
-			return GameRenderer.getRendertypeEntityTranslucentShader();
-		}
+	public static RenderPipeline manaPool() {
+		return BotaniaConfig.client().useShaders() ? MANA_POOL : RenderPipelines.POSITION_COLOR_TEX_LIGHTMAP;
 	}
 
-	public static ShaderInstance manaPool() {
-		if (BotaniaConfig.client().useShaders()) {
-			return manaPool;
-		} else {
-			return GameRenderer.getPositionColorTexLightmapShader();
-		}
+	public static RenderPipeline terraPlate() {
+		return BotaniaConfig.client().useShaders() ? TERRA_PLATE_RUNE : RenderPipelines.POSITION_COLOR_TEX_LIGHTMAP;
 	}
 
-	public static ShaderInstance terraPlate() {
-		if (BotaniaConfig.client().useShaders()) {
-			return terraPlate;
-		} else {
-			return GameRenderer.getPositionColorTexLightmapShader();
-		}
+	public static RenderPipeline enchanter() {
+		return BotaniaConfig.client().useShaders() ? ENCHANTER_RUNE : RenderPipelines.POSITION_COLOR_TEX_LIGHTMAP;
 	}
 
-	public static ShaderInstance enchanter() {
-		if (BotaniaConfig.client().useShaders()) {
-			return enchanter;
-		} else {
-			return GameRenderer.getPositionColorTexLightmapShader();
-		}
+	public static RenderPipeline pylon() {
+		return BotaniaConfig.client().useShaders() ? PYLON : RenderPipelines.ENTITY_TRANSLUCENT;
 	}
 
-	public static ShaderInstance pylon() {
-		if (BotaniaConfig.client().useShaders()) {
-			return pylon;
-		} else {
-			return GameRenderer.getRendertypeEntityTranslucentShader();
-		}
+	public static RenderPipeline halo() {
+		return BotaniaConfig.client().useShaders() ? HALO : RenderPipelines.POSITION_COLOR_TEX;
 	}
 
-	public static ShaderInstance halo() {
-		if (BotaniaConfig.client().useShaders()) {
-			return halo;
-		} else {
-			return GameRenderer.getPositionColorTexShader();
-		}
+	public static RenderPipeline filmGrainParticle() {
+		return BotaniaConfig.client().useShaders() ? FILM_GRAIN_PARTICLE : RenderPipelines.PARTICLE;
 	}
 
-	public static ShaderInstance filmGrainParticle() {
-		if (BotaniaConfig.client().useShaders()) {
-			return filmGrainParticle;
-		} else {
-			return GameRenderer.getParticleShader();
-		}
-	}
-
-	public static ShaderInstance dopplegangerBar() {
-		if (BotaniaConfig.client().useShaders()) {
-			return dopplegangerBar;
-		} else {
-			return GameRenderer.getPositionTexShader();
-		}
+	public static RenderPipeline dopplegangerBar() {
+		return BotaniaConfig.client().useShaders() ? DOPPLEGANGER_BAR : RenderPipelines.POSITION_TEX;
 	}
 }

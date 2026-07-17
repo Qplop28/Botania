@@ -26,7 +26,6 @@ import vazkii.botania.api.BotaniaFabricClientCapabilities;
 import vazkii.botania.client.core.handler.ClientTickHandler;
 import vazkii.botania.client.core.handler.CorporeaInputHandler;
 import vazkii.botania.client.core.handler.KonamiHandler;
-import vazkii.botania.client.core.helper.CoreShaders;
 import vazkii.botania.client.core.proxy.ClientProxy;
 import vazkii.botania.client.fx.BotaniaParticles;
 import vazkii.botania.client.gui.HUDHandler;
@@ -49,8 +48,6 @@ import vazkii.botania.fabric.network.FabricPacketHandler;
 import vazkii.botania.xplat.ClientXplatAbstractions;
 import vazkii.botania.xplat.XplatAbstractions;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.List;
 import java.util.function.Function;
 
@@ -61,14 +58,6 @@ public class FabricClientInitializer implements ClientModInitializer {
 		BotaniaAPI.LOGGER.debug("Client API instances: {}",
 				List.of(BotaniaAPIClient.instance(), ClientXplatAbstractions.instance()));
 
-		CoreShaderRegistrationCallback.EVENT.register(ctx -> CoreShaders.init((id, vertexFormat, onLoaded) -> {
-			try {
-				ctx.register(id, vertexFormat, onLoaded);
-			} catch (IOException e) {
-				throw new UncheckedIOException(e);
-			}
-		}
-		));
 		FabricPacketHandler.initClient();
 
 		// Guis

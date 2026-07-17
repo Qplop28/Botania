@@ -8,6 +8,11 @@
  */
 package vazkii.botania.client.core.helper;
 
+import com.mojang.blaze3d.pipeline.BlendFunction;
+import com.mojang.blaze3d.pipeline.ColorTargetState;
+import com.mojang.blaze3d.pipeline.DepthStencilState;
+import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.mojang.blaze3d.platform.CompareOp;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
@@ -21,6 +26,11 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.blockentity.TheEndPortalRenderer;
+import net.minecraft.client.renderer.rendertype.LayeringTransform;
+import net.minecraft.client.renderer.rendertype.OutputTarget;
+import net.minecraft.client.renderer.rendertype.RenderSetup;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.resources.Identifier;
@@ -35,49 +45,140 @@ import vazkii.botania.client.lib.ResourcesLib;
 import vazkii.botania.client.render.block_entity.PylonBlockEntityRenderer;
 import vazkii.botania.common.helper.VecHelper;
 import vazkii.botania.common.item.equipment.bauble.FlugelTiaraItem;
-import vazkii.botania.mixin.client.RenderTypeAccessor;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.OptionalDouble;
+import java.util.Optional;
 import java.util.Random;
 import java.util.function.Function;
 
-public final class RenderHelper extends RenderType {
-	private static final RenderType STAR;
-	public static final RenderType RECTANGLE;
-	public static final RenderType CIRCLE;
-	public static final RenderType RED_STRING;
-	public static final RenderType LINE_1_NO_DEPTH;
-	public static final RenderType LINE_4_NO_DEPTH;
-	public static final RenderType LINE_5_NO_DEPTH;
-	public static final RenderType LINE_8_NO_DEPTH;
-	public static final RenderType SPARK;
-	public static final RenderType LIGHT_RELAY;
-	public static final RenderType ICON_OVERLAY;
-	public static final RenderType BABYLON_ICON;
-	public static final RenderType MANA_POOL_WATER;
-	public static final RenderType TERRA_PLATE;
-	public static final RenderType ENCHANTER;
-	public static final RenderType HALO;
+public final class RenderHelper {
+	private static final RenderPipeline STAR_PIPELINE = pipeline("star", RenderPipelines.POSITION_COLOR_SNIPPET,
+			DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.TRIANGLES, BlendFunction.LIGHTNING, true,
+			CompareOp.LESS_THAN_OR_EQUAL, false, 1);
+	private static final RenderPipeline HIGHLIGHT_QUADS_PIPELINE = pipeline("rectangle_highlight", RenderPipelines.POSITION_COLOR_SNIPPET,
+			DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS, BlendFunction.TRANSLUCENT, false,
+			CompareOp.LESS_THAN_OR_EQUAL, true, 1);
+	private static final RenderPipeline HIGHLIGHT_TRIANGLES_PIPELINE = pipeline("circle_highlight", RenderPipelines.POSITION_COLOR_SNIPPET,
+			DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.TRIANGLES, BlendFunction.TRANSLUCENT, false,
+			CompareOp.LESS_THAN_OR_EQUAL, true, 1);
+	private static final RenderPipeline LINE_PIPELINE = linePipeline("red_string", 1, false);
+	private static final RenderPipeline LINE_1_NO_DEPTH_PIPELINE = linePipeline("line_1_no_depth", 1, true);
+	private static final RenderPipeline LINE_4_NO_DEPTH_PIPELINE = linePipeline("line_4_no_depth", 4, true);
+	private static final RenderPipeline LINE_5_NO_DEPTH_PIPELINE = linePipeline("line_5_no_depth", 5, true);
+	private static final RenderPipeline LINE_8_NO_DEPTH_PIPELINE = linePipeline("line_8_no_depth", 8, true);
+	private static final RenderPipeline SPARK_PIPELINE = pipeline("spark", RenderPipelines.POSITION_COLOR_TEX_LIGHTMAP_SNIPPET,
+			DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP, VertexFormat.Mode.QUADS, BlendFunction.TRANSLUCENT, true,
+			CompareOp.LESS_THAN_OR_EQUAL, true, 1);
+	private static final RenderPipeline ICON_OVERLAY_PIPELINE = pipeline("icon_overlay", RenderPipelines.POSITION_COLOR_TEX_LIGHTMAP_SNIPPET,
+			DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP, VertexFormat.Mode.QUADS, BlendFunction.TRANSLUCENT, true,
+			CompareOp.LESS_THAN_OR_EQUAL, true, 1);
+	private static final RenderPipeline LIGHTNING_PIPELINE = pipeline("lightning", RenderPipelines.POSITION_COLOR_SNIPPET,
+			DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS, BlendFunction.LIGHTNING, true,
+			CompareOp.LESS_THAN_OR_EQUAL, true, 1);
+	private static final RenderPipeline ASTROLABE_PIPELINE = pipeline("astrolabe", RenderPipelines.ENTITY_SNIPPET,
+			DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS, BlendFunction.TRANSLUCENT, true,
+			CompareOp.LESS_THAN_OR_EQUAL, true, 1);
+
+	private static final RenderType STAR = layer("star", STAR_PIPELINE, 256, false, false, null);
+	public static final RenderType RECTANGLE = layer("rectangle_highlight", HIGHLIGHT_QUADS_PIPELINE, 256, false, true, null);
+	public static final RenderType CIRCLE = layer("circle_highlight", HIGHLIGHT_TRIANGLES_PIPELINE, 256, false, false, null);
+	public static final RenderType RED_STRING = lineLayer("red_string", LINE_PIPELINE, 128, false);
+	public static final RenderType LINE_1_NO_DEPTH = lineLayer("line_1_no_depth", LINE_1_NO_DEPTH_PIPELINE, 128, true);
+	public static final RenderType LINE_4_NO_DEPTH = lineLayer("line_4_no_depth", LINE_4_NO_DEPTH_PIPELINE, 128, true);
+	public static final RenderType LINE_5_NO_DEPTH = lineLayer("line_5_no_depth", LINE_5_NO_DEPTH_PIPELINE, 64, true);
+	public static final RenderType LINE_8_NO_DEPTH = lineLayer("line_8_no_depth", LINE_8_NO_DEPTH_PIPELINE, 64, true);
+	public static final RenderType SPARK = layer("spark", SPARK_PIPELINE, 256, false, false, TextureAtlas.LOCATION_BLOCKS, true, false, true);
+	public static final RenderType LIGHT_RELAY = layer("light_relay", CoreShaders.halo(), 64, false, false, TextureAtlas.LOCATION_BLOCKS);
+	public static final RenderType ICON_OVERLAY = layer("icon_overlay", ICON_OVERLAY_PIPELINE, 128, false, false, TextureAtlas.LOCATION_BLOCKS, true, false, true);
+	public static final RenderType BABYLON_ICON = layer("babylon", CoreShaders.halo(), 64, false, false, new Identifier(ResourcesLib.MISC_BABYLON));
+	public static final RenderType MANA_POOL_WATER = layer("mana_pool_water", CoreShaders.manaPool(), 128, false, false, TextureAtlas.LOCATION_BLOCKS, true, false, false);
+	public static final RenderType TERRA_PLATE = layer("terra_plate_rune", CoreShaders.terraPlate(), 128, false, false, TextureAtlas.LOCATION_BLOCKS, true, false, false);
+	public static final RenderType ENCHANTER = layer("enchanter_rune", CoreShaders.enchanter(), 128, false, false, TextureAtlas.LOCATION_BLOCKS, true, false, false);
+	public static final RenderType HALO = layer("halo", CoreShaders.halo(), 64, false, false, FlugelTiaraItem.textureHalo);
 	public static final RenderType MANA_PYLON_GLOW = getPylonGlow("mana_pylon_glow", PylonBlockEntityRenderer.MANA_TEXTURE);
 	public static final RenderType NATURA_PYLON_GLOW = getPylonGlow("natura_pylon_glow", PylonBlockEntityRenderer.NATURA_TEXTURE);
 	public static final RenderType GAIA_PYLON_GLOW = getPylonGlow("gaia_pylon_glow", PylonBlockEntityRenderer.GAIA_TEXTURE);
 	public static final RenderType MANA_PYLON_GLOW_DIRECT = getPylonGlowDirect("mana_pylon_glow_direct", PylonBlockEntityRenderer.MANA_TEXTURE);
 	public static final RenderType NATURA_PYLON_GLOW_DIRECT = getPylonGlowDirect("natura_pylon_glow_direct", PylonBlockEntityRenderer.NATURA_TEXTURE);
 	public static final RenderType GAIA_PYLON_GLOW_DIRECT = getPylonGlowDirect("gaia_pylon_glow_direct", PylonBlockEntityRenderer.GAIA_TEXTURE);
-
-	public static final RenderType ASTROLABE_PREVIEW = new AstrolabeLayer();
-	public static final RenderType STARFIELD;
-	public static final RenderType LIGHTNING;
-	public static final RenderType TRANSLUCENT;
+	public static final RenderType ASTROLABE_PREVIEW = layer("astrolabe", ASTROLABE_PIPELINE, 256, true, true, TextureAtlas.LOCATION_BLOCKS);
+	public static final RenderType STARFIELD = starfield();
+	public static final RenderType LIGHTNING = layer("lightning", LIGHTNING_PIPELINE, 256, false, true, null);
+	public static final RenderType TRANSLUCENT = RenderTypes.entityTranslucentCull(TextureAtlas.LOCATION_BLOCKS);
 
 	private static final int ITEM_AND_PADDING_WIDTH = 20;
-
 	private static final double INITIAL_OFFSET = 0.005;
 	private static final double OFFSET_INCREMENT = 0.001;
-	// Global y offset so that overlapping landmines or radius descriptors do not Z-fight
 	private static double offY = INITIAL_OFFSET;
+
+	private static RenderPipeline pipeline(String name, RenderPipeline.Snippet snippet, VertexFormat format,
+			VertexFormat.Mode mode, BlendFunction blend, boolean cull, CompareOp depthCompare,
+			boolean depthWrite, int lineWidth) {
+		var builder = RenderPipeline.builder(snippet)
+				.withLocation(new Identifier(ResourcesLib.PREFIX_MOD + name))
+				.withVertexFormat(format, mode)
+				.withCull(cull)
+				.withDepthStencilState(new DepthStencilState(depthCompare, depthWrite, 0, 0))
+				.withColorTargetState(new ColorTargetState(Optional.of(blend),
+						ColorTargetState.WRITE_RED | ColorTargetState.WRITE_GREEN | ColorTargetState.WRITE_BLUE | ColorTargetState.WRITE_ALPHA));
+		if (lineWidth != 1) {
+			builder = builder.withShaderDefine("LINE_WIDTH", lineWidth);
+		}
+		return RenderPipelines.register(builder.build());
+	}
+
+	private static RenderPipeline linePipeline(String name, int width, boolean noDepth) {
+		return pipeline(name, RenderPipelines.LINES_SNIPPET, DefaultVertexFormat.POSITION_COLOR_NORMAL,
+				VertexFormat.Mode.LINES, BlendFunction.TRANSLUCENT, false,
+				noDepth ? CompareOp.ALWAYS_PASS : CompareOp.LESS_THAN_OR_EQUAL, !noDepth, width);
+	}
+
+	private static RenderType layer(String name, RenderPipeline pipeline, int bufferSize,
+			boolean crumbling, boolean sorted, Identifier texture) {
+		return layer(name, pipeline, bufferSize, crumbling, sorted, texture, false, false, false);
+	}
+
+	private static RenderType layer(String name, RenderPipeline pipeline, int bufferSize,
+			boolean crumbling, boolean sorted, Identifier texture, boolean lightmap, boolean overlay, boolean itemTarget) {
+		var builder = RenderSetup.builder(pipeline).bufferSize(bufferSize);
+		if (texture != null) {
+			builder = builder.withTexture("Sampler0", texture);
+		}
+		if (lightmap) {
+			builder = builder.useLightmap();
+		}
+		if (overlay) {
+			builder = builder.useOverlay();
+		}
+		if (crumbling) {
+			builder = builder.affectsCrumbling();
+		}
+		if (sorted) {
+			builder = builder.sortOnUpload();
+		}
+		if (itemTarget) {
+			builder = builder.setOutputTarget(OutputTarget.ITEM_ENTITY_TARGET);
+		}
+		return RenderType.create(ResourcesLib.PREFIX_MOD + name, builder.createRenderSetup());
+	}
+
+	private static RenderType lineLayer(String name, RenderPipeline pipeline, int size, boolean direct) {
+		var builder = RenderSetup.builder(pipeline).bufferSize(size).setLayeringTransform(LayeringTransform.VIEW_OFFSET_Z_LAYERING);
+		if (!direct) {
+			builder = builder.setOutputTarget(OutputTarget.ITEM_ENTITY_TARGET);
+		}
+		return RenderType.create(ResourcesLib.PREFIX_MOD + name, builder.createRenderSetup());
+	}
+
+	private static RenderType starfield() {
+		var setup = RenderSetup.builder(CoreShaders.STARFIELD)
+				.withTexture("Sampler0", TheEndPortalRenderer.END_SKY_LOCATION)
+				.withTexture("Sampler1", TheEndPortalRenderer.END_PORTAL_LOCATION)
+				.bufferSize(256)
+				.createRenderSetup();
+		return RenderType.create(ResourcesLib.PREFIX_MOD + "starfield", setup);
+	}
 
 	public static double getOffY() {
 		return offY;
@@ -91,117 +192,6 @@ public final class RenderHelper extends RenderType {
 		offY = INITIAL_OFFSET;
 	}
 
-	private static RenderType makeLayer(String name, VertexFormat format, VertexFormat.Mode mode,
-			int bufSize, boolean hasCrumbling, boolean sortOnUpload, CompositeState glState) {
-		return RenderTypeAccessor.create(name, format, mode, bufSize, hasCrumbling, sortOnUpload, glState);
-	}
-
-	private static RenderType makeLayer(String name, VertexFormat format, VertexFormat.Mode mode,
-			int bufSize, CompositeState glState) {
-		return makeLayer(name, format, mode, bufSize, false, false, glState);
-	}
-
-	static {
-		RenderType.CompositeState glState = RenderType.CompositeState.builder()
-				.setShaderState(POSITION_COLOR_SHADER)
-				.setWriteMaskState(COLOR_WRITE)
-				.setTransparencyState(RenderStateShard.LIGHTNING_TRANSPARENCY)
-				.createCompositeState(false);
-		STAR = makeLayer(ResourcesLib.PREFIX_MOD + "star", DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.TRIANGLES, 256, false, false, glState);
-
-		glState = RenderType.CompositeState.builder()
-				.setShaderState(POSITION_COLOR_SHADER)
-				.setTransparencyState(TRANSLUCENT_TRANSPARENCY)
-				.setOutputState(ITEM_ENTITY_TARGET)
-				.setCullState(NO_CULL)
-				.createCompositeState(false);
-		RECTANGLE = makeLayer(ResourcesLib.PREFIX_MOD + "rectangle_highlight", DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS, 256, false, true, glState);
-		CIRCLE = makeLayer(ResourcesLib.PREFIX_MOD + "circle_highlight", DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.TRIANGLES, 256, false, false, glState);
-
-		RED_STRING = makeLayer(ResourcesLib.PREFIX_MOD + "red_string", DefaultVertexFormat.POSITION_COLOR_NORMAL, VertexFormat.Mode.LINES, 128, lineState(1, false, false));
-		LINE_1_NO_DEPTH = makeLayer(ResourcesLib.PREFIX_MOD + "line_1_no_depth", DefaultVertexFormat.POSITION_COLOR_NORMAL, VertexFormat.Mode.LINES, 128, lineState(1, true, true));
-		LINE_4_NO_DEPTH = makeLayer(ResourcesLib.PREFIX_MOD + "line_4_no_depth", DefaultVertexFormat.POSITION_COLOR_NORMAL, VertexFormat.Mode.LINES, 128, lineState(4, true, true));
-		LINE_5_NO_DEPTH = makeLayer(ResourcesLib.PREFIX_MOD + "line_5_no_depth", DefaultVertexFormat.POSITION_COLOR_NORMAL, VertexFormat.Mode.LINES, 64, lineState(5, true, true));
-		LINE_8_NO_DEPTH = makeLayer(ResourcesLib.PREFIX_MOD + "line_8_no_depth", DefaultVertexFormat.POSITION_COLOR_NORMAL, VertexFormat.Mode.LINES, 64, lineState(8, true, true));
-
-		glState = RenderType.CompositeState.builder()
-				.setShaderState(POSITION_COLOR_TEX_LIGHTMAP_SHADER)
-				.setTextureState(RenderStateShard.BLOCK_SHEET_MIPPED)
-				.setTransparencyState(TRANSLUCENT_TRANSPARENCY)
-				.setOutputState(ITEM_ENTITY_TARGET)
-				.setLightmapState(LIGHTMAP).createCompositeState(true);
-		SPARK = makeLayer(ResourcesLib.PREFIX_MOD + "spark", DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP, VertexFormat.Mode.QUADS, 256, glState);
-		glState = RenderType.CompositeState.builder()
-				.setShaderState(new ShaderStateShard(CoreShaders::halo))
-				.setTextureState(RenderStateShard.BLOCK_SHEET_MIPPED)
-				.setTransparencyState(TRANSLUCENT_TRANSPARENCY)
-				.setOutputState(ITEM_ENTITY_TARGET)
-				.createCompositeState(true);
-		LIGHT_RELAY = makeLayer(ResourcesLib.PREFIX_MOD + "light_relay", DefaultVertexFormat.POSITION_COLOR_TEX, VertexFormat.Mode.QUADS, 64, glState);
-
-		glState = RenderType.CompositeState.builder().setTextureState(BLOCK_SHEET_MIPPED)
-				.setShaderState(POSITION_COLOR_TEX_LIGHTMAP_SHADER)
-				.setTransparencyState(TRANSLUCENT_TRANSPARENCY)
-				.setOutputState(ITEM_ENTITY_TARGET)
-				.setLightmapState(LIGHTMAP).createCompositeState(true);
-		ICON_OVERLAY = makeLayer(ResourcesLib.PREFIX_MOD + "icon_overlay", DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP, VertexFormat.Mode.QUADS, 128, glState);
-		glState = RenderType.CompositeState.builder().setTextureState(BLOCK_SHEET_MIPPED)
-				.setShaderState(new ShaderStateShard(CoreShaders::manaPool))
-				.setTransparencyState(TRANSLUCENT_TRANSPARENCY)
-				.setOutputState(ITEM_ENTITY_TARGET)
-				.setLightmapState(LIGHTMAP).createCompositeState(false);
-		MANA_POOL_WATER = makeLayer(ResourcesLib.PREFIX_MOD + "mana_pool_water", DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP, VertexFormat.Mode.QUADS, 128, glState);
-		glState = RenderType.CompositeState.builder().setTextureState(BLOCK_SHEET_MIPPED)
-				.setShaderState(new ShaderStateShard(CoreShaders::terraPlate))
-				.setTransparencyState(TRANSLUCENT_TRANSPARENCY)
-				.setOutputState(ITEM_ENTITY_TARGET)
-				.setLightmapState(LIGHTMAP).createCompositeState(false);
-		TERRA_PLATE = makeLayer(ResourcesLib.PREFIX_MOD + "terra_plate_rune", DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP, VertexFormat.Mode.QUADS, 128, glState);
-		glState = RenderType.CompositeState.builder().setTextureState(BLOCK_SHEET_MIPPED)
-				.setShaderState(new ShaderStateShard(CoreShaders::enchanter))
-				.setTransparencyState(TRANSLUCENT_TRANSPARENCY)
-				.setOutputState(ITEM_ENTITY_TARGET)
-				.setLightmapState(LIGHTMAP).createCompositeState(false);
-		ENCHANTER = makeLayer(ResourcesLib.PREFIX_MOD + "enchanter_rune", DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP, VertexFormat.Mode.QUADS, 128, glState);
-
-		RenderStateShard.TextureStateShard babylonTexture = new RenderStateShard.TextureStateShard(new Identifier(ResourcesLib.MISC_BABYLON), false, true);
-		glState = RenderType.CompositeState.builder().setTextureState(babylonTexture)
-				.setShaderState(new ShaderStateShard(CoreShaders::halo))
-				.setTransparencyState(TRANSLUCENT_TRANSPARENCY)
-				.setOutputState(ITEM_ENTITY_TARGET)
-				.setCullState(NO_CULL)
-				.createCompositeState(true);
-		BABYLON_ICON = makeLayer(ResourcesLib.PREFIX_MOD + "babylon", DefaultVertexFormat.POSITION_COLOR_TEX, VertexFormat.Mode.QUADS, 64, glState);
-
-		RenderStateShard.TextureStateShard haloTexture = new RenderStateShard.TextureStateShard(FlugelTiaraItem.textureHalo, false, true);
-		glState = RenderType.CompositeState.builder().setTextureState(haloTexture)
-				.setShaderState(new ShaderStateShard(CoreShaders::halo))
-				.setTransparencyState(TRANSLUCENT_TRANSPARENCY)
-				.setCullState(NO_CULL)
-				.createCompositeState(true);
-		HALO = makeLayer(ResourcesLib.PREFIX_MOD + "halo", DefaultVertexFormat.POSITION_COLOR_TEX, VertexFormat.Mode.QUADS, 64, glState);
-
-		// [VanillaCopy] End portal, with own shader
-		glState = RenderType.CompositeState.builder()
-				.setShaderState(new ShaderStateShard(CoreShaders::starfield))
-				.setTextureState(RenderStateShard.MultiTextureStateShard.builder()
-						.add(TheEndPortalRenderer.END_SKY_LOCATION, false, false)
-						.add(TheEndPortalRenderer.END_PORTAL_LOCATION, false, false).build())
-				.createCompositeState(false);
-		STARFIELD = makeLayer(ResourcesLib.PREFIX_MOD + "starfield", DefaultVertexFormat.POSITION, VertexFormat.Mode.QUADS, 256, false, false, glState);
-		glState = RenderType.CompositeState.builder()
-				.setShaderState(POSITION_COLOR_SHADER)
-				.setTransparencyState(LIGHTNING_TRANSPARENCY)
-				.createCompositeState(false);
-		LIGHTNING = makeLayer(ResourcesLib.PREFIX_MOD + "lightning", DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS, 256, false, true, glState);
-		TRANSLUCENT = RenderType.entityTranslucentCull(TextureAtlas.LOCATION_BLOCKS);
-	}
-
-	private RenderHelper(String string, VertexFormat vertexFormat, VertexFormat.Mode mode, int i, boolean bl, boolean bl2, Runnable runnable, Runnable runnable2) {
-		super(string, vertexFormat, mode, i, bl, bl2, runnable, runnable2);
-		throw new UnsupportedOperationException("Should not be instantiated");
-	}
-
 	private static RenderType getPylonGlowDirect(String name, Identifier texture) {
 		return getPylonGlow(name, texture, true);
 	}
@@ -211,63 +201,19 @@ public final class RenderHelper extends RenderType {
 	}
 
 	private static RenderType getPylonGlow(String name, Identifier texture, boolean direct) {
-		RenderType.CompositeState.CompositeStateBuilder glState = RenderType.CompositeState.builder()
-				.setShaderState(new ShaderStateShard(CoreShaders::pylon))
-				.setTextureState(new RenderStateShard.TextureStateShard(texture, false, false))
-				.setTransparencyState(TRANSLUCENT_TRANSPARENCY)
-				.setCullState(NO_CULL)
-				.setLightmapState(LIGHTMAP)
-				.setOverlayState(OVERLAY);
-		if (!direct) {
-			glState = glState.setOutputState(RenderStateShard.ITEM_ENTITY_TARGET);
-		}
-		return makeLayer(ResourcesLib.PREFIX_MOD + name, DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS, 128, glState.createCompositeState(false));
-	}
-
-	private static CompositeState lineState(double width, boolean direct, boolean noDepth) {
-		// [VanillaCopy] vanilla LINES layer with line width defined (and optionally depth disabled)
-		var builder = RenderType.CompositeState.builder()
-				.setShaderState(RENDERTYPE_LINES_SHADER)
-				.setLineState(new RenderStateShard.LineStateShard(OptionalDouble.of(width)))
-				.setLayeringState(VIEW_OFFSET_Z_LAYERING)
-				.setTransparencyState(TRANSLUCENT_TRANSPARENCY)
-				.setWriteMaskState(noDepth ? COLOR_WRITE : COLOR_DEPTH_WRITE)
-				.setCullState(NO_CULL);
-		if (!direct) {
-			builder = builder.setOutputState(ITEM_ENTITY_TARGET);
-		}
-		if (noDepth) {
-			builder = builder.setDepthTestState(NO_DEPTH_TEST);
-		}
-		return builder.createCompositeState(false);
+		return layer(name, CoreShaders.pylon(), 128, false, false, texture, true, true, !direct);
 	}
 
 	public static RenderType getHaloLayer(Identifier texture) {
-		RenderType.CompositeState glState = RenderType.CompositeState.builder()
-				.setShaderState(RenderStateShard.POSITION_COLOR_TEX_SHADER)
-				.setTextureState(new RenderStateShard.TextureStateShard(texture, true, false))
-				.setCullState(new RenderStateShard.CullStateShard(false))
-				.setTransparencyState(TRANSLUCENT_TRANSPARENCY).createCompositeState(false);
-		return makeLayer(ResourcesLib.PREFIX_MOD + "crafting_halo", DefaultVertexFormat.POSITION_COLOR_TEX, VertexFormat.Mode.QUADS, 64, false, true, glState);
+		return layer("crafting_halo", CoreShaders.halo(), 64, false, true, texture);
 	}
 
-	private static final Function<Identifier, RenderType> DOPPLEGANGER = Util.memoize(texture -> {
-		// [VanillaCopy] entity_translucent, with own shader
-		CompositeState glState = RenderType.CompositeState.builder()
-				.setShaderState(new ShaderStateShard(CoreShaders::doppleganger))
-				.setTextureState(new RenderStateShard.TextureStateShard(texture, false, false))
-				.setTransparencyState(TRANSLUCENT_TRANSPARENCY)
-				.setCullState(NO_CULL)
-				.setLightmapState(LIGHTMAP)
-				.setOverlayState(OVERLAY)
-				.createCompositeState(true);
-		return makeLayer(ResourcesLib.PREFIX_MOD + "doppleganger", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS, 256, true, true, glState);
-	});
+	private static final Function<Identifier, RenderType> DOPPLEGANGER = Util.memoize(texture ->
+			layer("doppleganger", CoreShaders.doppleganger(), 256, true, true, texture, true, true, false));
 
 	public static RenderType getDopplegangerLayer(Identifier texture) {
 		return DOPPLEGANGER.apply(texture);
 	}
-
 	public static void drawTexturedModalRect(GuiGraphicsExtractor gui, Identifier textureId, int x, int y, int u, int v, int width, int height) {
 		gui.blit(textureId, x, y, u, v, width, height, 256, 256);
 	}
@@ -366,7 +312,7 @@ public final class RenderHelper extends RenderType {
 
 		Matrix4f mat = ms.last().pose();
 		BufferBuilder buf = Tesselator.getInstance().getBuilder();
-		RenderSystem.setShader(GameRenderer::getPositionColorShader);
+		RenderSystem.setPipeline(RenderPipelines.DEBUG_FILLED);
 		buf.begin(VertexFormat.Mode.TRIANGLE_FAN, DefaultVertexFormat.POSITION_COLOR);
 		buf.vertex(mat, centerX, centerY, 0).color(0, 0.5F, 0.5F, a).endVertex();
 
@@ -464,19 +410,6 @@ public final class RenderHelper extends RenderType {
 			PoseStack ms, VertexConsumer buffer,
 			TextureAtlasSprite icon, float alpha) {
 		renderIconFullBright(ms, buffer, icon, 0xFFFFFF, alpha);
-	}
-
-	private static class AstrolabeLayer extends RenderType {
-		public AstrolabeLayer() {
-			super(ResourcesLib.PREFIX_MOD + "astrolabe", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS, 256, true, true,
-					() -> {
-						Sheets.translucentCullBlockSheet().setupRenderState();
-						RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 0.4F);
-					}, () -> {
-						Sheets.translucentCullBlockSheet().clearRenderState();
-						RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-					});
-		}
 	}
 
 	private static MultiBufferSource wrapBuffer(MultiBufferSource buffer, int alpha, boolean forceTranslucent) {

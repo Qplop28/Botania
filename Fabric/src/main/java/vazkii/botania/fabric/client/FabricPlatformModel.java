@@ -10,7 +10,7 @@ import net.fabricmc.fabric.api.client.renderer.v1.mesh.QuadEmitter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.BlockAndTintGetter;
 import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
-import net.minecraft.client.resources.model.Material;
+import net.minecraft.client.resources.model.sprite.Material;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
@@ -73,7 +73,7 @@ public final class FabricPlatformModel extends WrapperBlockStateModel {
 	}
 
 	@Override
-	public Material particleMaterial(BlockAndTintGetter level, BlockPos pos, BlockState state) {
+	public Material.Baked particleMaterial(BlockAndTintGetter level, BlockPos pos, BlockState state) {
 		BlockStateModel model = contextualModel(level, pos, state);
 		if (model == null) {
 			return super.particleMaterial(level, pos, state);

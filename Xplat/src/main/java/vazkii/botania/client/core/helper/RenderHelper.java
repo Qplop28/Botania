@@ -9,8 +9,10 @@
 package vazkii.botania.client.core.helper;
 
 import com.mojang.blaze3d.pipeline.BlendFunction;
+import com.mojang.blaze3d.pipeline.ColorTargetState;
+import com.mojang.blaze3d.pipeline.DepthStencilState;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
-import com.mojang.blaze3d.platform.DepthTestFunction;
+import com.mojang.blaze3d.platform.CompareOp;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
@@ -46,29 +48,37 @@ import vazkii.botania.common.item.equipment.bauble.FlugelTiaraItem;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 import java.util.function.Function;
 
 public final class RenderHelper {
 	private static final RenderPipeline STAR_PIPELINE = pipeline("star", RenderPipelines.POSITION_COLOR_SNIPPET,
-			DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.TRIANGLES, BlendFunction.LIGHTNING, true, true, true, false, 1);
+			DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.TRIANGLES, BlendFunction.LIGHTNING, true,
+			CompareOp.LESS_THAN_OR_EQUAL, false, 1);
 	private static final RenderPipeline HIGHLIGHT_QUADS_PIPELINE = pipeline("rectangle_highlight", RenderPipelines.POSITION_COLOR_SNIPPET,
-			DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS, BlendFunction.TRANSLUCENT, false, true, true, true, 1);
+			DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS, BlendFunction.TRANSLUCENT, false,
+			CompareOp.LESS_THAN_OR_EQUAL, true, 1);
 	private static final RenderPipeline HIGHLIGHT_TRIANGLES_PIPELINE = pipeline("circle_highlight", RenderPipelines.POSITION_COLOR_SNIPPET,
-			DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.TRIANGLES, BlendFunction.TRANSLUCENT, false, true, true, true, 1);
+			DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.TRIANGLES, BlendFunction.TRANSLUCENT, false,
+			CompareOp.LESS_THAN_OR_EQUAL, true, 1);
 	private static final RenderPipeline LINE_PIPELINE = linePipeline("red_string", 1, false);
 	private static final RenderPipeline LINE_1_NO_DEPTH_PIPELINE = linePipeline("line_1_no_depth", 1, true);
 	private static final RenderPipeline LINE_4_NO_DEPTH_PIPELINE = linePipeline("line_4_no_depth", 4, true);
 	private static final RenderPipeline LINE_5_NO_DEPTH_PIPELINE = linePipeline("line_5_no_depth", 5, true);
 	private static final RenderPipeline LINE_8_NO_DEPTH_PIPELINE = linePipeline("line_8_no_depth", 8, true);
 	private static final RenderPipeline SPARK_PIPELINE = pipeline("spark", RenderPipelines.POSITION_COLOR_TEX_LIGHTMAP_SNIPPET,
-			DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP, VertexFormat.Mode.QUADS, BlendFunction.TRANSLUCENT, true, true, true, true, 1);
+			DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP, VertexFormat.Mode.QUADS, BlendFunction.TRANSLUCENT, true,
+			CompareOp.LESS_THAN_OR_EQUAL, true, 1);
 	private static final RenderPipeline ICON_OVERLAY_PIPELINE = pipeline("icon_overlay", RenderPipelines.POSITION_COLOR_TEX_LIGHTMAP_SNIPPET,
-			DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP, VertexFormat.Mode.QUADS, BlendFunction.TRANSLUCENT, true, true, true, true, 1);
+			DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP, VertexFormat.Mode.QUADS, BlendFunction.TRANSLUCENT, true,
+			CompareOp.LESS_THAN_OR_EQUAL, true, 1);
 	private static final RenderPipeline LIGHTNING_PIPELINE = pipeline("lightning", RenderPipelines.POSITION_COLOR_SNIPPET,
-			DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS, BlendFunction.LIGHTNING, true, true, true, true, 1);
+			DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS, BlendFunction.LIGHTNING, true,
+			CompareOp.LESS_THAN_OR_EQUAL, true, 1);
 	private static final RenderPipeline ASTROLABE_PIPELINE = pipeline("astrolabe", RenderPipelines.ENTITY_SNIPPET,
-			DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS, BlendFunction.TRANSLUCENT, true, true, true, true, 1);
+			DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS, BlendFunction.TRANSLUCENT, true,
+			CompareOp.LESS_THAN_OR_EQUAL, true, 1);
 
 	private static final RenderType STAR = layer("star", STAR_PIPELINE, 256, false, false, null);
 	public static final RenderType RECTANGLE = layer("rectangle_highlight", HIGHLIGHT_QUADS_PIPELINE, 256, false, true, null);
@@ -103,17 +113,15 @@ public final class RenderHelper {
 	private static double offY = INITIAL_OFFSET;
 
 	private static RenderPipeline pipeline(String name, RenderPipeline.Snippet snippet, VertexFormat format,
-			VertexFormat.Mode mode, BlendFunction blend, boolean cull, boolean depthTest, boolean depthWrite,
-			boolean colorWrite, int lineWidth) {
+			VertexFormat.Mode mode, BlendFunction blend, boolean cull, CompareOp depthCompare,
+			boolean depthWrite, int lineWidth) {
 		var builder = RenderPipeline.builder(snippet)
 				.withLocation(new Identifier(ResourcesLib.PREFIX_MOD + name))
 				.withVertexFormat(format, mode)
-				.withBlend(blend)
 				.withCull(cull)
-				.withDepthTestFunction(depthTest ? DepthTestFunction.LEQUAL_DEPTH_TEST : DepthTestFunction.NO_DEPTH_TEST)
-				.withDepthWrite(depthWrite)
-				.withColorWrite(colorWrite)
-				.withAlphaWrite(true);
+				.withDepthStencilState(new DepthStencilState(depthCompare, depthWrite, 0, 0))
+				.withColorTargetState(new ColorTargetState(Optional.of(blend),
+						ColorTargetState.WRITE_RED | ColorTargetState.WRITE_GREEN | ColorTargetState.WRITE_BLUE | ColorTargetState.WRITE_ALPHA));
 		if (lineWidth != 1) {
 			builder = builder.withShaderDefine("LINE_WIDTH", lineWidth);
 		}
@@ -122,7 +130,8 @@ public final class RenderHelper {
 
 	private static RenderPipeline linePipeline(String name, int width, boolean noDepth) {
 		return pipeline(name, RenderPipelines.LINES_SNIPPET, DefaultVertexFormat.POSITION_COLOR_NORMAL,
-				VertexFormat.Mode.LINES, BlendFunction.TRANSLUCENT, false, !noDepth, !noDepth, true, width);
+				VertexFormat.Mode.LINES, BlendFunction.TRANSLUCENT, false,
+				noDepth ? CompareOp.ALWAYS_PASS : CompareOp.LESS_THAN_OR_EQUAL, !noDepth, width);
 	}
 
 	private static RenderType layer(String name, RenderPipeline pipeline, int bufferSize,

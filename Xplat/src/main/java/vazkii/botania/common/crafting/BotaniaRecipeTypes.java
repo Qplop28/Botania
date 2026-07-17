@@ -74,7 +74,7 @@ public class BotaniaRecipeTypes {
 
 	public static final RecipeSerializer<BotanicalBreweryRecipe>
 			BREW_SERIALIZER =
-			new BotanicalBreweryRecipe.Serializer();
+			BotanicalBreweryRecipe.SERIALIZER;
 
 	public static final RecipeType<PetalApothecaryRecipe>
 			PETAL_TYPE = new ModRecipeType<>();

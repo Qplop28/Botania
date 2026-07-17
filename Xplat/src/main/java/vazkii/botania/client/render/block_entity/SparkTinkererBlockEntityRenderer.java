@@ -10,35 +10,55 @@ package vazkii.botania.client.render.block_entity;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
+import net.minecraft.client.renderer.item.ItemModelResolver;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.world.item.ItemDisplayContext;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.Vec3;
 
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import vazkii.botania.client.render.block_entity.state.SparkTinkererRenderState;
 import vazkii.botania.common.block.block_entity.SparkTinkererBlockEntity;
 import vazkii.botania.common.helper.VecHelper;
 
-public class SparkTinkererBlockEntityRenderer implements BlockEntityRenderer<SparkTinkererBlockEntity> {
+public class SparkTinkererBlockEntityRenderer implements BlockEntityRenderer<SparkTinkererBlockEntity, SparkTinkererRenderState> {
+	private final ItemModelResolver itemModelResolver;
 
-	public SparkTinkererBlockEntityRenderer(BlockEntityRendererProvider.Context ctx) {}
-
-	@Override
-	public void render(@NotNull SparkTinkererBlockEntity tileentity, float pticks, PoseStack ms, MultiBufferSource buffers, int light, int overlay) {
-		ms.pushPose();
-		ms.mulPose(VecHelper.rotateX(90));
-		ms.translate(1.0F, -0.125F, -0.25F);
-		ItemStack stack = tileentity.getItemHandler().getItem(0);
-		if (!stack.isEmpty()) {
-			ms.mulPose(VecHelper.rotateY(180));
-			ms.translate(0.5F, 0.5F, 0);
-			Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.GROUND,
-					light, overlay, ms, buffers, tileentity.getLevel(), 0);
-		}
-		ms.popPose();
+	public SparkTinkererBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
+		itemModelResolver = context.itemModelResolver();
 	}
 
+	@Override
+	public SparkTinkererRenderState createRenderState() {
+		return new SparkTinkererRenderState();
+	}
+
+	@Override
+	public void extractRenderState(SparkTinkererBlockEntity blockEntity, SparkTinkererRenderState state,
+			float partialTicks, Vec3 cameraPosition, @Nullable ModelFeatureRenderer.CrumblingOverlay breakProgress) {
+		BlockEntityRenderer.super.extractRenderState(blockEntity, state, partialTicks, cameraPosition, breakProgress);
+		itemModelResolver.updateForTopItem(state.item, blockEntity.getItemHandler().getItem(0),
+				ItemDisplayContext.GROUND, blockEntity.getLevel(), null, 0);
+	}
+
+	@Override
+	public void submit(SparkTinkererRenderState state, PoseStack poseStack,
+			SubmitNodeCollector submitNodeCollector, CameraRenderState camera) {
+		if (state.item.isEmpty()) {
+			return;
+		}
+
+		poseStack.pushPose();
+		poseStack.mulPose(VecHelper.rotateX(90F));
+		poseStack.translate(1.0F, -0.125F, -0.25F);
+		poseStack.mulPose(VecHelper.rotateY(180F));
+		poseStack.translate(0.5F, 0.5F, 0F);
+		state.item.submit(poseStack, submitNodeCollector, state.lightCoords, OverlayTexture.NO_OVERLAY, 0);
+		poseStack.popPose();
+	}
 }

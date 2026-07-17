@@ -28,21 +28,25 @@ public final class RecipeCodecs {
 	private static <T> DataResult<T> renameField(
 			DynamicOps<T> ops, T input, String from, String to
 	) {
-		return ops.getMap(input).flatMap(map -> {
-			// Prefer the target spelling when both are present.
-			if (map.get(to) != null || map.get(from) == null) {
-				return DataResult.success(input);
-			}
+		var mapResult = ops.getMap(input).result();
+		if (mapResult.isEmpty()) {
+			return DataResult.success(input);
+		}
 
-			var builder = ops.mapBuilder();
-			map.entries().forEach(entry -> {
-				var key = ops.getStringValue(entry.getFirst()).result();
-				builder.add(
-						key.filter(from::equals).isPresent() ? ops.createString(to) : entry.getFirst(),
-						entry.getSecond()
-				);
-			});
-			return builder.build(ops.empty());
+		var map = mapResult.get();
+		// Prefer the target spelling when both are present.
+		if (map.get(to) != null || map.get(from) == null) {
+			return DataResult.success(input);
+		}
+
+		var builder = ops.mapBuilder();
+		map.entries().forEach(entry -> {
+			var key = ops.getStringValue(entry.getFirst()).result();
+			builder.add(
+					key.filter(from::equals).isPresent() ? ops.createString(to) : entry.getFirst(),
+					entry.getSecond()
+			);
 		});
+		return builder.build(ops.empty());
 	}
 }

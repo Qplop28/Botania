@@ -14,9 +14,9 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
-import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemDisplayContext;
@@ -108,7 +108,7 @@ public class ManaSpreaderBlockEntityRenderer implements BlockEntityRenderer<Mana
 		ms.popPose();
 
 		if (spreader.getBlockState().getValue(BotaniaStateProperties.HAS_SCAFFOLDING)) {
-			BakedModel scaffolding = getScaffoldingModel(spreader);
+			BlockStateModel scaffolding = getScaffoldingModel(spreader);
 			Minecraft.getInstance().getBlockRenderer().getModelRenderer()
 					.renderModel(ms.last(), buffer, spreader.getBlockState(),
 							scaffolding, r, g, b, light, overlay);
@@ -116,24 +116,24 @@ public class ManaSpreaderBlockEntityRenderer implements BlockEntityRenderer<Mana
 
 	}
 
-	private BakedModel getCoreModel(ManaSpreaderBlockEntity tile) {
+	private BlockStateModel getCoreModel(ManaSpreaderBlockEntity tile) {
 		return switch (tile.getVariant()) {
-			case GAIA -> MiscellaneousModels.INSTANCE.gaiaSpreaderCore;
-			case REDSTONE -> MiscellaneousModels.INSTANCE.redstoneSpreaderCore;
-			case ELVEN -> MiscellaneousModels.INSTANCE.elvenSpreaderCore;
-			case MANA -> MiscellaneousModels.INSTANCE.manaSpreaderCore;
+			case GAIA -> MiscellaneousModels.INSTANCE.gaiaSpreaderCore();
+			case REDSTONE -> MiscellaneousModels.INSTANCE.redstoneSpreaderCore();
+			case ELVEN -> MiscellaneousModels.INSTANCE.elvenSpreaderCore();
+			case MANA -> MiscellaneousModels.INSTANCE.manaSpreaderCore();
 		};
 	}
 
-	private BakedModel getPaddingModel(DyeColor color) {
-		return MiscellaneousModels.INSTANCE.spreaderPaddings.get(color);
+	private BlockStateModel getPaddingModel(DyeColor color) {
+		return MiscellaneousModels.INSTANCE.spreaderPadding(color);
 	}
 
-	private BakedModel getScaffoldingModel(ManaSpreaderBlockEntity tile) {
+	private BlockStateModel getScaffoldingModel(ManaSpreaderBlockEntity tile) {
 		return switch (tile.getVariant()) {
-			case MANA, REDSTONE -> MiscellaneousModels.INSTANCE.manaSpreaderScaffolding;
-			case ELVEN -> MiscellaneousModels.INSTANCE.elvenSpreaderScaffolding;
-			case GAIA -> MiscellaneousModels.INSTANCE.gaiaSpreaderScaffolding;
+			case MANA, REDSTONE -> MiscellaneousModels.INSTANCE.manaSpreaderScaffolding();
+			case ELVEN -> MiscellaneousModels.INSTANCE.elvenSpreaderScaffolding();
+			case GAIA -> MiscellaneousModels.INSTANCE.gaiaSpreaderScaffolding();
 		};
 	}
 }

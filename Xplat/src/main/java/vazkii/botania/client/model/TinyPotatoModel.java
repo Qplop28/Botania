@@ -1,40 +1,39 @@
 /*
  * This class is distributed as part of the Botania Mod.
- * Get the Source Code in github:
- * https://github.com/Vazkii/Botania
- *
- * Botania is Open Source and distributed under the
- * Botania License: http://botaniamod.net/license.php
+ * Get the Source Code in github: https://github.com/Vazkii/Botania
  */
 package vazkii.botania.client.model;
 
+import net.fabricmc.fabric.api.client.model.loading.v1.wrapper.WrapperBakedItemModel;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.renderer.block.model.ItemOverrides;
-import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.client.renderer.item.ItemModel;
+import net.minecraft.client.renderer.item.ItemModelResolver;
+import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import vazkii.botania.client.core.proxy.ClientProxy;
 import vazkii.botania.client.render.block_entity.TinyPotatoBlockEntityRenderer;
 
-public class TinyPotatoModel extends DelegatedModel {
-	public TinyPotatoModel(BakedModel originalModel) {
-		super(originalModel);
+/** Baked item model which substitutes the contributor Tiny Potato geometry when named. */
+public final class TinyPotatoModel extends WrapperBakedItemModel {
+	public TinyPotatoModel(ItemModel wrapped) {
+		super(wrapped);
 	}
 
 	@Override
-	public ItemOverrides getOverrides() {
-		return new ItemOverrides() {
-			@Override
-			public BakedModel resolve(@NotNull BakedModel model, @NotNull ItemStack stack, @Nullable ClientLevel world, @Nullable LivingEntity livingEntity, int seed) {
-				if (stack.hasCustomHoverName() || ClientProxy.dootDoot) {
-					return TinyPotatoBlockEntityRenderer.getModelFromDisplayName(stack.getHoverName());
-				}
-				return originalModel;
-			}
-		};
+	public void update(ItemStackRenderState renderState, ItemStack stack, ItemModelResolver resolver,
+			ItemDisplayContext displayContext, @Nullable ClientLevel level, @Nullable LivingEntity entity, int seed) {
+		if (!stack.hasCustomHoverName() && !ClientProxy.dootDoot) {
+			super.update(renderState, stack, resolver, displayContext, level, entity, seed);
+			return;
+		}
+
+		var model = TinyPotatoBlockEntityRenderer.getModelFromDisplayName(stack.getHoverName());
+		renderState.appendModelIdentityElement(model);
+		renderState.newLayer().setModel(model);
 	}
 }

@@ -3,6 +3,7 @@ package vazkii.botania.xplat;
 import com.mojang.blaze3d.vertex.PoseStack;
 
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
 import net.minecraft.client.renderer.texture.AbstractTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
@@ -39,7 +40,7 @@ public interface ClientXplatAbstractions {
 	WandHUD findWandHud(Entity entity);
 
 	// Rendering stuff
-	<T> T wrapPlatformModel(T original);
+	BlockStateModel wrapPlatformModel(BlockStateModel original);
 	void setFilterSave(AbstractTexture texture, boolean filter, boolean mipmap);
 	void restoreLastFilter(AbstractTexture texture);
 	void tessellateBlock(Level level, BlockState state, BlockPos pos, PoseStack ps, MultiBufferSource buffers, int overlay);

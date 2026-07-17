@@ -17,11 +17,10 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.entity.ItemRenderer;
-import net.minecraft.client.resources.model.BakedModel;
-import net.minecraft.client.resources.model.ModelManager;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
 import net.minecraft.network.chat.Component;
@@ -50,11 +49,9 @@ import vazkii.botania.common.helper.VecHelper;
 import vazkii.botania.common.item.BotaniaItems;
 import vazkii.botania.common.item.block.TinyPotatoBlockItem;
 import vazkii.botania.common.item.equipment.bauble.FlugelTiaraItem;
-import vazkii.botania.mixin.client.ModelManagerAccessor;
 import vazkii.botania.xplat.ClientXplatAbstractions;
 
 import java.util.Locale;
-import java.util.Map;
 import java.util.regex.Pattern;
 
 import static vazkii.botania.common.lib.ResourceLocationHelper.prefix;
@@ -69,26 +66,14 @@ public class TinyPotatoBlockEntityRenderer implements BlockEntityRenderer<TinyPo
 		this.blockRenderDispatcher = ctx.getBlockRenderDispatcher();
 	}
 
-	public static BakedModel getModelFromDisplayName(Component displayName) {
+	public static BlockStateModel getModelFromDisplayName(Component displayName) {
 		var nameBuilder = new StringBuilder();
 		TinyPotatoBlockItem.isEnchantedName(displayName, nameBuilder);
 		return getModel(nameBuilder.toString().toLowerCase(Locale.ROOT));
 	}
 
-	private static BakedModel getModel(String name) {
-		ModelManager bmm = Minecraft.getInstance().getModelManager();
-		Map<Identifier, BakedModel> mm = ((ModelManagerAccessor) bmm).getBakedRegistry();
-		BakedModel missing = bmm.getMissingModel();
-		Identifier location = taterLocation(name);
-		BakedModel model = mm.get(location);
-		if (model == null) {
-			if (ClientProxy.dootDoot) {
-				return mm.getOrDefault(taterLocation(HALLOWEEN), missing);
-			} else {
-				return mm.getOrDefault(taterLocation(DEFAULT), missing);
-			}
-		}
-		return model;
+	private static BlockStateModel getModel(String name) {
+		return MiscellaneousModels.INSTANCE.getTinyPotatoModel(taterLocation(name));
 	}
 
 	private static Identifier taterLocation(String name) {
@@ -107,7 +92,7 @@ public class TinyPotatoBlockEntityRenderer implements BlockEntityRenderer<TinyPo
 		boolean enchanted = TinyPotatoBlockItem.isEnchantedName(potato.name, nameBuilder);
 		String name = nameBuilder.toString().toLowerCase(Locale.ROOT);
 		RenderType layer = Sheets.translucentCullBlockSheet();
-		BakedModel model = getModel(name);
+		BlockStateModel model = getModel(name);
 
 		ms.translate(0.5F, 0F, 0.5F);
 		Direction potatoFacing = potato.getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
@@ -314,14 +299,14 @@ public class TinyPotatoBlockEntityRenderer implements BlockEntityRenderer<TinyPo
 					ms.translate(-0.08, 0.1, 0.4);
 					ms.mulPose(VecHelper.rotateY(90F));
 					ms.mulPose(new Quaternionf().rotateAxis(VecHelper.toRadians(20), 1, 0, 1));
-					renderModel(ms, buffers, light, overlay, MiscellaneousModels.INSTANCE.phiFlowerModel);
+					renderModel(ms, buffers, light, overlay, MiscellaneousModels.INSTANCE.phiFlowerModel());
 					ms.popPose();
 					if (name.equals("vazkii")) {
 						ms.scale(1.25F, 1.25F, 1.25F);
 						ms.mulPose(VecHelper.rotateX(180F));
 						ms.mulPose(VecHelper.rotateY(-90F));
 						ms.translate(0.2, -1.25, -0.075);
-						renderModel(ms, buffers, light, overlay, MiscellaneousModels.INSTANCE.nerfBatModel);
+						renderModel(ms, buffers, light, overlay, MiscellaneousModels.INSTANCE.nerfBatModel());
 					}
 				}
 				case "haighyorkie" -> {
@@ -329,7 +314,7 @@ public class TinyPotatoBlockEntityRenderer implements BlockEntityRenderer<TinyPo
 					ms.mulPose(VecHelper.rotateZ(180F));
 					ms.mulPose(VecHelper.rotateY(-90F));
 					ms.translate(-0.5F, -1.2F, -0.075F);
-					renderModel(ms, buffers, light, overlay, MiscellaneousModels.INSTANCE.goldfishModel);
+					renderModel(ms, buffers, light, overlay, MiscellaneousModels.INSTANCE.goldfishModel());
 				}
 				case "martysgames", "marty" -> {
 					ms.scale(0.7F, 0.7F, 0.7F);
@@ -373,11 +358,11 @@ public class TinyPotatoBlockEntityRenderer implements BlockEntityRenderer<TinyPo
 		ms.popPose();
 	}
 
-	private void renderModel(PoseStack ms, MultiBufferSource buffers, int light, int overlay, BakedModel model) {
+	private void renderModel(PoseStack ms, MultiBufferSource buffers, int light, int overlay, BlockStateModel model) {
 		renderModel(ms, buffers.getBuffer(Sheets.translucentCullBlockSheet()), light, overlay, model);
 	}
 
-	private void renderModel(PoseStack ms, VertexConsumer buffer, int light, int overlay, BakedModel model) {
+	private void renderModel(PoseStack ms, VertexConsumer buffer, int light, int overlay, BlockStateModel model) {
 		blockRenderDispatcher.getModelRenderer().renderModel(ms.last(), buffer, null, model, 1, 1, 1, light, overlay);
 	}
 

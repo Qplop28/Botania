@@ -101,8 +101,8 @@ public class CirrusAmuletItem extends BaubleItem {
 							buffer,
 							null,
 							stack.is(BotaniaItems.superCloudPendant)
-									? MiscellaneousModels.INSTANCE.nimbusGem
-									: MiscellaneousModels.INSTANCE.cirrusGem,
+									? MiscellaneousModels.INSTANCE.nimbusGem()
+									: MiscellaneousModels.INSTANCE.cirrusGem(),
 							1,
 							1,
 							1,

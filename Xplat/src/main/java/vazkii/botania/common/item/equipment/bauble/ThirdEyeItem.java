@@ -97,7 +97,7 @@ public class ThirdEyeItem extends BaubleItem {
 								ms.last(),
 								buffer,
 								null,
-								MiscellaneousModels.INSTANCE.thirdEyeLayers[i],
+								MiscellaneousModels.INSTANCE.thirdEyeLayer(i),
 								1,
 								1,
 								1,

@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
 import net.minecraft.client.renderer.texture.AbstractTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
@@ -46,9 +47,8 @@ public class FabricClientXplatImpl implements ClientXplatAbstractions {
 	}
 
 	@Override
-	public <T> T wrapPlatformModel(T original) {
-		// Custom Fabric models are disabled during the Minecraft 26.1 bootstrap.
-		return original;
+	public BlockStateModel wrapPlatformModel(BlockStateModel original) {
+		return new FabricPlatformModel(original);
 	}
 	@Override
 	public void setFilterSave(AbstractTexture texture, boolean filter, boolean mipmap) {

@@ -52,7 +52,7 @@ public class PyroclastPendantItem extends BaubleItem {
 							ms.last(),
 							buffer,
 							null,
-							MiscellaneousModels.INSTANCE.pyroclastGem,
+							MiscellaneousModels.INSTANCE.pyroclastGem(),
 							1,
 							1,
 							1,

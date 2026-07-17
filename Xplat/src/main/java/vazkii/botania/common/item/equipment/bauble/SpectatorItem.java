@@ -97,7 +97,7 @@ public class SpectatorItem extends BaubleItem {
 							ms.last(),
 							buffer,
 							null,
-							MiscellaneousModels.INSTANCE.itemFinderGem,
+							MiscellaneousModels.INSTANCE.itemFinderGem(),
 							1,
 							1,
 							1,

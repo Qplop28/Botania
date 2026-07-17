@@ -16,14 +16,13 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
-import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 
 import vazkii.botania.common.block.block_entity.mana.ManaPumpBlockEntity;
+import vazkii.botania.client.core.handler.MiscellaneousModels;
 import vazkii.botania.common.helper.VecHelper;
 
 public class ManaPumpBlockEntityRenderer implements BlockEntityRenderer<ManaPumpBlockEntity> {
-	public static BakedModel headModel = null;
 	private final BlockRenderDispatcher blockRenderDispatcher;
 
 	public ManaPumpBlockEntityRenderer(BlockEntityRendererProvider.Context ctx) {
@@ -54,7 +53,8 @@ public class ManaPumpBlockEntityRenderer implements BlockEntityRenderer<ManaPump
 		double diff = Math.max(0F, Math.min(8F, pump.innerRingPos + pump.moving * partialTicks));
 		ms.translate(0, 0, diff / 14);
 		VertexConsumer buffer = buffers.getBuffer(RenderType.solid());
-		blockRenderDispatcher.getModelRenderer().renderModel(ms.last(), buffer, null, headModel, 1, 1, 1, light, overlay);
+		blockRenderDispatcher.getModelRenderer().renderModel(ms.last(), buffer, null,
+				MiscellaneousModels.INSTANCE.manaPumpHead(), 1, 1, 1, light, overlay);
 		ms.popPose();
 	}
 }

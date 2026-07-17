@@ -43,7 +43,7 @@ public class RecipeTerraPlate
 					Ingredient.CODEC.listOf()
 							.fieldOf("ingredients")
 							.forGetter(recipe -> recipe.inputs),
-					ItemStackTemplate.CODEC
+					RecipeCodecs.ITEM_STACK_TEMPLATE
 							.fieldOf("result")
 							.forGetter(recipe -> recipe.output)
 			).apply(instance, RecipeTerraPlate::new));

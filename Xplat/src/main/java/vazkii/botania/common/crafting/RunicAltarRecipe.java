@@ -38,7 +38,7 @@ public class RunicAltarRecipe
 		implements vazkii.botania.api.recipe.RunicAltarRecipe {
 	protected static final MapCodec<RunicAltarRecipe> CODEC =
 			RecordCodecBuilder.mapCodec(instance -> instance.group(
-					ItemStackTemplate.CODEC.fieldOf("output")
+					RecipeCodecs.ITEM_STACK_TEMPLATE.fieldOf("output")
 							.forGetter(recipe -> recipe.output),
 					Codec.INT.fieldOf("mana")
 							.forGetter(recipe -> recipe.mana),

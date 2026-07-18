@@ -9,127 +9,171 @@
 package vazkii.botania.client.render.block_entity;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.ItemBlockRenderTypes;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.block.BlockRenderDispatcher;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.block.BlockModelResolver;
+import net.minecraft.client.renderer.block.model.BlockDisplayContext;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.renderer.texture.SpriteGetter;
+import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.client.resources.model.sprite.SpriteId;
 import net.minecraft.util.Mth;
-import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
 
 import org.jetbrains.annotations.Nullable;
 
 import vazkii.botania.api.mana.PoolOverlayProvider;
 import vazkii.botania.client.core.handler.ClientTickHandler;
 import vazkii.botania.client.core.helper.RenderHelper;
+import vazkii.botania.client.render.block_entity.state.ManaPoolRenderState;
 import vazkii.botania.common.block.block_entity.mana.ManaPoolBlockEntity;
 import vazkii.botania.common.block.mana.ManaPoolBlock;
 import vazkii.botania.common.helper.ColorHelper;
 import vazkii.botania.common.helper.VecHelper;
+import vazkii.botania.xplat.ClientXplatAbstractions;
 
-import java.util.Objects;
 import java.util.Random;
 
 import static vazkii.botania.common.lib.ResourceLocationHelper.prefix;
 
-public class ManaPoolBlockEntityRenderer implements BlockEntityRenderer<ManaPoolBlockEntity> {
+public class ManaPoolBlockEntityRenderer implements BlockEntityRenderer<ManaPoolBlockEntity, ManaPoolRenderState> {
+	private static final BlockDisplayContext BLOCK_DISPLAY_CONTEXT = BlockDisplayContext.create();
 
-	// Overrides for when we call this renderer from a cart
-	public static int cartMana = -1;
+	private final BlockModelResolver blockModelResolver;
+	private final SpriteGetter sprites;
 	private final TextureAtlasSprite waterSprite;
-	private final BlockRenderDispatcher blockRenderDispatcher;
 
-	public ManaPoolBlockEntityRenderer(BlockEntityRendererProvider.Context ctx) {
-		this.blockRenderDispatcher = ctx.getBlockRenderDispatcher();
-		this.waterSprite = Objects.requireNonNull(
-				Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS)
-						.apply(prefix("block/mana_water"))
-		);
+	public ManaPoolBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
+		this.blockModelResolver = context.blockModelResolver();
+		this.sprites = context.sprites();
+		this.waterSprite = context.sprites().get(
+				new SpriteId(TextureAtlas.LOCATION_BLOCKS, prefix("block/mana_water")));
 	}
 
 	@Override
-	public void render(@Nullable ManaPoolBlockEntity pool, float f, PoseStack ms, MultiBufferSource buffers, int light, int overlay) {
-		ms.pushPose();
+	public ManaPoolRenderState createRenderState() {
+		return new ManaPoolRenderState();
+	}
 
-		boolean fab = pool != null && ((ManaPoolBlock) pool.getBlockState().getBlock()).variant == ManaPoolBlock.Variant.FABULOUS;
-		boolean diluted = pool != null && ((ManaPoolBlock) pool.getBlockState().getBlock()).variant == ManaPoolBlock.Variant.DILUTED;
-		boolean creative = pool != null && ((ManaPoolBlock) pool.getBlockState().getBlock()).variant == ManaPoolBlock.Variant.CREATIVE;
+	@Override
+	public void extractRenderState(ManaPoolBlockEntity blockEntity, ManaPoolRenderState state,
+			float partialTicks, Vec3 cameraPosition,
+			@Nullable ModelFeatureRenderer.CrumblingOverlay breakProgress) {
+		BlockEntityRenderer.super.extractRenderState(
+				blockEntity,
+				state,
+				partialTicks,
+				cameraPosition,
+				breakProgress);
 
-		int insideUVStart = diluted ? 1 : 2;
-		int insideUVEnd = 16 - insideUVStart;
-		float poolBottom = insideUVStart / 16F + 0.001F;
-		float poolTop = (diluted ? 5 : creative ? 9 : 7) / 16F;
+		state.fabulousVisible = false;
+		state.fabulousTint = 0xFFFFFFFF;
+		state.insideUvStart = 2;
+		state.insideUvEnd = 14;
+		state.poolBottom = 2F / 16F + 0.001F;
+		state.poolTop = 7F / 16F;
+		state.manaLevel = 0F;
+		state.overlayTexture = null;
+		state.overlayAlpha = 0F;
 
-		if (fab) {
-			float time = ClientTickHandler.ticksInGame + ClientTickHandler.partialTicks;
-			time += new Random(pool.getBlockPos().getX() ^ pool.getBlockPos().getY() ^ pool.getBlockPos().getZ()).nextInt(100000);
+		ManaPoolBlock.Variant variant = ((ManaPoolBlock) blockEntity.getBlockState().getBlock()).variant;
+		boolean fabulous = variant == ManaPoolBlock.Variant.FABULOUS;
+		boolean diluted = variant == ManaPoolBlock.Variant.DILUTED;
+		boolean creative = variant == ManaPoolBlock.Variant.CREATIVE;
+
+		state.insideUvStart = diluted ? 1 : 2;
+		state.insideUvEnd = 16 - state.insideUvStart;
+		state.poolBottom = state.insideUvStart / 16F + 0.001F;
+		state.poolTop = (diluted ? 5 : creative ? 9 : 7) / 16F;
+
+		if (fabulous) {
+			float time = ClientTickHandler.ticksInGame + partialTicks;
+			time += new Random(blockEntity.getBlockPos().getX()
+					^ blockEntity.getBlockPos().getY()
+					^ blockEntity.getBlockPos().getZ()).nextInt(100000);
 			time *= 0.005F;
-			int poolColor = pool.getColor().map(ColorHelper::getColorValue).orElse(-1);
-			int color = vazkii.botania.common.helper.MathHelper.multiplyColor(Mth.hsvToRgb(Mth.frac(time), 0.6F, 1F), poolColor);
 
-			int red = (color & 0xFF0000) >> 16;
-			int green = (color & 0xFF00) >> 8;
-			int blue = color & 0xFF;
-			BlockState state = pool.getBlockState();
-			BakedModel model = blockRenderDispatcher.getBlockModel(state);
-			VertexConsumer buffer = buffers.getBuffer(ItemBlockRenderTypes.getRenderType(state, false));
-			blockRenderDispatcher.getModelRenderer()
-					.renderModel(ms.last(), buffer, state, model, red / 255F, green / 255F, blue / 255F, light, overlay);
+			int poolColor = blockEntity.getColor().map(ColorHelper::getColorValue).orElse(-1);
+			int color = vazkii.botania.common.helper.MathHelper.multiplyColor(
+					Mth.hsvToRgb(Mth.frac(time), 0.6F, 1F), poolColor);
+			state.fabulousTint = 0xFF000000 | color;
+			blockModelResolver.update(state.fabulousModel, blockEntity.getBlockState(), BLOCK_DISPLAY_CONTEXT);
+			state.fabulousModel.setupTints(new int[] { state.fabulousTint });
+			state.fabulousVisible = true;
 		}
 
-		if (pool != null) {
-			Block below = pool.getLevel().getBlockState(pool.getBlockPos().below()).getBlock();
-			if (below instanceof PoolOverlayProvider overlayProvider) {
-				var overlaySpriteId = overlayProvider.getIcon(pool.getLevel(), pool.getBlockPos());
-				var overlayIcon = Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(overlaySpriteId);
-				ms.pushPose();
-
-				float alpha = (float) ((Math.sin((ClientTickHandler.ticksInGame + f) / 20.0) + 1) * 0.3 + 0.2);
-
-				ms.translate(0, poolBottom, 0);
-				ms.mulPose(VecHelper.rotateX(90F));
-
-				VertexConsumer buffer = buffers.getBuffer(RenderHelper.ICON_OVERLAY);
-				RenderHelper.renderIconCropped(
-						ms, buffer,
-						insideUVStart, insideUVStart, insideUVEnd, insideUVEnd,
-						overlayIcon, 0xFFFFFF, alpha, light
-				);
-
-				ms.popPose();
-			}
+		Block below = blockEntity.getLevel().getBlockState(blockEntity.getBlockPos().below()).getBlock();
+		if (below instanceof PoolOverlayProvider overlayProvider) {
+			state.overlayTexture = overlayProvider.getIcon(blockEntity.getLevel(), blockEntity.getBlockPos());
 		}
 
-		int mana = pool == null ? cartMana : pool.getCurrentMana();
-		int maxMana = pool == null ? -1 : pool.getMaxMana();
+		state.overlayAlpha = (float) ((Math.sin((ClientTickHandler.ticksInGame + partialTicks) / 20D) + 1D) * 0.3D + 0.2D);
+
+		int maxMana = blockEntity.getMaxMana();
 		if (maxMana == -1) {
 			maxMana = ManaPoolBlockEntity.MAX_MANA;
 		}
-
-		float manaLevel = (float) mana / (float) maxMana;
-		if (manaLevel > 0) {
-			ms.pushPose();
-			ms.translate(0, Mth.clampedMap(manaLevel, 0, 1, poolBottom, poolTop), 0);
-			ms.mulPose(VecHelper.rotateX(90F));
-
-			VertexConsumer buffer = buffers.getBuffer(RenderHelper.MANA_POOL_WATER);
-			RenderHelper.renderIconCropped(
-					ms, buffer,
-					insideUVStart, insideUVStart, insideUVEnd, insideUVEnd,
-					this.waterSprite, 0xFFFFFF, 1, light);
-
-			ms.popPose();
-		}
-		ms.popPose();
-
-		cartMana = -1;
+		state.manaLevel = maxMana == 0 ? 0F : (float) blockEntity.getCurrentMana() / (float) maxMana;
 	}
 
+	@Override
+	public void submit(ManaPoolRenderState state, PoseStack poseStack,
+			SubmitNodeCollector submitNodeCollector, CameraRenderState camera) {
+		poseStack.pushPose();
+		if (state.fabulousVisible) {
+			state.fabulousModel.submit(
+					poseStack,
+					submitNodeCollector,
+					state.lightCoords,
+					OverlayTexture.NO_OVERLAY,
+					0);
+		}
+
+		if (state.overlayTexture != null) {
+			TextureAtlasSprite overlaySprite = sprites.get(
+					new SpriteId(TextureAtlas.LOCATION_BLOCKS, state.overlayTexture));
+			poseStack.pushPose();
+			poseStack.translate(0F, state.poolBottom, 0F);
+			poseStack.mulPose(VecHelper.rotateX(90F));
+			submitCroppedIcon(poseStack, submitNodeCollector, RenderHelper.ICON_OVERLAY,
+					overlaySprite, state.insideUvStart, state.insideUvEnd, 0xFFFFFF,
+					state.overlayAlpha, state.lightCoords);
+			poseStack.popPose();
+		}
+
+		if (state.manaLevel > 0) {
+			float manaY = Mth.clampedMap(state.manaLevel, 0F, 1F, state.poolBottom, state.poolTop);
+			poseStack.pushPose();
+			poseStack.translate(0F, manaY, 0F);
+			poseStack.mulPose(VecHelper.rotateX(90F));
+			submitCroppedIcon(poseStack, submitNodeCollector, RenderHelper.MANA_POOL_WATER,
+					waterSprite, state.insideUvStart, state.insideUvEnd, 0xFFFFFF, 1F, state.lightCoords);
+			poseStack.popPose();
+		}
+		poseStack.popPose();
+	}
+
+	public static void submitCroppedIcon(PoseStack poseStack, SubmitNodeCollector collector, RenderType renderType,
+			TextureAtlasSprite sprite, int uvStartPixels, int uvEndPixels, int color, float alpha, int light) {
+		ClientXplatAbstractions.instance().markSpriteActive(sprite);
+		float uvStart = uvStartPixels / 16F;
+		float uvEnd = uvEndPixels / 16F;
+		float start = uvStartPixels / 16F;
+		float end = uvEndPixels / 16F;
+		int alphaByte = (int) (alpha * 255F);
+		int rgba = color << 8 | alphaByte;
+		collector.submitCustomGeometry(poseStack, renderType, (pose, consumer) -> {
+			consumer.addVertex(pose, start, end, 0F).setColor(rgba).setUv(sprite.getU(uvStart), sprite.getV(uvEnd)).setLight(light);
+			consumer.addVertex(pose, end, end, 0F).setColor(rgba).setUv(sprite.getU(uvEnd), sprite.getV(uvEnd)).setLight(light);
+			consumer.addVertex(pose, end, start, 0F).setColor(rgba).setUv(sprite.getU(uvEnd), sprite.getV(uvStart)).setLight(light);
+			consumer.addVertex(pose, start, start, 0F).setColor(rgba).setUv(sprite.getU(uvStart), sprite.getV(uvStart)).setLight(light);
+		});
+	}
 }

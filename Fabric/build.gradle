@@ -117,6 +117,12 @@ dependencies {
 
     implementation "vazkii.patchouli:patchouli-fabric:26.1-94"
 
+    modCompileOnly(
+            "mezz.jei:jei-26.1.2-fabric:${jei_version}"
+    ) {
+        transitive = false
+    }
+
     implementation "org.ladysnake.cardinal-components-api:cardinal-components-base:8.0.1"
     implementation "org.ladysnake.cardinal-components-api:cardinal-components-entity:8.0.1"
 

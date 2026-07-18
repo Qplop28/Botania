@@ -12,13 +12,15 @@ import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.gui.drawable.IDrawableStatic;
+import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.recipe.IFocus;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
-import mezz.jei.api.recipe.RecipeType;
+import mezz.jei.api.recipe.types.IRecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
@@ -38,7 +40,7 @@ import static vazkii.botania.common.lib.ResourceLocationHelper.prefix;
 
 public class BreweryRecipeCategory implements IRecipeCategory<BotanicalBreweryRecipe> {
 
-	public static final RecipeType<BotanicalBreweryRecipe> TYPE = RecipeType.create(LibMisc.MOD_ID, "brewery", BotanicalBreweryRecipe.class);
+	public static final IRecipeType<BotanicalBreweryRecipe> TYPE = IRecipeType.create(LibMisc.MOD_ID, "brewery", BotanicalBreweryRecipe.class);
 	private final IDrawableStatic background;
 	private final IDrawable icon;
 	private final Component localizedName;
@@ -52,7 +54,7 @@ public class BreweryRecipeCategory implements IRecipeCategory<BotanicalBreweryRe
 
 	@NotNull
 	@Override
-	public RecipeType<BotanicalBreweryRecipe> getRecipeType() {
+	public IRecipeType<BotanicalBreweryRecipe> getRecipeType() {
 		return TYPE;
 	}
 
@@ -64,14 +66,23 @@ public class BreweryRecipeCategory implements IRecipeCategory<BotanicalBreweryRe
 
 	@NotNull
 	@Override
-	public IDrawable getBackground() {
-		return background;
-	}
-
-	@NotNull
-	@Override
 	public IDrawable getIcon() {
 		return icon;
+	}
+
+	@Override
+	public int getWidth() {
+		return 131;
+	}
+
+	@Override
+	public int getHeight() {
+		return 55;
+	}
+
+	@Override
+	public void draw(@NotNull BotanicalBreweryRecipe recipe, @NotNull IRecipeSlotsView slotsView, @NotNull GuiGraphicsExtractor gui, double mouseX, double mouseY) {
+		background.draw(gui, 0, 0);
 	}
 
 	@Override
@@ -100,7 +111,7 @@ public class BreweryRecipeCategory implements IRecipeCategory<BotanicalBreweryRe
 		int posX = 67 - (inputs.size() * 9);
 		for (var ingr : inputs) {
 			builder.addSlot(RecipeIngredientRole.INPUT, posX, 0)
-					.addIngredients(ingr);
+					.add(ingr);
 			posX += 18;
 		}
 

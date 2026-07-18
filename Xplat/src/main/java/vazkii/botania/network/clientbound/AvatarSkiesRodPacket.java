@@ -9,7 +9,7 @@
 package vazkii.botania.network.clientbound;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.Identifier;
 
 import vazkii.botania.common.item.rod.SkiesRodItem;
@@ -21,7 +21,7 @@ public record AvatarSkiesRodPacket(boolean elytra) implements BotaniaPacket {
 	public static final Identifier ID = prefix("atr");
 
 	@Override
-	public void encode(FriendlyByteBuf buf) {
+	public void encode(RegistryFriendlyByteBuf buf) {
 		buf.writeBoolean(elytra);
 	}
 
@@ -30,7 +30,7 @@ public record AvatarSkiesRodPacket(boolean elytra) implements BotaniaPacket {
 		return ID;
 	}
 
-	public static AvatarSkiesRodPacket decode(FriendlyByteBuf buf) {
+	public static AvatarSkiesRodPacket decode(RegistryFriendlyByteBuf buf) {
 		return new AvatarSkiesRodPacket(buf.readBoolean());
 	}
 

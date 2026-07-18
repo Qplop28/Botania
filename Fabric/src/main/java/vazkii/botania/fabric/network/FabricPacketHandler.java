@@ -11,7 +11,7 @@ package vazkii.botania.fabric.network;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -104,7 +104,7 @@ public final class FabricPacketHandler {
 
 	private static <T extends BotaniaPacket> void registerServerbound(
 			CustomPacketPayload.Type<T> type,
-			Function<FriendlyByteBuf, T> decoder,
+			Function<RegistryFriendlyByteBuf, T> decoder,
 			TriConsumer<T, MinecraftServer, ServerPlayer> handler) {
 		PayloadTypeRegistry.serverboundPlay().register(
 				type,
@@ -122,7 +122,7 @@ public final class FabricPacketHandler {
 
 	private static <T extends BotaniaPacket> void registerClientboundType(
 			CustomPacketPayload.Type<T> type,
-			Function<FriendlyByteBuf, T> decoder) {
+			Function<RegistryFriendlyByteBuf, T> decoder) {
 		PayloadTypeRegistry.clientboundPlay().register(
 				type,
 				BotaniaPacket.codec(decoder)

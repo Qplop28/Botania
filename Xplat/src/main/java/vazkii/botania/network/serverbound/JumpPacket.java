@@ -8,7 +8,7 @@
  */
 package vazkii.botania.network.serverbound;
 
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -25,7 +25,7 @@ public class JumpPacket implements BotaniaPacket {
 	public static final Identifier ID = prefix("jmp");
 
 	@Override
-	public void encode(FriendlyByteBuf buf) {
+	public void encode(RegistryFriendlyByteBuf buf) {
 
 	}
 
@@ -34,7 +34,7 @@ public class JumpPacket implements BotaniaPacket {
 		return ID;
 	}
 
-	public static JumpPacket decode(FriendlyByteBuf buf) {
+	public static JumpPacket decode(RegistryFriendlyByteBuf buf) {
 		return INSTANCE;
 	}
 

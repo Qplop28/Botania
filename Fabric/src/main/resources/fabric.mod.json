@@ -63,9 +63,6 @@
     "cardinal-components-entity": [
       "vazkii.botania.fabric.internal_caps.CCAInternalEntityComponents"
     ],
-    "emi": [
-      "vazkii.botania.client.integration.emi.BotaniaEmiPlugin"
-    ],
     "jei_mod_plugin": [
       "vazkii.botania.client.integration.jei.JEIBotaniaPlugin"
     ]

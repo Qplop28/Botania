@@ -117,7 +117,7 @@ dependencies {
 
     implementation "vazkii.patchouli:patchouli-fabric:26.1-94"
 
-    modCompileOnly(
+    compileOnly(
             "mezz.jei:jei-26.1.2-fabric:${jei_version}"
     ) {
         transitive = false

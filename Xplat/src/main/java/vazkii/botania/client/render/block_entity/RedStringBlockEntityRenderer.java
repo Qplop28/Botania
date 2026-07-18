@@ -9,27 +9,33 @@
 package vazkii.botania.client.render.block_entity;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 
+import org.jetbrains.annotations.Nullable;
+
 import vazkii.botania.client.core.handler.ClientTickHandler;
 import vazkii.botania.client.core.helper.RenderHelper;
+import vazkii.botania.client.render.block_entity.state.RedStringRenderState;
 import vazkii.botania.common.block.block_entity.red_string.RedStringBlockEntity;
 import vazkii.botania.common.helper.PlayerHelper;
 import vazkii.botania.common.item.WandOfTheForestItem;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
-public class RedStringBlockEntityRenderer<T extends RedStringBlockEntity> implements BlockEntityRenderer<T> {
+public class RedStringBlockEntityRenderer<T extends RedStringBlockEntity> implements BlockEntityRenderer<T, RedStringRenderState> {
 	// 0 -> none, 10 -> full
 	private static int transparency = 0;
 
@@ -46,76 +52,145 @@ public class RedStringBlockEntityRenderer<T extends RedStringBlockEntity> implem
 	public RedStringBlockEntityRenderer(BlockEntityRendererProvider.Context ctx) {}
 
 	@Override
-	public void render(RedStringBlockEntity tile, float partialTicks, PoseStack ms, MultiBufferSource buffers, int light, int overlay) {
-		if (transparency <= 0) {
+	public RedStringRenderState createRenderState() {
+		return new RedStringRenderState();
+	}
+
+	@Override
+	public void extractRenderState(T blockEntity, RedStringRenderState state, float partialTicks,
+			Vec3 cameraPosition, @Nullable ModelFeatureRenderer.CrumblingOverlay breakProgress) {
+		BlockEntityRenderer.super.extractRenderState(
+				blockEntity,
+				state,
+				partialTicks,
+				cameraPosition,
+				breakProgress
+		);
+		state.vertices = List.of();
+		state.alpha = 0;
+		state.normalX = 0F;
+		state.normalY = 0F;
+		state.normalZ = 0F;
+
+		int transparencySnapshot = transparency;
+		if (transparencySnapshot <= 0) {
 			return;
 		}
 
-		float sizeAlpha = transparency / 10.0F;
-		int color = 0xFF0000 | ((int) (sizeAlpha * 255) << 24);
-
-		Direction dir = tile.getOrientation();
-		BlockPos bind = tile.getBinding();
-
-		if (bind != null) {
-			ms.pushPose();
-			ms.translate(0.5, 0.5, 0.5);
-			Vec3 span = new Vec3(bind.getX() - tile.getBlockPos().getX(), bind.getY() - tile.getBlockPos().getY(), bind.getZ() - tile.getBlockPos().getZ());
-			Vec3 step = span.normalize().scale(0.025);
-			Vec3 cur = step;
-
-			int stepCount = (int) (span.length() / step.length());
-
-			double len = (double) -ClientTickHandler.ticksInGame / 100F + new Random(dir.ordinal() ^ tile.getBlockPos().hashCode()).nextInt(10000);
-			double add = step.length();
-			double rand = Math.random() - 0.5;
-			VertexConsumer buffer = buffers.getBuffer(RenderHelper.RED_STRING);
-			for (int i = 0; i < stepCount; i++) {
-				vertex(ms, buffer, color, dir, cur.x, cur.y, cur.z, rand, len);
-				rand = Math.random() - 0.5;
-				cur = cur.add(step);
-				len += add;
-				vertex(ms, buffer, color, dir, cur.x, cur.y, cur.z, rand, len);
-			}
-
-			ms.popPose();
+		BlockPos binding = blockEntity.getBinding();
+		if (binding == null) {
+			return;
 		}
+
+		float sizeAlpha = transparencySnapshot / 10.0F;
+		state.alpha = (int) (sizeAlpha * 255F);
+
+		Direction direction = blockEntity.getOrientation();
+		switch (direction.getAxis().getPlane()) {
+			case HORIZONTAL -> {
+				state.normalX = 0F;
+				state.normalY = 1F;
+				state.normalZ = 0F;
+			}
+			case VERTICAL -> {
+				state.normalX = 1F;
+				state.normalY = 0F;
+				state.normalZ = 0F;
+			}
+		}
+
+		Vec3 span = new Vec3(
+				binding.getX() - blockEntity.getBlockPos().getX(),
+				binding.getY() - blockEntity.getBlockPos().getY(),
+				binding.getZ() - blockEntity.getBlockPos().getZ()
+		);
+		Vec3 step = span.normalize().scale(0.025);
+		Vec3 current = step;
+
+		int stepCount = (int) (span.length() / step.length());
+		List<RedStringRenderState.Vertex> vertices = new ArrayList<>(stepCount * 2);
+
+		double length = (double) -ClientTickHandler.ticksInGame / 100F
+				+ new Random(
+						direction.ordinal()
+								^ blockEntity.getBlockPos().hashCode()
+				).nextInt(10000);
+		double add = step.length();
+		double randomOffset = Math.random() - 0.5;
+		for (int i = 0; i < stepCount; i++) {
+			addVertex(vertices, direction, current.x, current.y, current.z, randomOffset, length, sizeAlpha);
+			randomOffset = Math.random() - 0.5;
+			current = current.add(step);
+			length += add;
+			addVertex(vertices, direction, current.x, current.y, current.z, randomOffset, length, sizeAlpha);
+		}
+
+		state.vertices = List.copyOf(vertices);
+	}
+
+	@Override
+	public void submit(RedStringRenderState state, PoseStack poseStack,
+			SubmitNodeCollector submitNodeCollector, CameraRenderState camera) {
+		if (state.vertices.isEmpty()) {
+			return;
+		}
+
+		List<RedStringRenderState.Vertex> vertices = state.vertices;
+		int alpha = state.alpha;
+		float normalX = state.normalX;
+		float normalY = state.normalY;
+		float normalZ = state.normalZ;
+
+		poseStack.pushPose();
+		poseStack.translate(0.5, 0.5, 0.5);
+		submitNodeCollector.submitCustomGeometry(
+				poseStack,
+				RenderHelper.RED_STRING,
+				(pose, consumer) -> {
+					for (RedStringRenderState.Vertex vertex : vertices) {
+						consumer.addVertex(
+								pose,
+								vertex.x(),
+								vertex.y(),
+								vertex.z()
+						)
+								.setColor(255, 0, 0, alpha)
+								.setNormal(
+										pose,
+										normalX,
+										normalY,
+										normalZ
+								);
+					}
+				}
+		);
+		poseStack.popPose();
 	}
 
 	/**
-	 * Add a vertex at the given position, but spiraled out perpendicular to {@code dir}
+	 * Add a vertex at the given position, but spiraled out perpendicular to {@code direction}
 	 */
-	private static void vertex(PoseStack ms, VertexConsumer buffer, int color, Direction dir,
-			double xpos, double ypos, double zpos,
-			double rand, double l) {
-		float sizeAlpha = transparency / 10.0F;
-		float ampl = (float) (0.15 * (Mth.sin((float) l * 2F) * 0.5 + 0.5) + 0.1) * sizeAlpha;
+	private static void addVertex(List<RedStringRenderState.Vertex> vertices, Direction direction,
+			double xPosition, double yPosition, double zPosition,
+			double randomOffset, double length, float sizeAlpha) {
+		float amplitude = (float) (0.15 * (Mth.sin((float) length * 2F) * 0.5 + 0.5) + 0.1) * sizeAlpha;
 
-		float trigInput = (float) (l * 20.0);
+		float trigInput = (float) (length * 20.0);
 		float sin = Mth.sin(trigInput);
 		float cos = Mth.cos(trigInput);
-		float lastTerm = (float) (rand * 0.05);
+		float lastTerm = (float) (randomOffset * 0.05);
 
-		float x = (float) xpos
-				+ sin * ampl * killNonZero(dir.getStepX())
+		float x = (float) xPosition
+				+ sin * amplitude * killNonZero(direction.getStepX())
 				+ lastTerm;
-		float y = (float) ypos
-				+ cos * ampl * killNonZero(dir.getStepY())
+		float y = (float) yPosition
+				+ cos * amplitude * killNonZero(direction.getStepY())
 				+ lastTerm;
-		float z = (float) zpos
-				+ (dir.getStepY() == 0 ? sin : cos) * ampl * killNonZero(dir.getStepZ())
+		float z = (float) zPosition
+				+ (direction.getStepY() == 0 ? sin : cos) * amplitude * killNonZero(direction.getStepZ())
 				+ lastTerm;
 
-		int a = (color >> 24) & 0xFF;
-		int r = (color >> 16) & 0xFF;
-		int g = (color >> 8) & 0xFF;
-		int b = color & 0xFF;
-		buffer.vertex(ms.last().pose(), x, y, z).color(r, g, b, a);
-		switch (dir.getAxis().getPlane()) {
-			case HORIZONTAL -> buffer.normal(ms.last().normal(), 0, 1, 0);
-			case VERTICAL -> buffer.normal(ms.last().normal(), 1, 0, 0);
-		}
-		buffer.endVertex();
+		vertices.add(new RedStringRenderState.Vertex(x, y, z));
 	}
 
 	private static int killNonZero(int diff) {

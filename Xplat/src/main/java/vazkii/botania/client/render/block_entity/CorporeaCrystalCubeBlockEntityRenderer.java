@@ -9,109 +9,147 @@
 package vazkii.botania.client.render.block_entity;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.Sheets;
-import net.minecraft.client.renderer.block.BlockRenderDispatcher;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.block.BlockModelRenderState;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModelPart;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
+import net.minecraft.client.renderer.entity.state.EntityRenderState;
+import net.minecraft.client.renderer.entity.state.ItemEntityRenderState;
+import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.phys.Vec3;
 
 import org.jetbrains.annotations.Nullable;
 
 import vazkii.botania.client.core.handler.ClientTickHandler;
 import vazkii.botania.client.core.handler.MiscellaneousModels;
+import vazkii.botania.client.render.block_entity.state.CorporeaCrystalCubeRenderState;
 import vazkii.botania.common.block.block_entity.corporea.CorporeaCrystalCubeBlockEntity;
 import vazkii.botania.common.helper.VecHelper;
 import vazkii.botania.mixin.ItemEntityAccessor;
 
-public class CorporeaCrystalCubeBlockEntityRenderer implements BlockEntityRenderer<CorporeaCrystalCubeBlockEntity> {
-	private ItemEntity entity = null;
-	private final BlockRenderDispatcher blockRenderDispatcher;
+import java.util.ArrayList;
+import java.util.List;
 
-	public CorporeaCrystalCubeBlockEntityRenderer(BlockEntityRendererProvider.Context ctx) {
-		this.blockRenderDispatcher = ctx.getBlockRenderDispatcher();
+public class CorporeaCrystalCubeBlockEntityRenderer implements BlockEntityRenderer<CorporeaCrystalCubeBlockEntity, CorporeaCrystalCubeRenderState> {
+	private final EntityRenderDispatcher entityRenderDispatcher;
+	private final Font font;
+	private @Nullable ItemEntity itemEntity;
+
+	public CorporeaCrystalCubeBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
+		this.entityRenderDispatcher = context.entityRenderer();
+		this.font = context.font();
 	}
 
 	@Override
-	public void render(@Nullable CorporeaCrystalCubeBlockEntity cube, float f, PoseStack ms, MultiBufferSource buffers, int light, int overlay) {
-		ItemStack stack = ItemStack.EMPTY;
-		if (cube != null) {
-			if (entity == null) {
-				entity = new ItemEntity(cube.getLevel(), cube.getBlockPos().getX(), cube.getBlockPos().getY(), cube.getBlockPos().getZ(), new ItemStack(Blocks.STONE));
+	public CorporeaCrystalCubeRenderState createRenderState() {
+		return new CorporeaCrystalCubeRenderState();
+	}
+
+	@Override
+	public void extractRenderState(CorporeaCrystalCubeBlockEntity blockEntity, CorporeaCrystalCubeRenderState state,
+			float partialTicks, Vec3 cameraPosition, @Nullable ModelFeatureRenderer.CrumblingOverlay breakProgress) {
+		BlockEntityRenderer.super.extractRenderState(blockEntity, state, partialTicks, cameraPosition, breakProgress);
+		state.itemEntity = null;
+		state.cubeBobTranslation = 0F;
+		state.glassParts = List.of();
+		state.showCount = false;
+		state.countText = net.minecraft.util.FormattedCharSequence.EMPTY;
+		state.countTextWidth = 0;
+		state.countColor = 0;
+		state.countShadeColor = 0;
+
+		ItemStack stack = blockEntity.getRequestTarget();
+		if (itemEntity == null || itemEntity.level() != blockEntity.getLevel()) {
+			itemEntity = new ItemEntity(blockEntity.getLevel(), blockEntity.getBlockPos().getX(),
+					blockEntity.getBlockPos().getY(), blockEntity.getBlockPos().getZ(), new ItemStack(Blocks.STONE));
+		}
+		((ItemEntityAccessor) itemEntity).setAge(ClientTickHandler.ticksInGame);
+		itemEntity.setItem(stack);
+		EntityRenderState extracted = entityRenderDispatcher.extractEntity(itemEntity, partialTicks);
+		if (extracted instanceof ItemEntityRenderState itemState) {
+			state.cubeBobTranslation = (Mth.sin(itemState.ageInTicks / 10F + itemState.bobOffset) * 0.1F + 0.1F) / -7F;
+			if (!stack.isEmpty()) {
+				state.itemEntity = itemState;
 			}
-
-			((ItemEntityAccessor) entity).setAge(ClientTickHandler.ticksInGame);
-			stack = cube.getRequestTarget();
-			entity.setItem(stack);
 		}
 
-		Minecraft mc = Minecraft.getInstance();
-		ms.pushPose();
-		ms.translate(0.5F, 1.5F, 0.5F);
-		ms.scale(1F, -1F, -1F);
-		/*
-			Using Mth.sin(((float)entity.getAge() + f) / 10.0F + entity.bobOffs from ItemEntityRender#render to sync the bobbing.
-			Divided by a negative number to make the item inside not be static (-1 almost make the cube and item the same speed).
-			Making the divider smaller, slows down the cube bobbing (you can multiply instead to make it faster).
-			This still keeps the item and the cube in sync, the cube just doesn't move as much as the item,
-			but the item never goes outside the cube (based on the tests I made; some edge cases could exist).
-		*/
-		ms.translate(0F, (Mth.sin(((float) entity.getAge() + f) / 10.0F + entity.bobOffs) * 0.1F + 0.1F) / -7F, 0F);
+		BlockStateModel glassModel = MiscellaneousModels.INSTANCE.corporeaCrystalCubeGlass();
+		List<BlockStateModelPart> parts = new ArrayList<>();
+		glassModel.collectParts(RandomSource.create(42L), parts);
+		state.glassParts = List.copyOf(parts);
 
-		if (!stack.isEmpty()) {
-			ms.pushPose();
-			ms.translate(0F, 0.96F, 0F);
-			ms.scale(0.64F, 0.64F, 0.64F);
-			ms.mulPose(VecHelper.rotateZ(180F));
-			Minecraft.getInstance().getEntityRenderDispatcher().getRenderer(entity).render(entity, 0, f, ms, buffers, light);
-			ms.popPose();
-		}
-
-		ms.pushPose();
-		ms.translate(-0.5F, 0.25F, -0.5F);
-		VertexConsumer buffer = buffers.getBuffer(Sheets.translucentCullBlockSheet());
-		blockRenderDispatcher.getModelRenderer().renderModel(ms.last(), buffer, null,
-				MiscellaneousModels.INSTANCE.corporeaCrystalCubeGlass(), 1, 1, 1, light, overlay);
-		ms.popPose();
-
-		if (!stack.isEmpty() && cube != null && !cube.hideCount) {
-			int count = cube.getItemCount();
-			String countStr = String.valueOf(count);
+		if (!stack.isEmpty() && !blockEntity.hideCount) {
+			int count = blockEntity.getItemCount();
+			String countString = String.valueOf(count);
 			int color = 0xFFFFFF;
 			if (count > 9_999) {
-				countStr = count / 1_000 + "K";
+				countString = count / 1_000 + "K";
 				color = 0xFFFF00;
 				if (count > 9_999_999) {
-					countStr = count / 1_000_000 + "M";
+					countString = count / 1_000_000 + "M";
 					color = 0x00FF00;
 				}
 			}
 			color |= 0xA0 << 24;
-			int colorShade = (color & 16579836) >> 2 | color & -16777216;
+			state.countColor = color;
+			state.countShadeColor = (color & 16579836) >> 2 | color & -16777216;
+			state.countText = Component.literal(countString).getVisualOrderText();
+			state.countTextWidth = font.width(state.countText);
+			state.showCount = true;
+		}
+	}
 
-			float s = 1F / 64F;
-			ms.scale(s, s, s);
-			int l = mc.font.width(countStr);
-
-			ms.translate(0F, 55F, 0F);
-			float tr = -16.5F;
-			for (int i = 0; i < 4; i++) {
-				ms.mulPose(VecHelper.rotateY(90F));
-				ms.translate(0F, 0F, tr);
-				mc.font.drawInBatch(countStr, -l / 2, 0, color, false, ms.last().pose(), buffers, Font.DisplayMode.NORMAL, 0, light);
-				ms.translate(0F, 0F, 0.1F);
-				mc.font.drawInBatch(countStr, -l / 2 + 1, 1, colorShade, false, ms.last().pose(), buffers, Font.DisplayMode.NORMAL, 0, light);
-				ms.translate(0F, 0F, -tr - 0.1F);
-			}
+	@Override
+	public void submit(CorporeaCrystalCubeRenderState state, PoseStack poseStack,
+			SubmitNodeCollector submitNodeCollector, CameraRenderState camera) {
+		poseStack.pushPose();
+		poseStack.translate(0.5F, 1.5F, 0.5F);
+		poseStack.scale(1F, -1F, -1F);
+		poseStack.translate(0F, state.cubeBobTranslation, 0F);
+		if (state.itemEntity != null) {
+			poseStack.pushPose();
+			poseStack.translate(0F, 0.96F, 0F);
+			poseStack.scale(0.64F, 0.64F, 0.64F);
+			poseStack.mulPose(VecHelper.rotateZ(180F));
+			entityRenderDispatcher.submit(state.itemEntity, camera, 0, 0, 0, poseStack, submitNodeCollector);
+			poseStack.popPose();
 		}
 
-		ms.popPose();
+		poseStack.pushPose();
+		poseStack.translate(-0.5F, 0.25F, -0.5F);
+		submitNodeCollector.submitBlockModel(poseStack, Sheets.translucentBlockSheet(), state.glassParts,
+				BlockModelRenderState.EMPTY_TINTS, state.lightCoords, OverlayTexture.NO_OVERLAY, 0);
+		poseStack.popPose();
+
+		if (state.showCount) {
+			poseStack.scale(1F / 64F, 1F / 64F, 1F / 64F);
+			poseStack.translate(0F, 55F, 0F);
+			float tr = -16.5F;
+			for (int i = 0; i < 4; i++) {
+				poseStack.mulPose(VecHelper.rotateY(90F));
+				poseStack.translate(0F, 0F, tr);
+				submitNodeCollector.submitText(poseStack, state.countText, -state.countTextWidth / 2F, 0F,
+						state.countColor, false, Font.DisplayMode.NORMAL, state.lightCoords, 0, 0);
+				poseStack.translate(0F, 0F, 0.1F);
+				submitNodeCollector.submitText(poseStack, state.countText, -state.countTextWidth / 2F + 1F, 1F,
+						state.countShadeColor, false, Font.DisplayMode.NORMAL, state.lightCoords, 0, 0);
+				poseStack.translate(0F, 0F, -tr - 0.1F);
+			}
+		}
+		poseStack.popPose();
 	}
 }

@@ -9,31 +9,29 @@
 package vazkii.botania.client.model;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 
-import net.minecraft.client.model.Model;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.CubeListBuilder;
 import net.minecraft.client.model.geom.builders.MeshDefinition;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.resources.Identifier;
 
+import vazkii.botania.client.render.block_entity.state.HoveringHourglassRenderState;
 import vazkii.botania.common.helper.VecHelper;
 
-public class HourglassModel extends Model {
-
+public class HourglassModel {
 	private final ModelPart top;
 	private final ModelPart glassT;
 	private final ModelPart ring;
 	private final ModelPart glassB;
 	private final ModelPart bottom;
-
 	private final ModelPart sandT;
 	private final ModelPart sandB;
 
 	public HourglassModel(ModelPart root) {
-		super(RenderType::entityTranslucent);
-
 		top = root.getChild("top");
 		glassT = root.getChild("glass_top");
 		ring = root.getChild("ring");
@@ -63,51 +61,58 @@ public class HourglassModel extends Model {
 		return mesh;
 	}
 
-	@Override
-	public void renderToBuffer(PoseStack ms, VertexConsumer buffer, int light, int overlay, float r, float g, float b, float a) {
-		render(ms, buffer, light, overlay, r, g, b, a, 0, 1, false);
-	}
-
-	public void render(PoseStack ms, VertexConsumer buffer, int light, int overlay, float r, float g, float b, float a, float fract1, float fract2, boolean flip) {
-		if (flip) {
+	public void submit(HoveringHourglassRenderState state, PoseStack poseStack,
+			SubmitNodeCollector submitNodeCollector, Identifier texture) {
+		float fract1 = state.upperSandFraction;
+		float fract2 = state.lowerSandFraction;
+		if (state.flip) {
 			float tmp = fract1;
 			fract1 = fract2;
 			fract2 = tmp;
 		}
-
+		var renderType = RenderTypes.entityTranslucent(texture);
+		int sandColor = 0xFF000000 | (state.sandColor & 0xFFFFFF);
 		float f = 1F / 16F;
-		ring.render(ms, buffer, light, overlay, 1, 1, 1, a);
-		top.render(ms, buffer, light, overlay, 1, 1, 1, a);
-		bottom.render(ms, buffer, light, overlay, 1, 1, 1, a);
+
+		submitWhite(state, poseStack, submitNodeCollector, texture, ring);
+		submitWhite(state, poseStack, submitNodeCollector, texture, top);
+		submitWhite(state, poseStack, submitNodeCollector, texture, bottom);
 
 		if (fract1 > 0) {
-			ms.pushPose();
-			if (flip) {
-				ms.translate(-2.0F * f, 1.0F * f, -2.0F * f);
+			poseStack.pushPose();
+			if (state.flip) {
+				poseStack.translate(-2.0F * f, 1.0F * f, -2.0F * f);
 			} else {
-				ms.mulPose(VecHelper.rotateZ(180F));
-				ms.translate(-2.0F * f, -5.0F * f, -2.0F * f);
+				poseStack.mulPose(VecHelper.rotateZ(180F));
+				poseStack.translate(-2.0F * f, -5.0F * f, -2.0F * f);
 			}
-			ms.scale(1F, fract1, 1F);
-			sandT.render(ms, buffer, light, overlay, r, g, b, a);
-			ms.popPose();
+			poseStack.scale(1F, fract1, 1F);
+			submitNodeCollector.submitModelPart(poseStack, sandT, renderType, state.lightCoords,
+					OverlayTexture.NO_OVERLAY, sandColor, null, state.breakProgress);
+			poseStack.popPose();
 		}
 
 		if (fract2 > 0) {
-			ms.pushPose();
-			if (flip) {
-				ms.translate(-2.0F * f, -5.0F * f, -2.0F * f);
+			poseStack.pushPose();
+			if (state.flip) {
+				poseStack.translate(-2.0F * f, -5.0F * f, -2.0F * f);
 			} else {
-				ms.mulPose(VecHelper.rotateZ(180F));
-				ms.translate(-2.0F * f, 1.0F * f, -2.0F * f);
+				poseStack.mulPose(VecHelper.rotateZ(180F));
+				poseStack.translate(-2.0F * f, 1.0F * f, -2.0F * f);
 			}
-			ms.scale(1F, fract2, 1F);
-			sandB.render(ms, buffer, light, overlay, r, g, b, a);
-			ms.popPose();
+			poseStack.scale(1F, fract2, 1F);
+			submitNodeCollector.submitModelPart(poseStack, sandB, renderType, state.lightCoords,
+					OverlayTexture.NO_OVERLAY, sandColor, null, state.breakProgress);
+			poseStack.popPose();
 		}
 
-		glassT.render(ms, buffer, light, overlay, 1, 1, 1, a);
-		glassB.render(ms, buffer, light, overlay, 1, 1, 1, a);
+		submitWhite(state, poseStack, submitNodeCollector, texture, glassT);
+		submitWhite(state, poseStack, submitNodeCollector, texture, glassB);
 	}
 
+	private static void submitWhite(HoveringHourglassRenderState state, PoseStack poseStack,
+			SubmitNodeCollector submitNodeCollector, Identifier texture, ModelPart part) {
+		submitNodeCollector.submitModelPart(poseStack, part, RenderTypes.entityTranslucent(texture),
+				state.lightCoords, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF, null, state.breakProgress);
+	}
 }

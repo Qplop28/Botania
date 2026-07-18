@@ -9,12 +9,14 @@
 package vazkii.botania.client.render.block_entity;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.phys.Vec3;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -23,15 +25,15 @@ import vazkii.botania.client.core.proxy.ClientProxy;
 import vazkii.botania.client.lib.ResourcesLib;
 import vazkii.botania.client.model.BotaniaModelLayers;
 import vazkii.botania.client.model.TeruTeruBozuModel;
+import vazkii.botania.client.render.block_entity.state.TeruTeruBozuRenderState;
 import vazkii.botania.common.block.block_entity.TeruTeruBozuBlockEntity;
 import vazkii.botania.common.helper.VecHelper;
 
 import java.util.Random;
 
-public class TeruTeruBozuBlockEntityRenderer implements BlockEntityRenderer<TeruTeruBozuBlockEntity> {
-
-	private static final Identifier texture = new Identifier(ResourcesLib.MODEL_TERU_TERU_BOZU);
-	private static final Identifier textureHalloween = new Identifier(ResourcesLib.MODEL_TERU_TERU_BOZU_HALLOWEEN);
+public class TeruTeruBozuBlockEntityRenderer implements BlockEntityRenderer<TeruTeruBozuBlockEntity, TeruTeruBozuRenderState> {
+	private static final Identifier texture = Identifier.parse(ResourcesLib.MODEL_TERU_TERU_BOZU);
+	private static final Identifier textureHalloween = Identifier.parse(ResourcesLib.MODEL_TERU_TERU_BOZU_HALLOWEEN);
 	private final TeruTeruBozuModel model;
 
 	public TeruTeruBozuBlockEntityRenderer(BlockEntityRendererProvider.Context ctx) {
@@ -39,26 +41,34 @@ public class TeruTeruBozuBlockEntityRenderer implements BlockEntityRenderer<Teru
 	}
 
 	@Override
-	public void render(@Nullable TeruTeruBozuBlockEntity tileentity, float partialTicks, PoseStack ms, MultiBufferSource buffers, int light, int overlay) {
-		ms.pushPose();
-		ms.mulPose(VecHelper.rotateX(180));
-		double time = ClientTickHandler.ticksInGame + partialTicks;
-		boolean hasWorld = tileentity != null && tileentity.getLevel() != null;
-		if (hasWorld) {
-			time += new Random(tileentity.getBlockPos().hashCode()).nextInt(1000);
-		}
-
-		ms.translate(0.5F, -1.25F + (hasWorld ? (float) Math.sin(time * 0.01F) * 0.05F : 0F), -0.5F);
-		if (hasWorld) {
-			ms.mulPose(VecHelper.rotateY((float) (time * 0.3)));
-			ms.mulPose(VecHelper.rotateZ(4F * (float) Math.sin(time * 0.05F)));
-			float s = 0.75F;
-			ms.scale(s, s, s);
-		}
-
-		VertexConsumer buffer = buffers.getBuffer(model.renderType(ClientProxy.dootDoot ? textureHalloween : texture));
-		model.renderToBuffer(ms, buffer, light, overlay, 1, 1, 1, 1);
-		ms.popPose();
+	public TeruTeruBozuRenderState createRenderState() {
+		return new TeruTeruBozuRenderState();
 	}
 
+	@Override
+	public void extractRenderState(TeruTeruBozuBlockEntity blockEntity, TeruTeruBozuRenderState state,
+			float partialTicks, Vec3 cameraPosition,
+			@Nullable ModelFeatureRenderer.CrumblingOverlay breakProgress) {
+		BlockEntityRenderer.super.extractRenderState(blockEntity, state, partialTicks, cameraPosition, breakProgress);
+		double time = ClientTickHandler.ticksInGame + partialTicks;
+		time += new Random(blockEntity.getBlockPos().hashCode()).nextInt(1000);
+		state.animationTime = time;
+		state.raining = blockEntity.getLevel() != null && blockEntity.getLevel().isRaining();
+		state.halloween = ClientProxy.dootDoot;
+	}
+
+	@Override
+	public void submit(TeruTeruBozuRenderState state, PoseStack poseStack,
+			SubmitNodeCollector submitNodeCollector, CameraRenderState camera) {
+		poseStack.pushPose();
+		poseStack.mulPose(VecHelper.rotateX(180));
+		poseStack.translate(0.5F,
+				-1.25F + (float) Math.sin(state.animationTime * 0.01F) * 0.05F,
+				-0.5F);
+		poseStack.mulPose(VecHelper.rotateY((float) (state.animationTime * 0.3)));
+		poseStack.mulPose(VecHelper.rotateZ(4F * (float) Math.sin(state.animationTime * 0.05F)));
+		poseStack.scale(0.75F, 0.75F, 0.75F);
+		model.submit(state, poseStack, submitNodeCollector, state.halloween ? textureHalloween : texture);
+		poseStack.popPose();
+	}
 }

@@ -73,17 +73,17 @@ public class CorporeaCrystalCubeBlockEntityRenderer implements BlockEntityRender
 		state.countShadeColor = 0;
 
 		ItemStack stack = blockEntity.getRequestTarget();
-		if (!stack.isEmpty()) {
-			if (itemEntity == null || itemEntity.level() != blockEntity.getLevel()) {
-				itemEntity = new ItemEntity(blockEntity.getLevel(), blockEntity.getBlockPos().getX(),
-						blockEntity.getBlockPos().getY(), blockEntity.getBlockPos().getZ(), new ItemStack(Blocks.STONE));
-			}
-			((ItemEntityAccessor) itemEntity).setAge(ClientTickHandler.ticksInGame);
-			itemEntity.setItem(stack);
-			EntityRenderState extracted = entityRenderDispatcher.extractEntity(itemEntity, partialTicks);
-			if (extracted instanceof ItemEntityRenderState itemState) {
+		if (itemEntity == null || itemEntity.level() != blockEntity.getLevel()) {
+			itemEntity = new ItemEntity(blockEntity.getLevel(), blockEntity.getBlockPos().getX(),
+					blockEntity.getBlockPos().getY(), blockEntity.getBlockPos().getZ(), new ItemStack(Blocks.STONE));
+		}
+		((ItemEntityAccessor) itemEntity).setAge(ClientTickHandler.ticksInGame);
+		itemEntity.setItem(stack);
+		EntityRenderState extracted = entityRenderDispatcher.extractEntity(itemEntity, partialTicks);
+		if (extracted instanceof ItemEntityRenderState itemState) {
+			state.cubeBobTranslation = (Mth.sin(itemState.ageInTicks / 10F + itemState.bobOffset) * 0.1F + 0.1F) / -7F;
+			if (!stack.isEmpty()) {
 				state.itemEntity = itemState;
-				state.cubeBobTranslation = (Mth.sin(state.itemEntity.ageInTicks / 10F + state.itemEntity.bobOffset) * 0.1F + 0.1F) / -7F;
 			}
 		}
 

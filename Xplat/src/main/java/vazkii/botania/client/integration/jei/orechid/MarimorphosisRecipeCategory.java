@@ -1,6 +1,7 @@
 package vazkii.botania.client.integration.jei.orechid;
 
 import mezz.jei.api.helpers.IGuiHelper;
+import mezz.jei.api.recipe.types.IRecipeType;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
@@ -18,8 +19,8 @@ import vazkii.botania.common.lib.LibMisc;
 import java.util.stream.Stream;
 
 public class MarimorphosisRecipeCategory extends OrechidRecipeCategoryBase<MarimorphosisRecipe> {
-	public static final mezz.jei.api.recipe.RecipeType<MarimorphosisRecipe> TYPE =
-			mezz.jei.api.recipe.RecipeType.create(LibMisc.MOD_ID, "marimorphosis", MarimorphosisRecipe.class);
+	public static final IRecipeType<MarimorphosisRecipe> TYPE =
+			IRecipeType.create(LibMisc.MOD_ID, "marimorphosis", MarimorphosisRecipe.class);
 
 	public MarimorphosisRecipeCategory(IGuiHelper guiHelper) {
 		super(guiHelper, new ItemStack(BotaniaFlowerBlocks.marimorphosis), Component.translatable("botania.nei.marimorphosis"));
@@ -27,7 +28,7 @@ public class MarimorphosisRecipeCategory extends OrechidRecipeCategoryBase<Marim
 
 	@NotNull
 	@Override
-	public mezz.jei.api.recipe.RecipeType<MarimorphosisRecipe> getRecipeType() {
+	public IRecipeType<MarimorphosisRecipe> getRecipeType() {
 		return TYPE;
 	}
 

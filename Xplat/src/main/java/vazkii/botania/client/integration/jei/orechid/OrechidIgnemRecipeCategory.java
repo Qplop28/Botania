@@ -9,6 +9,7 @@
 package vazkii.botania.client.integration.jei.orechid;
 
 import mezz.jei.api.helpers.IGuiHelper;
+import mezz.jei.api.recipe.types.IRecipeType;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
@@ -23,8 +24,8 @@ import vazkii.botania.common.lib.LibMisc;
 
 public class OrechidIgnemRecipeCategory extends OrechidRecipeCategoryBase<OrechidIgnemRecipe> {
 
-	public static final mezz.jei.api.recipe.RecipeType<OrechidIgnemRecipe> TYPE =
-			mezz.jei.api.recipe.RecipeType.create(LibMisc.MOD_ID, "orechid_ignem", OrechidIgnemRecipe.class);
+	public static final IRecipeType<OrechidIgnemRecipe> TYPE =
+			IRecipeType.create(LibMisc.MOD_ID, "orechid_ignem", OrechidIgnemRecipe.class);
 
 	public OrechidIgnemRecipeCategory(IGuiHelper guiHelper) {
 		super(guiHelper, new ItemStack(BotaniaFlowerBlocks.orechidIgnem), Component.translatable("botania.nei.orechidIgnem"));
@@ -32,7 +33,7 @@ public class OrechidIgnemRecipeCategory extends OrechidRecipeCategoryBase<Orechi
 
 	@NotNull
 	@Override
-	public mezz.jei.api.recipe.RecipeType<OrechidIgnemRecipe> getRecipeType() {
+	public IRecipeType<OrechidIgnemRecipe> getRecipeType() {
 		return TYPE;
 	}
 

@@ -8,8 +8,6 @@
  */
 package vazkii.botania.client.integration.jei.orechid;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
@@ -19,6 +17,7 @@ import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.category.IRecipeCategory;
+import mezz.jei.api.gui.builder.ITooltipBuilder;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -33,8 +32,6 @@ import org.jetbrains.annotations.Nullable;
 import vazkii.botania.api.recipe.OrechidRecipe;
 import vazkii.botania.client.integration.shared.OrechidUIHelper;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.stream.Stream;
 
 import static vazkii.botania.common.lib.ResourceLocationHelper.prefix;
@@ -64,24 +61,28 @@ public abstract class OrechidRecipeCategoryBase<T extends OrechidRecipe> impleme
 
 	@NotNull
 	@Override
-	public IDrawable getBackground() {
-		return background;
-	}
-
-	@NotNull
-	@Override
 	public IDrawable getIcon() {
 		return icon;
+	}
+
+	@Override
+	public int getWidth() {
+		return 96;
+	}
+
+	@Override
+	public int getHeight() {
+		return 44;
 	}
 
 	protected abstract RecipeType<T> recipeType();
 
 	@Override
-	public void setRecipe(@NotNull IRecipeLayoutBuilder builder, @NotNull OrechidRecipe recipe, @NotNull IFocusGroup focusGroup) {
+	public void setRecipe(@NotNull IRecipeLayoutBuilder builder, @NotNull T recipe, @NotNull IFocusGroup focusGroup) {
 
 		builder.addSlot(RecipeIngredientRole.INPUT, 9, 12)
 				.addItemStacks(recipe.getInput().getDisplayedStacks());
-		builder.addSlot(RecipeIngredientRole.CATALYST, 39, 12).addItemStack(iconStack);
+		builder.addSlot(RecipeIngredientRole.CATALYST, 39, 12).add(iconStack);
 
 		builder.addSlot(RecipeIngredientRole.OUTPUT, 68, 12)
 				.addItemStacks(recipe.getOutput().getDisplayedStacks())
@@ -89,29 +90,26 @@ public abstract class OrechidRecipeCategoryBase<T extends OrechidRecipe> impleme
 	}
 
 	@Override
-	public void draw(@NotNull OrechidRecipe recipe, @NotNull IRecipeSlotsView view, @NotNull GuiGraphicsExtractor gui, double mouseX, double mouseY) {
+	public void draw(@NotNull T recipe, @NotNull IRecipeSlotsView view, @NotNull GuiGraphicsExtractor gui, double mouseX, double mouseY) {
+		background.draw(gui, 0, 0);
 		final Double chance = getChance(recipe);
 		if (chance != null) {
 			final Component chanceComponent = OrechidUIHelper.getPercentageComponent(chance);
 			Font font = Minecraft.getInstance().font;
 			int xOffset = 90 - font.width(chanceComponent);
-			gui.drawString(font, chanceComponent, xOffset, 1, 0x888888, false);
+			gui.text(font, chanceComponent, xOffset, 1, 0xFF888888, false);
 		}
-		RenderSystem.enableBlend();
 		overlay.draw(gui, 17, 0);
-		RenderSystem.disableBlend();
 	}
 
-	@NotNull
 	@Override
-	public List<Component> getTooltipStrings(@NotNull OrechidRecipe recipe, @NotNull IRecipeSlotsView recipeSlotsView, double mouseX, double mouseY) {
-		if (mouseX > 0.6 * background.getWidth() && mouseX < 90 && mouseY < 12) {
+	public void getTooltip(ITooltipBuilder tooltip, @NotNull T recipe, @NotNull IRecipeSlotsView recipeSlotsView, double mouseX, double mouseY) {
+		if (mouseX > 0.6 * getWidth() && mouseX < 90 && mouseY < 12) {
 			final Double chance = getChance(recipe);
 			if (chance != null) {
-				return getChanceTooltipComponents(chance, recipe).toList();
+				tooltip.addAll(getChanceTooltipComponents(chance, recipe).toList());
 			}
 		}
-		return Collections.emptyList();
 	}
 
 	@NotNull

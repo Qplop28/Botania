@@ -8,8 +8,6 @@
  */
 package vazkii.botania.client.integration.jei;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
@@ -17,7 +15,7 @@ import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
-import mezz.jei.api.recipe.RecipeType;
+import mezz.jei.api.recipe.types.IRecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -38,8 +36,8 @@ import vazkii.botania.common.lib.LibMisc;
 import static vazkii.botania.common.lib.ResourceLocationHelper.prefix;
 
 public class TerrestrialAgglomerationRecipeCategory implements IRecipeCategory<TerrestrialAgglomerationRecipe> {
-	public static final RecipeType<TerrestrialAgglomerationRecipe> TYPE =
-			RecipeType.create(LibMisc.MOD_ID, "terra_plate", TerrestrialAgglomerationRecipe.class);
+	public static final IRecipeType<TerrestrialAgglomerationRecipe> TYPE =
+			IRecipeType.create(LibMisc.MOD_ID, "terra_plate", TerrestrialAgglomerationRecipe.class);
 
 	private final Component localizedName;
 	private final IDrawable background;
@@ -63,7 +61,7 @@ public class TerrestrialAgglomerationRecipeCategory implements IRecipeCategory<T
 
 	@NotNull
 	@Override
-	public RecipeType<TerrestrialAgglomerationRecipe> getRecipeType() {
+	public IRecipeType<TerrestrialAgglomerationRecipe> getRecipeType() {
 		return TYPE;
 	}
 
@@ -75,41 +73,44 @@ public class TerrestrialAgglomerationRecipeCategory implements IRecipeCategory<T
 
 	@NotNull
 	@Override
-	public IDrawable getBackground() {
-		return background;
-	}
-
-	@NotNull
-	@Override
 	public IDrawable getIcon() {
 		return icon;
 	}
 
 	@Override
+	public int getWidth() {
+		return 114;
+	}
+
+	@Override
+	public int getHeight() {
+		return 131;
+	}
+
+	@Override
 	public void draw(@NotNull TerrestrialAgglomerationRecipe recipe, @NotNull IRecipeSlotsView view, @NotNull GuiGraphicsExtractor gui, double mouseX, double mouseY) {
-		RenderSystem.enableBlend();
+		background.draw(gui, 0, 0);
 		overlay.draw(gui, 25, 14);
 		HUDHandler.renderManaBar(gui, 6, 126, 0x0000FF, 0.75F, recipe.getMana(), 100000);
 		terraPlate.draw(gui, 35, 92);
-		RenderSystem.disableBlend();
 	}
 
 	@Override
 	public void setRecipe(@NotNull IRecipeLayoutBuilder builder, @NotNull TerrestrialAgglomerationRecipe recipe, @NotNull IFocusGroup focusGroup) {
 		// TODO 1.19.4 figure out the proper way to get a registry access
 		builder.addSlot(RecipeIngredientRole.OUTPUT, 48, 37)
-				.addItemStack(recipe.getResultItem(RegistryAccess.EMPTY));
+				.add(recipe.getResultItem(RegistryAccess.EMPTY));
 
 		double angleBetweenEach = 360.0 / recipe.getIngredients().size();
 		Vec2 point = new Vec2(48, 5), center = new Vec2(48, 37);
 
 		for (var ingr : recipe.getIngredients()) {
 			builder.addSlot(RecipeIngredientRole.INPUT, (int) point.x, (int) point.y)
-					.addIngredients(ingr);
+					.add(ingr);
 			point = PetalApothecaryRecipeCategory.rotatePointAbout(point, center, angleBetweenEach);
 		}
 
 		builder.addSlot(RecipeIngredientRole.CATALYST, 48, 92)
-				.addItemStack(new ItemStack(BotaniaBlocks.terraPlate));
+				.add(new ItemStack(BotaniaBlocks.terraPlate));
 	}
 }

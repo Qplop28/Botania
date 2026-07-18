@@ -75,7 +75,7 @@ public class LuminizerBlockEntityRenderer implements BlockEntityRenderer<Luminiz
 		state.bindingRadius = null;
 		state.radiusColor = 0;
 		state.spriteIndex = DEFAULT_SPRITE;
-		state.iconRotationDegrees = (float) (ClientTickHandler.ticksInGame + partialTicks);
+		state.iconRotationDegrees = ClientTickHandler.ticksInGame + partialTicks;
 
 		if (blockEntity.getBlockState().getBlock() instanceof LuminizerBlock luminizerBlock) {
 			state.spriteIndex = switch (luminizerBlock.variant) {

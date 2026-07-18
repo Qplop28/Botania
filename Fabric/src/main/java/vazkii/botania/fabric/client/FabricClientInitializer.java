@@ -35,7 +35,6 @@ import vazkii.botania.client.gui.ManaBarTooltipComponent;
 import vazkii.botania.client.gui.TooltipHandler;
 import vazkii.botania.client.gui.bag.FlowerPouchGui;
 import vazkii.botania.client.gui.box.BaubleBoxGui;
-import vazkii.botania.client.integration.ears.EarsIntegration;
 import vazkii.botania.client.model.BotaniaLayerDefinitions;
 import vazkii.botania.client.model.TinyPotatoModel;
 import vazkii.botania.client.model.armor.ArmorModels;
@@ -49,7 +48,6 @@ import vazkii.botania.common.item.equipment.armor.manasteel.ManasteelArmorItem;
 import vazkii.botania.common.lib.LibMisc;
 import vazkii.botania.fabric.network.FabricPacketHandler;
 import vazkii.botania.xplat.ClientXplatAbstractions;
-import vazkii.botania.xplat.XplatAbstractions;
 
 import java.util.List;
 import java.util.function.Function;
@@ -123,9 +121,6 @@ public class FabricClientInitializer implements ClientModInitializer {
 		registerArmors();
 		registerCapabilities();
 
-		if (XplatAbstractions.INSTANCE.isModLoaded("ears")) {
-			EarsIntegration.register();
-		}
 	}
 
 	private static void registerCapabilities() {
@@ -146,7 +141,7 @@ public class FabricClientInitializer implements ClientModInitializer {
 			var texture = armor.getArmorTexture(stack, entity, slot, "");
 			if (model != null) {
 				contextModel.copyPropertiesTo(model);
-				ArmorRenderer.renderPart(matrices, vertexConsumers, light, stack, model, new Identifier(texture));
+				ArmorRenderer.renderPart(matrices, vertexConsumers, light, stack, model, Identifier.parse(texture));
 			}
 		};
 		ArmorRenderer.register(renderer, armors);

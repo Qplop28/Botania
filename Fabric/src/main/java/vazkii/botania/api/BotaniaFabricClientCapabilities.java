@@ -8,8 +8,8 @@ import net.minecraft.util.Unit;
 import vazkii.botania.api.block.WandHUD;
 
 public final class BotaniaFabricClientCapabilities {
-	public static final BlockApiLookup<WandHUD, Unit> WAND_HUD = BlockApiLookup.get(new Identifier(BotaniaAPI.MODID, "wand_hud"), WandHUD.class, Unit.class);
-	public static final EntityApiLookup<WandHUD, Unit> ENTITY_WAND_HUD = EntityApiLookup.get(new Identifier(BotaniaAPI.MODID, "wand_hud"), WandHUD.class, Unit.class);
+	public static final BlockApiLookup<WandHUD, Unit> WAND_HUD = BlockApiLookup.get(Identifier.fromNamespaceAndPath(BotaniaAPI.MODID, "wand_hud"), WandHUD.class, Unit.class);
+	public static final EntityApiLookup<WandHUD, Unit> ENTITY_WAND_HUD = EntityApiLookup.get(Identifier.fromNamespaceAndPath(BotaniaAPI.MODID, "wand_hud"), WandHUD.class, Unit.class);
 
 	private BotaniaFabricClientCapabilities() {}
 }

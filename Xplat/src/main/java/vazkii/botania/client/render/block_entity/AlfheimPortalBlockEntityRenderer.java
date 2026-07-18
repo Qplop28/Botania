@@ -9,79 +9,120 @@
 package vazkii.botania.client.render.block_entity;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.Sheets;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.world.inventory.InventoryMenu;
+import net.minecraft.client.resources.model.sprite.SpriteId;
+import net.minecraft.util.Mth;
+import net.minecraft.world.phys.Vec3;
 
-import org.jetbrains.annotations.NotNull;
-import org.joml.Matrix3f;
-import org.joml.Matrix4f;
+import org.jetbrains.annotations.Nullable;
 
 import vazkii.botania.api.state.BotaniaStateProperties;
 import vazkii.botania.api.state.enums.AlfheimPortalState;
 import vazkii.botania.client.core.handler.ClientTickHandler;
+import vazkii.botania.client.render.block_entity.state.AlfheimPortalRenderState;
 import vazkii.botania.common.block.block_entity.AlfheimPortalBlockEntity;
 import vazkii.botania.common.helper.VecHelper;
-
-import java.util.Objects;
+import vazkii.botania.xplat.ClientXplatAbstractions;
 
 import static vazkii.botania.common.lib.ResourceLocationHelper.prefix;
 
-public class AlfheimPortalBlockEntityRenderer implements BlockEntityRenderer<AlfheimPortalBlockEntity> {
+public class AlfheimPortalBlockEntityRenderer implements
+		BlockEntityRenderer<AlfheimPortalBlockEntity, AlfheimPortalRenderState> {
 	private final TextureAtlasSprite portalSprite;
 
-	public AlfheimPortalBlockEntityRenderer(BlockEntityRendererProvider.Context ctx) {
-		this.portalSprite = Objects.requireNonNull(
-				Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS)
-						.apply(prefix("block/alfheim_portal_swirl"))
-		);
+	public AlfheimPortalBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
+		this.portalSprite = context.sprites().get(
+				new SpriteId(TextureAtlas.LOCATION_BLOCKS, prefix("block/alfheim_portal_swirl")));
 	}
 
 	@Override
-	public void render(@NotNull AlfheimPortalBlockEntity portal, float f, PoseStack ms, MultiBufferSource buffers, int light, int overlay) {
-		AlfheimPortalState state = portal.getBlockState().getValue(BotaniaStateProperties.ALFPORTAL_STATE);
-		if (state == AlfheimPortalState.OFF) {
+	public AlfheimPortalRenderState createRenderState() {
+		return new AlfheimPortalRenderState();
+	}
+
+	@Override
+	public void extractRenderState(AlfheimPortalBlockEntity blockEntity, AlfheimPortalRenderState state,
+			float partialTicks, Vec3 cameraPosition,
+			@Nullable ModelFeatureRenderer.CrumblingOverlay breakProgress) {
+		BlockEntityRenderer.super.extractRenderState(
+				blockEntity, state, partialTicks, cameraPosition, breakProgress);
+
+		AlfheimPortalState portalState = blockEntity.getBlockState().getValue(BotaniaStateProperties.ALFPORTAL_STATE);
+		state.active = portalState != AlfheimPortalState.OFF;
+		state.alongX = portalState == AlfheimPortalState.ON_X;
+		state.alpha = (float) Math.min(1F,
+				(Math.sin((ClientTickHandler.ticksInGame + partialTicks) / 8D) + 1D) / 7D + 0.6D)
+				* (Math.min(60, blockEntity.ticksOpen) / 60F) * 0.5F;
+	}
+
+	@Override
+	public void submit(AlfheimPortalRenderState state, PoseStack poseStack,
+			SubmitNodeCollector submitNodeCollector, CameraRenderState camera) {
+		ClientXplatAbstractions.instance().markSpriteActive(portalSprite);
+		if (!state.active || state.alpha <= 0F) {
 			return;
 		}
 
-		float alpha = (float) Math.min(1F, (Math.sin((ClientTickHandler.ticksInGame + f) / 8D) + 1D) / 7D + 0.6D) * (Math.min(60, portal.ticksOpen) / 60F) * 0.5F;
+		int alpha = Mth.clamp(Math.round(state.alpha * 255F), 0, 255);
 
-		ms.pushPose();
-		if (state == AlfheimPortalState.ON_X) {
-			ms.translate(0.3125, 1, 2);
-			ms.mulPose(VecHelper.rotateY(90));
+		poseStack.pushPose();
+		if (state.alongX) {
+			poseStack.translate(0.3125, 1, 2);
+			poseStack.mulPose(VecHelper.rotateY(90F));
 		} else {
-			ms.translate(-1, 1, 0.3125);
+			poseStack.translate(-1, 1, 0.3125);
 		}
-		renderIcon(ms, buffers, this.portalSprite, 0, 0, 3, 3, alpha, overlay);
-		ms.popPose();
+		submitPortalQuad(poseStack, submitNodeCollector, alpha);
+		poseStack.popPose();
 
-		ms.pushPose();
-		if (state == AlfheimPortalState.ON_X) {
-			ms.translate(0.6875, 1, -1);
-			ms.mulPose(VecHelper.rotateY(90));
+		poseStack.pushPose();
+		if (state.alongX) {
+			poseStack.translate(0.6875, 1, -1);
+			poseStack.mulPose(VecHelper.rotateY(90F));
 		} else {
-			ms.translate(2, 1, 0.6875);
+			poseStack.translate(2, 1, 0.6875);
 		}
-		ms.mulPose(VecHelper.rotateY(180));
-		renderIcon(ms, buffers, this.portalSprite, 0, 0, 3, 3, alpha, overlay);
-		ms.popPose();
+		poseStack.mulPose(VecHelper.rotateY(180F));
+		submitPortalQuad(poseStack, submitNodeCollector, alpha);
+		poseStack.popPose();
 	}
 
-	public void renderIcon(PoseStack ms, MultiBufferSource buffers, TextureAtlasSprite icon, int x, int y, int width, int height, float alpha, int overlay) {
-		VertexConsumer buffer = buffers.getBuffer(Sheets.translucentItemSheet());
-		Matrix4f model = ms.last().pose();
-		Matrix3f normal = ms.last().normal();
-		buffer.vertex(model, x, y + height, 0).color(1, 1, 1, alpha).uv(icon.getU0(), icon.getV1()).overlayCoords(overlay).uv2(0xF000F0).normal(normal, 1, 0, 0).endVertex();
-		buffer.vertex(model, x + width, y + height, 0).color(1, 1, 1, alpha).uv(icon.getU1(), icon.getV1()).overlayCoords(overlay).uv2(0xF000F0).normal(normal, 1, 0, 0).endVertex();
-		buffer.vertex(model, x + width, y, 0).color(1, 1, 1, alpha).uv(icon.getU1(), icon.getV0()).overlayCoords(overlay).uv2(0xF000F0).normal(normal, 1, 0, 0).endVertex();
-		buffer.vertex(model, x, y, 0).color(1, 1, 1, alpha).uv(icon.getU0(), icon.getV0()).overlayCoords(overlay).uv2(0xF000F0).normal(normal, 1, 0, 0).endVertex();
+	private void submitPortalQuad(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int alpha) {
+		submitNodeCollector.submitCustomGeometry(
+				poseStack, Sheets.translucentBlockSheet(), (pose, consumer) -> {
+					consumer.addVertex(pose, 0F, 3F, 0F)
+							.setColor(255, 255, 255, alpha)
+							.setUv(portalSprite.getU0(), portalSprite.getV1())
+							.setOverlay(OverlayTexture.NO_OVERLAY)
+							.setLight(0xF000F0)
+							.setNormal(pose, 1F, 0F, 0F);
+					consumer.addVertex(pose, 3F, 3F, 0F)
+							.setColor(255, 255, 255, alpha)
+							.setUv(portalSprite.getU1(), portalSprite.getV1())
+							.setOverlay(OverlayTexture.NO_OVERLAY)
+							.setLight(0xF000F0)
+							.setNormal(pose, 1F, 0F, 0F);
+					consumer.addVertex(pose, 3F, 0F, 0F)
+							.setColor(255, 255, 255, alpha)
+							.setUv(portalSprite.getU1(), portalSprite.getV0())
+							.setOverlay(OverlayTexture.NO_OVERLAY)
+							.setLight(0xF000F0)
+							.setNormal(pose, 1F, 0F, 0F);
+					consumer.addVertex(pose, 0F, 0F, 0F)
+							.setColor(255, 255, 255, alpha)
+							.setUv(portalSprite.getU0(), portalSprite.getV0())
+							.setOverlay(OverlayTexture.NO_OVERLAY)
+							.setLight(0xF000F0)
+							.setNormal(pose, 1F, 0F, 0F);
+				});
 	}
-
 }

@@ -9,46 +9,65 @@
 package vazkii.botania.client.render.block_entity;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 
-import net.minecraft.client.renderer.ItemBlockRenderTypes;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.block.BlockRenderDispatcher;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.block.BlockModelResolver;
+import net.minecraft.client.renderer.block.model.BlockDisplayContext;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
-import net.minecraft.client.resources.model.BakedModel;
-import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.world.phys.Vec3;
 
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import vazkii.botania.client.render.block_entity.state.CocoonRenderState;
 import vazkii.botania.common.block.block_entity.CocoonBlockEntity;
 import vazkii.botania.common.helper.VecHelper;
 
-public class CocoonBlockEntityRenderer implements BlockEntityRenderer<CocoonBlockEntity> {
-	private final BlockRenderDispatcher blockRenderDispatcher;
+public class CocoonBlockEntityRenderer implements BlockEntityRenderer<CocoonBlockEntity, CocoonRenderState> {
+	private static final BlockDisplayContext BLOCK_DISPLAY_CONTEXT = BlockDisplayContext.create();
 
-	public CocoonBlockEntityRenderer(BlockEntityRendererProvider.Context ctx) {
-		this.blockRenderDispatcher = ctx.getBlockRenderDispatcher();
+	private final BlockModelResolver blockModelResolver;
+
+	public CocoonBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
+		this.blockModelResolver = context.blockModelResolver();
 	}
 
 	@Override
-	public void render(@NotNull CocoonBlockEntity cocoon, float partialTicks, PoseStack ms, MultiBufferSource buffers, int light, int overlay) {
-		float rot = 0F;
-		float modval = 60F - (float) cocoon.timePassed / (float) CocoonBlockEntity.TOTAL_TIME * 30F;
-		if (cocoon.timePassed % modval < 10) {
-			float mod = (cocoon.timePassed + partialTicks) % modval;
-			float v = mod / 5 * (float) Math.PI * 2;
-			rot = (float) Math.sin(v) * (float) Math.log(cocoon.timePassed + partialTicks);
-		}
+	public CocoonRenderState createRenderState() {
+		return new CocoonRenderState();
+	}
 
-		ms.pushPose();
-		ms.translate(0.5, 0, 0);
-		ms.mulPose(VecHelper.rotateX(rot));
-		ms.translate(-0.5, 0, 0);
-		BlockState state = cocoon.getBlockState();
-		BakedModel model = blockRenderDispatcher.getBlockModel(state);
-		VertexConsumer buffer = buffers.getBuffer(ItemBlockRenderTypes.getChunkRenderType(state));
-		blockRenderDispatcher.getModelRenderer().renderModel(ms.last(), buffer, state, model, 1, 1, 1, light, overlay);
-		ms.popPose();
+	@Override
+	public void extractRenderState(CocoonBlockEntity blockEntity, CocoonRenderState state,
+			float partialTicks, Vec3 cameraPosition,
+			@Nullable ModelFeatureRenderer.CrumblingOverlay breakProgress) {
+		BlockEntityRenderer.super.extractRenderState(
+				blockEntity, state, partialTicks, cameraPosition, breakProgress);
+
+		float rotation = 0F;
+		float modval = 60F - (float) blockEntity.timePassed / (float) CocoonBlockEntity.TOTAL_TIME * 30F;
+		if (blockEntity.timePassed % modval < 10F) {
+			float mod = (blockEntity.timePassed + partialTicks) % modval;
+			float phase = mod / 5F * (float) Math.PI * 2F;
+			rotation = (float) Math.sin(phase) * (float) Math.log(blockEntity.timePassed + partialTicks);
+		}
+		state.rotationDegrees = rotation;
+
+		blockModelResolver.update(state.blockModel, blockEntity.getBlockState(), BLOCK_DISPLAY_CONTEXT);
+	}
+
+	@Override
+	public void submit(CocoonRenderState state, PoseStack poseStack,
+			SubmitNodeCollector submitNodeCollector, CameraRenderState camera) {
+		poseStack.pushPose();
+		poseStack.translate(0.5, 0, 0);
+		poseStack.mulPose(VecHelper.rotateX(state.rotationDegrees));
+		poseStack.translate(-0.5, 0, 0);
+		state.blockModel.submit(
+				poseStack, submitNodeCollector, state.lightCoords, OverlayTexture.NO_OVERLAY, 0);
+		poseStack.popPose();
 	}
 }

@@ -9,25 +9,25 @@
 package vazkii.botania.client.model;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.model.Model;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.CubeListBuilder;
 import net.minecraft.client.model.geom.builders.MeshDefinition;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.resources.Identifier;
 
-public class TeruTeruBozuModel extends Model {
+import vazkii.botania.client.render.block_entity.state.TeruTeruBozuRenderState;
 
+public class TeruTeruBozuModel {
 	private final ModelPart thread;
 	private final ModelPart cloth;
 	private final ModelPart happyFace;
 	private final ModelPart sadFace;
 
 	public TeruTeruBozuModel(ModelPart root) {
-		super(RenderType::entityCutoutNoCull);
 		sadFace = root.getChild("sad_face");
 		happyFace = root.getChild("happy_face");
 		thread = root.getChild("thread");
@@ -52,14 +52,14 @@ public class TeruTeruBozuModel extends Model {
 		return mesh;
 	}
 
-	@Override
-	public void renderToBuffer(PoseStack ms, VertexConsumer buffer, int light, int overlay, float r, float g, float b, float a) {
-		if (Minecraft.getInstance().level.isRaining()) {
-			sadFace.render(ms, buffer, light, overlay, r, g, b, a);
-		} else {
-			happyFace.render(ms, buffer, light, overlay, r, g, b, a);
-		}
-		thread.render(ms, buffer, light, overlay, r, g, b, a);
-		cloth.render(ms, buffer, light, overlay, r, g, b, a);
+	public void submit(TeruTeruBozuRenderState state, PoseStack poseStack,
+			SubmitNodeCollector submitNodeCollector, Identifier texture) {
+		var renderType = RenderTypes.entityCutoutNoCull(texture);
+		submitNodeCollector.submitModelPart(poseStack, state.raining ? sadFace : happyFace, renderType,
+				state.lightCoords, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF, null, state.breakProgress);
+		submitNodeCollector.submitModelPart(poseStack, thread, renderType,
+				state.lightCoords, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF, null, state.breakProgress);
+		submitNodeCollector.submitModelPart(poseStack, cloth, renderType,
+				state.lightCoords, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF, null, state.breakProgress);
 	}
 }

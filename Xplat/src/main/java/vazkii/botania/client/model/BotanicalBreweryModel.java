@@ -9,38 +9,26 @@
 package vazkii.botania.client.model;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.model.Model;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.CubeListBuilder;
 import net.minecraft.client.model.geom.builders.MeshDefinition;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.item.ItemDisplayContext;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
 
-import org.jetbrains.annotations.Nullable;
-
-import vazkii.botania.client.lib.ResourcesLib;
-import vazkii.botania.common.block.block_entity.BreweryBlockEntity;
+import vazkii.botania.client.render.block_entity.state.BotanicalBreweryRenderState;
 import vazkii.botania.common.helper.VecHelper;
 
-public class BotanicalBreweryModel extends Model {
-	private static final Identifier TEXTURE = new Identifier(ResourcesLib.MODEL_BREWERY);
+public class BotanicalBreweryModel {
 	final ModelPart top;
 	final ModelPart pole;
 	final ModelPart bottom;
-
 	final ModelPart plate;
 
 	public BotanicalBreweryModel(ModelPart root) {
-		super(RenderType::entitySolid);
-
 		top = root.getChild("top");
 		pole = root.getChild("pole");
 		bottom = root.getChild("bottom");
@@ -65,74 +53,57 @@ public class BotanicalBreweryModel extends Model {
 		return mesh;
 	}
 
-	public void render(@Nullable BreweryBlockEntity brewery, double time, PoseStack ms, MultiBufferSource buffers, int light, int overlay) {
-		float offset = (float) Math.sin(time / 40) * 0.1F + 0.05F;
-		boolean hasTile = brewery != null;
-		int plates = hasTile ? brewery.inventorySize() - 1 : 7;
-		float deg = (float) time / 16F;
-		float polerot = -deg * 25F;
+	public void submit(BotanicalBreweryRenderState state, PoseStack poseStack,
+			SubmitNodeCollector submitNodeCollector, Identifier texture) {
+		float offset = (float) Math.sin(state.animationTime / 40) * 0.1F + 0.05F;
+		float degrees = (float) state.animationTime / 16F;
+		float poleRotation = -degrees * 25F;
+		var renderType = RenderTypes.entitySolid(texture);
 
-		ms.translate(0F, offset, 0F);
-		ms.mulPose(VecHelper.rotateY(polerot));
-		if (hasTile && !brewery.getItemHandler().getItem(0).isEmpty()) {
-			ms.pushPose();
-			ms.mulPose(VecHelper.rotateX(180));
-			ms.translate(0, -0.45F, 0);
-			renderItemStack(brewery.getItemHandler().getItem(0), ms, buffers, brewery.getLevel(), light, overlay);
-			ms.popPose();
+		poseStack.translate(0F, offset, 0F);
+		poseStack.mulPose(VecHelper.rotateY(poleRotation));
+		if (!state.items.isEmpty() && !state.items.get(0).isEmpty()) {
+			poseStack.pushPose();
+			poseStack.mulPose(VecHelper.rotateX(180));
+			poseStack.translate(0, -0.45F, 0);
+			poseStack.scale(0.25F, 0.25F, 0.25F);
+			state.items.get(0).submit(poseStack, submitNodeCollector, state.lightCoords, OverlayTexture.NO_OVERLAY, 0);
+			poseStack.popPose();
 		}
 
-		RenderType layer = renderType(TEXTURE);
-		pole.render(ms, buffers.getBuffer(layer), light, overlay);
-		top.render(ms, buffers.getBuffer(layer), light, overlay);
-		bottom.render(ms, buffers.getBuffer(layer), light, overlay);
-		ms.mulPose(VecHelper.rotateY(-polerot));
+		submitNodeCollector.submitModelPart(poseStack, pole, renderType, state.lightCoords,
+				OverlayTexture.NO_OVERLAY, 0xFFFFFFFF, null, state.breakProgress);
+		submitNodeCollector.submitModelPart(poseStack, top, renderType, state.lightCoords,
+				OverlayTexture.NO_OVERLAY, 0xFFFFFFFF, null, state.breakProgress);
+		submitNodeCollector.submitModelPart(poseStack, bottom, renderType, state.lightCoords,
+				OverlayTexture.NO_OVERLAY, 0xFFFFFFFF, null, state.breakProgress);
+		poseStack.mulPose(VecHelper.rotateY(-poleRotation));
 
-		float degper = (float) (2F * Math.PI) / plates;
-		for (int i = 0; i < plates; i++) {
-			plate.yRot = deg;
-			float offset1 = (float) Math.sin(time / 20 + i * 40F) * 0.2F - 0.2F;
-			if (time == -1) {
-				offset1 = 0F;
+		if (state.plateCount > 0) {
+			float degreesPerPlate = (float) (2F * Math.PI) / state.plateCount;
+			for (int index = 0; index < state.plateCount; index++) {
+				float plateRotation = degrees + degreesPerPlate * index;
+				float plateOffset = (float) Math.sin(state.animationTime / 20 + index * 40F) * 0.2F - 0.2F;
+				poseStack.pushPose();
+				poseStack.translate(0F, plateOffset, 0F);
+				if (index + 1 < state.items.size() && !state.items.get(index + 1).isEmpty()) {
+					float rot = plateRotation * 180F / (float) Math.PI;
+					poseStack.pushPose();
+					poseStack.mulPose(VecHelper.rotateY(rot));
+					poseStack.translate(0.3125F, 1.06F, 0.1245F);
+					poseStack.mulPose(VecHelper.rotateX(-90F));
+					poseStack.translate(0.125F, 0.125F, 0);
+					poseStack.scale(0.25F, 0.25F, 0.25F);
+					state.items.get(index + 1).submit(poseStack, submitNodeCollector,
+							state.lightCoords, OverlayTexture.NO_OVERLAY, 0);
+					poseStack.popPose();
+				}
+				poseStack.mulPose(VecHelper.rotateY(plateRotation * 180F / (float) Math.PI));
+				submitNodeCollector.submitModelPart(poseStack, plate, renderType, state.lightCoords,
+						OverlayTexture.NO_OVERLAY, 0xFFFFFFFF, null, state.breakProgress);
+				poseStack.popPose();
 			}
-
-			ms.translate(0F, offset1, 0F);
-			if (hasTile && !brewery.getItemHandler().getItem(i + 1).isEmpty()) {
-				float rot = plate.yRot * 180F / (float) Math.PI;
-				float transX = 0.3125F;
-				float transY = 1.06F;
-				float transZ = 0.1245F;
-				ms.pushPose();
-				ms.mulPose(VecHelper.rotateY(rot));
-				ms.translate(transX, transY, transZ);
-				ms.mulPose(VecHelper.rotateX(-90F));
-				ms.translate(0.125F, 0.125F, 0);
-				renderItemStack(brewery.getItemHandler().getItem(i + 1), ms, buffers, brewery.getLevel(), light, overlay);
-				ms.popPose();
-			}
-			plate.render(ms, buffers.getBuffer(layer), light, overlay);
-			ms.translate(0F, -offset1, 0F);
-
-			deg += degper;
 		}
-		ms.translate(0F, -offset, 0F);
-	}
-
-	private void renderItemStack(ItemStack stack, PoseStack ms, MultiBufferSource buffers, @Nullable Level level, int light, int overlay) {
-		if (!stack.isEmpty()) {
-			Minecraft mc = Minecraft.getInstance();
-			ms.pushPose();
-
-			float s = 0.25F;
-			ms.scale(s, s, s);
-			mc.getItemRenderer().renderStatic(stack, ItemDisplayContext.GROUND,
-					light, overlay, ms, buffers, level, 0);
-			ms.popPose();
-		}
-	}
-
-	@Override
-	public void renderToBuffer(PoseStack ms, VertexConsumer buffer, int light, int overlay, float r, float g, float b, float a) {
-		throw new UnsupportedOperationException("unimplemented, call using other render method");
+		poseStack.translate(0F, -offset, 0F);
 	}
 }

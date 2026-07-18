@@ -222,9 +222,20 @@ public final class RenderHelper {
 		renderStar(ms, buffers.getBuffer(STAR), color, xScale, yScale, zScale, seed);
 	}
 
-	public static void renderStar(PoseStack ms, VertexConsumer buffer, int color, float xScale, float yScale, float zScale, long seed) {
+	public static void submitStar(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int color,
+			float xScale, float yScale, float zScale, long seed, float animationTicks) {
+		submitNodeCollector.submitCustomGeometry(poseStack, STAR, (pose, consumer) -> {
+			PoseStack localPoseStack = new PoseStack();
+			localPoseStack.last().set(pose);
+			renderStar(localPoseStack, consumer, color, xScale, yScale, zScale, seed, animationTicks);
+		});
+	}
 
-		float ticks = ClientTickHandler.ticksInGame + ClientTickHandler.partialTicks;
+	public static void renderStar(PoseStack ms, VertexConsumer buffer, int color, float xScale, float yScale, float zScale, long seed) {
+		renderStar(ms, buffer, color, xScale, yScale, zScale, seed, ClientTickHandler.ticksInGame + ClientTickHandler.partialTicks);
+	}
+
+	public static void renderStar(PoseStack ms, VertexConsumer buffer, int color, float xScale, float yScale, float zScale, long seed, float ticks) {
 		float semiPeriodTicks = 200;
 		float f1 = Mth.abs(Mth.sin((float) Math.PI / semiPeriodTicks * ticks))
 				* 0.9F + 0.1F; // shift to [0.1, 1.0]

@@ -17,6 +17,8 @@ import mezz.jei.api.recipe.category.extensions.vanilla.crafting.ICraftingCategor
 
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.display.SlotDisplay;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
@@ -30,20 +32,25 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.StreamSupport;
 
-public class CompositeLensRecipeWrapper implements ICraftingCategoryExtension {
-	private final List<Item> allLenses;
-
-	public CompositeLensRecipeWrapper(CompositeLensRecipe recipe) {
-		allLenses = StreamSupport.stream(BuiltInRegistries.ITEM.getTagOrEmpty(BotaniaTags.Items.LENS).spliterator(), false)
+public class CompositeLensRecipeWrapper implements ICraftingCategoryExtension<CompositeLensRecipe> {
+	private final List<Item> allLenses = StreamSupport.stream(BuiltInRegistries.ITEM.getTagOrEmpty(BotaniaTags.Items.LENS).spliterator(), false)
 				.map(ItemStack::new)
-				.filter(s -> !((LensItem) s.getItem()).isControlLens(s))
-				.filter(s -> ((LensItem) s.getItem()).isCombinable(s))
+				.filter(s -> s.getItem() instanceof LensItem lensItem && !lensItem.isControlLens(s))
+				.filter(s -> s.getItem() instanceof LensItem lensItem && lensItem.isCombinable(s))
 				.map(ItemStack::getItem)
 				.toList();
+
+	@Override
+	public List<SlotDisplay> getIngredients(@NotNull RecipeHolder<CompositeLensRecipe> recipeHolder) {
+		return List.of(
+				new SlotDisplay.TagSlotDisplay(BotaniaTags.Items.LENS),
+				new SlotDisplay.ItemSlotDisplay(Items.SLIME_BALL),
+				new SlotDisplay.TagSlotDisplay(BotaniaTags.Items.LENS)
+		);
 	}
 
 	@Override
-	public void setRecipe(@NotNull IRecipeLayoutBuilder builder, @NotNull ICraftingGridHelper helper, @NotNull IFocusGroup focusGroup) {
+	public void setRecipe(@NotNull RecipeHolder<CompositeLensRecipe> recipeHolder, @NotNull IRecipeLayoutBuilder builder, @NotNull ICraftingGridHelper helper, @NotNull IFocusGroup focusGroup) {
 		var possibleFirstLenses = focusGroup.getFocuses(VanillaTypes.ITEM_STACK, RecipeIngredientRole.INPUT)
 				.filter(f -> allLenses.contains(f.getTypedValue().getIngredient().getItem()))
 				.map(f -> f.getTypedValue().getIngredient().getItem())
@@ -64,10 +71,10 @@ public class CompositeLensRecipeWrapper implements ICraftingCategoryExtension {
 				}
 
 				ItemStack secondLensStack = new ItemStack(secondLens);
-				if (((LensItem) firstLens).canCombineLenses(firstLensStack, secondLensStack)) {
+				if (firstLens instanceof LensItem lensItem && lensItem.canCombineLenses(firstLensStack, secondLensStack)) {
 					firstInput.add(firstLensStack);
 					secondInput.add(secondLensStack);
-					outputs.add(((LensItem) firstLens).setCompositeLens(firstLensStack.copy(), secondLensStack));
+					outputs.add(lensItem.setCompositeLens(firstLensStack.copy(), secondLensStack));
 				}
 			}
 		}

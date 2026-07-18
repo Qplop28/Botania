@@ -15,11 +15,11 @@ import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.category.extensions.vanilla.crafting.ICraftingCategoryExtension;
 
-import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.display.SlotDisplay;
 import net.minecraft.world.item.ItemStack;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import vazkii.botania.api.item.AncientWillContainer;
 import vazkii.botania.common.crafting.recipe.AncientWillRecipe;
@@ -30,21 +30,24 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class AncientWillRecipeWrapper implements ICraftingCategoryExtension {
-	private final Identifier name;
-
-	public AncientWillRecipeWrapper(AncientWillRecipe recipe) {
-		this.name = recipe.getId();
+public class AncientWillRecipeWrapper implements ICraftingCategoryExtension<AncientWillRecipe> {
+	@Override
+	public List<SlotDisplay> getIngredients(@NotNull RecipeHolder<AncientWillRecipe> recipeHolder) {
+		return List.of(
+				new SlotDisplay.ItemSlotDisplay(BotaniaItems.terrasteelHelm),
+				new SlotDisplay.Composite(List.of(
+						new SlotDisplay.ItemSlotDisplay(BotaniaItems.ancientWillAhrim),
+						new SlotDisplay.ItemSlotDisplay(BotaniaItems.ancientWillDharok),
+						new SlotDisplay.ItemSlotDisplay(BotaniaItems.ancientWillGuthan),
+						new SlotDisplay.ItemSlotDisplay(BotaniaItems.ancientWillTorag),
+						new SlotDisplay.ItemSlotDisplay(BotaniaItems.ancientWillVerac),
+						new SlotDisplay.ItemSlotDisplay(BotaniaItems.ancientWillKaril)
+				))
+		);
 	}
 
-	@Nullable
 	@Override
-	public Identifier getRegistryName() {
-		return name;
-	}
-
-	@Override
-	public void setRecipe(@NotNull IRecipeLayoutBuilder builder, @NotNull ICraftingGridHelper helper, @NotNull IFocusGroup focusGroup) {
+	public void setRecipe(@NotNull RecipeHolder<AncientWillRecipe> recipeHolder, @NotNull IRecipeLayoutBuilder builder, @NotNull ICraftingGridHelper helper, @NotNull IFocusGroup focusGroup) {
 		var foci = focusGroup.getFocuses(VanillaTypes.ITEM_STACK, RecipeIngredientRole.INPUT)
 				.filter(f -> f.getTypedValue().getIngredient().getItem() instanceof AncientWillItem)
 				.map(f -> f.getTypedValue().getIngredient())

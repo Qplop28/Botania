@@ -8,15 +8,13 @@
  */
 package vazkii.botania.client.integration.jei;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.recipe.IFocusGroup;
-import mezz.jei.api.recipe.RecipeType;
+import mezz.jei.api.recipe.types.IRecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -37,8 +35,8 @@ import static vazkii.botania.common.lib.ResourceLocationHelper.prefix;
 
 public class RunicAltarRecipeCategory implements IRecipeCategory<RunicAltarRecipe> {
 
-	public static final RecipeType<RunicAltarRecipe> TYPE =
-			RecipeType.create(LibMisc.MOD_ID, "runic_altar", RunicAltarRecipe.class);
+	public static final IRecipeType<RunicAltarRecipe> TYPE =
+			IRecipeType.create(LibMisc.MOD_ID, "runic_altar", RunicAltarRecipe.class);
 	private final IDrawable background;
 	private final Component localizedName;
 	private final IDrawable overlay;
@@ -55,7 +53,7 @@ public class RunicAltarRecipeCategory implements IRecipeCategory<RunicAltarRecip
 
 	@NotNull
 	@Override
-	public RecipeType<RunicAltarRecipe> getRecipeType() {
+	public IRecipeType<RunicAltarRecipe> getRecipeType() {
 		return TYPE;
 	}
 
@@ -67,22 +65,25 @@ public class RunicAltarRecipeCategory implements IRecipeCategory<RunicAltarRecip
 
 	@NotNull
 	@Override
-	public IDrawable getBackground() {
-		return background;
-	}
-
-	@NotNull
-	@Override
 	public IDrawable getIcon() {
 		return icon;
 	}
 
 	@Override
+	public int getWidth() {
+		return 114;
+	}
+
+	@Override
+	public int getHeight() {
+		return 104;
+	}
+
+	@Override
 	public void draw(RunicAltarRecipe recipe, @NotNull IRecipeSlotsView slotsView, @NotNull GuiGraphicsExtractor gui, double mouseX, double mouseY) {
-		RenderSystem.enableBlend();
+		background.draw(gui, 0, 0);
 		overlay.draw(gui, 0, 4);
 		HUDHandler.renderManaBar(gui, 6, 98, 0x0000FF, 0.75F, recipe.getManaUsage(), ManaPoolBlockEntity.MAX_MANA / 10);
-		RenderSystem.disableBlend();
 	}
 
 	@Override

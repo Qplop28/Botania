@@ -8,8 +8,6 @@
  */
 package vazkii.botania.client.integration.jei;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
@@ -17,7 +15,7 @@ import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
-import mezz.jei.api.recipe.RecipeType;
+import mezz.jei.api.recipe.types.IRecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -38,8 +36,8 @@ import static vazkii.botania.common.lib.ResourceLocationHelper.prefix;
 
 public class ManaPoolRecipeCategory implements IRecipeCategory<ManaInfusionRecipe> {
 
-	public static final RecipeType<ManaInfusionRecipe> TYPE =
-			RecipeType.create(LibMisc.MOD_ID, "mana_pool", ManaInfusionRecipe.class);
+	public static final IRecipeType<ManaInfusionRecipe> TYPE =
+			IRecipeType.create(LibMisc.MOD_ID, "mana_pool", ManaInfusionRecipe.class);
 	private final IDrawable background;
 	private final Component localizedName;
 	private final IDrawable overlay;
@@ -57,7 +55,7 @@ public class ManaPoolRecipeCategory implements IRecipeCategory<ManaInfusionRecip
 
 	@NotNull
 	@Override
-	public RecipeType<ManaInfusionRecipe> getRecipeType() {
+	public IRecipeType<ManaInfusionRecipe> getRecipeType() {
 		return TYPE;
 	}
 
@@ -69,28 +67,31 @@ public class ManaPoolRecipeCategory implements IRecipeCategory<ManaInfusionRecip
 
 	@NotNull
 	@Override
-	public IDrawable getBackground() {
-		return background;
-	}
-
-	@NotNull
-	@Override
 	public IDrawable getIcon() {
 		return icon;
 	}
 
 	@Override
+	public int getWidth() {
+		return 142;
+	}
+
+	@Override
+	public int getHeight() {
+		return 55;
+	}
+
+	@Override
 	public void draw(ManaInfusionRecipe recipe, @NotNull IRecipeSlotsView slotsView, @NotNull GuiGraphicsExtractor gui, double mouseX, double mouseY) {
-		RenderSystem.enableBlend();
+		background.draw(gui, 0, 0);
 		overlay.draw(gui, 40, 0);
 		HUDHandler.renderManaBar(gui, 20, 50, 0x0000FF, 0.75F, recipe.getManaToConsume(), ManaPoolBlockEntity.MAX_MANA / 10);
-		RenderSystem.disableBlend();
 	}
 
 	@Override
 	public void setRecipe(@NotNull IRecipeLayoutBuilder builder, @NotNull ManaInfusionRecipe recipe, @NotNull IFocusGroup focusGroup) {
 		builder.addSlot(RecipeIngredientRole.INPUT, 32, 12)
-				.addIngredients(recipe.getIngredients().get(0));
+				.add(recipe.getIngredients().get(0));
 
 		var catalyst = recipe.getRecipeCatalyst();
 		if (catalyst != null) {
@@ -99,8 +100,8 @@ public class ManaPoolRecipeCategory implements IRecipeCategory<ManaInfusionRecip
 					.addTooltipCallback((view, tooltip) -> tooltip.addAll(catalyst.descriptionTooltip()));
 		}
 
-		builder.addSlot(RecipeIngredientRole.CATALYST, 62, 12).addItemStack(renderStack);
+		builder.addSlot(RecipeIngredientRole.CATALYST, 62, 12).add(renderStack);
 		// TODO 1.19.4 figure out the proper way to get a registry access
-		builder.addSlot(RecipeIngredientRole.OUTPUT, 93, 12).addItemStack(recipe.getResultItem(RegistryAccess.EMPTY));
+		builder.addSlot(RecipeIngredientRole.OUTPUT, 93, 12).add(recipe.getResultItem(RegistryAccess.EMPTY));
 	}
 }

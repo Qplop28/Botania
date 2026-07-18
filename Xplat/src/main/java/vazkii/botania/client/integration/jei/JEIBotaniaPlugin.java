@@ -12,7 +12,7 @@ import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.constants.RecipeTypes;
 import mezz.jei.api.constants.VanillaTypes;
-import mezz.jei.api.ingredients.subtypes.IIngredientSubtypeInterpreter;
+import mezz.jei.api.ingredients.subtypes.ISubtypeInterpreter;
 import mezz.jei.api.ingredients.subtypes.UidContext;
 import mezz.jei.api.recipe.IRecipeManager;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
@@ -80,7 +80,7 @@ public class JEIBotaniaPlugin implements IModPlugin {
 
 	@Override
 	public void registerItemSubtypes(@NotNull ISubtypeRegistration registry) {
-		IIngredientSubtypeInterpreter<ItemStack> interpreter = (stack, ctx) -> BaseBrewItem.getSubtype(stack);
+		ISubtypeInterpreter<ItemStack> interpreter = (stack, context) -> BaseBrewItem.getSubtype(stack);
 		registry.registerSubtypeInterpreter(VanillaTypes.ITEM_STACK, BotaniaItems.brewVial, interpreter);
 		registry.registerSubtypeInterpreter(VanillaTypes.ITEM_STACK, BotaniaItems.brewFlask, interpreter);
 		registry.registerSubtypeInterpreter(VanillaTypes.ITEM_STACK, BotaniaItems.incenseStick, interpreter);
@@ -127,9 +127,9 @@ public class JEIBotaniaPlugin implements IModPlugin {
 
 	@Override
 	public void registerVanillaCategoryExtensions(IVanillaCategoryExtensionRegistration registration) {
-		registration.getCraftingCategory().addCategoryExtension(AncientWillRecipe.class, AncientWillRecipeWrapper::new);
-		registration.getCraftingCategory().addCategoryExtension(TerraShattererTippingRecipe.class, TerraShattererTippingRecipeWrapper::new);
-		registration.getCraftingCategory().addCategoryExtension(CompositeLensRecipe.class, CompositeLensRecipeWrapper::new);
+		registration.getCraftingCategory().addExtension(AncientWillRecipe.class, new AncientWillRecipeWrapper());
+		registration.getCraftingCategory().addExtension(TerraShattererTippingRecipe.class, new TerraShattererTippingRecipeWrapper());
+		registration.getCraftingCategory().addExtension(CompositeLensRecipe.class, new CompositeLensRecipeWrapper());
 	}
 
 	@Override
@@ -177,32 +177,30 @@ public class JEIBotaniaPlugin implements IModPlugin {
 
 	@Override
 	public void registerRecipeCatalysts(IRecipeCatalystRegistration registry) {
-		registry.addRecipeCatalyst(new ItemStack(BotaniaBlocks.brewery), BreweryRecipeCategory.TYPE);
-		registry.addRecipeCatalyst(new ItemStack(BotaniaBlocks.alfPortal), ElvenTradeRecipeCategory.TYPE);
+		registry.addCraftingStation(BreweryRecipeCategory.TYPE, BotaniaBlocks.brewery);
+		registry.addCraftingStation(ElvenTradeRecipeCategory.TYPE, BotaniaBlocks.alfPortal);
 
-		registry.addRecipeCatalyst(new ItemStack(BotaniaBlocks.manaPool), ManaPoolRecipeCategory.TYPE);
-		registry.addRecipeCatalyst(new ItemStack(BotaniaBlocks.dilutedPool), ManaPoolRecipeCategory.TYPE);
-		registry.addRecipeCatalyst(new ItemStack(BotaniaBlocks.fabulousPool), ManaPoolRecipeCategory.TYPE);
+		registry.addCraftingStation(ManaPoolRecipeCategory.TYPE, BotaniaBlocks.manaPool, BotaniaBlocks.dilutedPool, BotaniaBlocks.fabulousPool);
 
 		for (Block apothecary : BotaniaBlocks.ALL_APOTHECARIES) {
-			registry.addRecipeCatalyst(new ItemStack(apothecary), PetalApothecaryRecipeCategory.TYPE);
+			registry.addCraftingStation(PetalApothecaryRecipeCategory.TYPE, apothecary);
 		}
 
-		registry.addRecipeCatalyst(new ItemStack(BotaniaFlowerBlocks.orechid), OrechidRecipeCategory.TYPE);
-		registry.addRecipeCatalyst(new ItemStack(BotaniaFlowerBlocks.orechidFloating), OrechidRecipeCategory.TYPE);
-		registry.addRecipeCatalyst(new ItemStack(BotaniaFlowerBlocks.orechidIgnem), OrechidIgnemRecipeCategory.TYPE);
-		registry.addRecipeCatalyst(new ItemStack(BotaniaFlowerBlocks.orechidIgnemFloating), OrechidIgnemRecipeCategory.TYPE);
-		registry.addRecipeCatalyst(new ItemStack(BotaniaFlowerBlocks.marimorphosis), MarimorphosisRecipeCategory.TYPE);
-		registry.addRecipeCatalyst(new ItemStack(BotaniaFlowerBlocks.marimorphosisChibi), MarimorphosisRecipeCategory.TYPE);
-		registry.addRecipeCatalyst(new ItemStack(BotaniaFlowerBlocks.marimorphosisFloating), MarimorphosisRecipeCategory.TYPE);
-		registry.addRecipeCatalyst(new ItemStack(BotaniaFlowerBlocks.marimorphosisChibiFloating), MarimorphosisRecipeCategory.TYPE);
-		registry.addRecipeCatalyst(new ItemStack(BotaniaFlowerBlocks.pureDaisy), PureDaisyRecipeCategory.TYPE);
-		registry.addRecipeCatalyst(new ItemStack(BotaniaFlowerBlocks.pureDaisyFloating), PureDaisyRecipeCategory.TYPE);
+		registry.addCraftingStation(OrechidRecipeCategory.TYPE, BotaniaFlowerBlocks.orechid);
+		registry.addCraftingStation(OrechidRecipeCategory.TYPE, BotaniaFlowerBlocks.orechidFloating);
+		registry.addCraftingStation(OrechidIgnemRecipeCategory.TYPE, BotaniaFlowerBlocks.orechidIgnem);
+		registry.addCraftingStation(OrechidIgnemRecipeCategory.TYPE, BotaniaFlowerBlocks.orechidIgnemFloating);
+		registry.addCraftingStation(MarimorphosisRecipeCategory.TYPE, BotaniaFlowerBlocks.marimorphosis);
+		registry.addCraftingStation(MarimorphosisRecipeCategory.TYPE, BotaniaFlowerBlocks.marimorphosisChibi);
+		registry.addCraftingStation(MarimorphosisRecipeCategory.TYPE, BotaniaFlowerBlocks.marimorphosisFloating);
+		registry.addCraftingStation(MarimorphosisRecipeCategory.TYPE, BotaniaFlowerBlocks.marimorphosisChibiFloating);
+		registry.addCraftingStation(PureDaisyRecipeCategory.TYPE, BotaniaFlowerBlocks.pureDaisy);
+		registry.addCraftingStation(PureDaisyRecipeCategory.TYPE, BotaniaFlowerBlocks.pureDaisyFloating);
 
-		registry.addRecipeCatalyst(new ItemStack(BotaniaBlocks.runeAltar), RunicAltarRecipeCategory.TYPE);
-		registry.addRecipeCatalyst(new ItemStack(BotaniaBlocks.terraPlate), TerrestrialAgglomerationRecipeCategory.TYPE);
-		registry.addRecipeCatalyst(new ItemStack(BotaniaItems.autocraftingHalo), RecipeTypes.CRAFTING);
-		registry.addRecipeCatalyst(new ItemStack(BotaniaItems.craftingHalo), RecipeTypes.CRAFTING);
+		registry.addCraftingStation(RunicAltarRecipeCategory.TYPE, BotaniaBlocks.runeAltar);
+		registry.addCraftingStation(TerrestrialAgglomerationRecipeCategory.TYPE, BotaniaBlocks.terraPlate);
+		registry.addCraftingStation(RecipeTypes.CRAFTING, BotaniaItems.autocraftingHalo);
+		registry.addCraftingStation(RecipeTypes.CRAFTING, BotaniaItems.craftingHalo);
 	}
 
 	@Override

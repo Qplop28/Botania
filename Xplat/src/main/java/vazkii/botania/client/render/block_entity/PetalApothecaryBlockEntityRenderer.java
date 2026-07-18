@@ -9,133 +9,210 @@
 package vazkii.botania.client.render.block_entity;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BiomeColors;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.Sheets;
-import net.minecraft.client.renderer.block.BlockRenderDispatcher;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
+import net.minecraft.client.renderer.item.ItemModelResolver;
+import net.minecraft.client.renderer.item.ItemStackRenderState;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.resources.model.sprite.SpriteId;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemDisplayContext;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.phys.Vec3;
 
-import org.jetbrains.annotations.NotNull;
-import org.joml.Matrix4f;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Quaternionf;
 
 import vazkii.botania.api.block.PetalApothecary;
 import vazkii.botania.client.core.handler.ClientTickHandler;
+import vazkii.botania.client.render.block_entity.state.PetalApothecaryRenderState;
 import vazkii.botania.common.block.block_entity.PetalApothecaryBlockEntity;
 import vazkii.botania.common.helper.VecHelper;
+import vazkii.botania.xplat.ClientXplatAbstractions;
 
-public class PetalApothecaryBlockEntityRenderer implements BlockEntityRenderer<PetalApothecaryBlockEntity> {
-	private final BlockRenderDispatcher blockRenderDispatcher;
+import java.util.ArrayList;
+import java.util.List;
+
+public class PetalApothecaryBlockEntityRenderer implements
+		BlockEntityRenderer<PetalApothecaryBlockEntity, PetalApothecaryRenderState> {
+	private final ItemModelResolver itemModelResolver;
+	private final TextureAtlasSprite waterSprite;
+	private final TextureAtlasSprite lavaSprite;
 
 	public PetalApothecaryBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
-		this.blockRenderDispatcher = context.getBlockRenderDispatcher();
+		this.itemModelResolver = context.itemModelResolver();
+		this.waterSprite = context.sprites().get(
+				new SpriteId(
+						TextureAtlas.LOCATION_BLOCKS,
+						Identifier.withDefaultNamespace("block/water_still")
+				)
+		);
+		this.lavaSprite = context.sprites().get(
+				new SpriteId(
+						TextureAtlas.LOCATION_BLOCKS,
+						Identifier.withDefaultNamespace("block/lava_still")
+				)
+		);
 	}
 
 	@Override
-	public void render(@NotNull PetalApothecaryBlockEntity altar, float pticks, PoseStack ms, MultiBufferSource buffers, int light, int overlay) {
-		ms.pushPose();
-		ms.translate(0.5, 1.25, 0.5);
+	public PetalApothecaryRenderState createRenderState() {
+		return new PetalApothecaryRenderState();
+	}
 
-		boolean water = altar.getFluid() == PetalApothecary.State.WATER;
-		boolean lava = altar.getFluid() == PetalApothecary.State.LAVA;
-		if (water || lava) {
-			ms.pushPose();
-			float v = 1F / 8F;
+	@Override
+	public void extractRenderState(PetalApothecaryBlockEntity blockEntity, PetalApothecaryRenderState state,
+			float partialTicks, Vec3 cameraPosition, @Nullable ModelFeatureRenderer.CrumblingOverlay breakProgress) {
+		BlockEntityRenderer.super.extractRenderState(blockEntity, state, partialTicks, cameraPosition, breakProgress);
+		state.petalItems = List.of();
+		state.animationTicks = (ClientTickHandler.ticksInGame + partialTicks) * 0.5D;
+		state.fluidVisible = false;
+		state.lava = false;
+		state.fluidColor = -1;
+		state.fluidAlpha = 0F;
+		state.fluidLight = state.lightCoords;
 
-			if (water) {
-				int petals = 0;
-				for (int i = 0; i < altar.inventorySize(); i++) {
-					if (!altar.getItemHandler().getItem(i).isEmpty()) {
-						petals++;
-					} else {
-						break;
-					}
+		PetalApothecary.State fluid = blockEntity.getFluid();
+		boolean water = fluid == PetalApothecary.State.WATER;
+		boolean lava = fluid == PetalApothecary.State.LAVA;
+		state.fluidVisible = water || lava;
+		state.lava = lava;
+
+		if (lava) {
+			state.fluidColor = -1;
+			state.fluidAlpha = 1F;
+			state.fluidLight = 0xF000F0;
+		} else if (water) {
+			state.fluidColor = BiomeColors.getAverageWaterColor(blockEntity.getLevel(), blockEntity.getBlockPos());
+			state.fluidAlpha = 0.7F;
+			state.fluidLight = state.lightCoords;
+
+			List<ItemStackRenderState> items = new ArrayList<>();
+			for (int i = 0; i < blockEntity.inventorySize(); i++) {
+				if (blockEntity.getItemHandler().getItem(i).isEmpty()) {
+					break;
 				}
 
-				if (petals > 0) {
-					final float modifier = 6F;
-					final float rotationModifier = 0.25F;
-					final float radiusBase = 1.2F;
-					final float radiusMod = 0.1F;
-
-					double ticks = (ClientTickHandler.ticksInGame + pticks) * 0.5;
-					float offsetPerPetal = 360F / petals;
-
-					ms.pushPose();
-					ms.translate(-0.05F, -0.38F, 0F);
-					ms.scale(v, v, v);
-					for (int i = 0; i < petals; i++) {
-						float offset = offsetPerPetal * i;
-						float deg = (int) (ticks / rotationModifier % 360F + offset);
-						float rad = VecHelper.toRadians(deg);
-						float radiusX = (float) (radiusBase + radiusMod * Math.sin(ticks / modifier));
-						float radiusZ = (float) (radiusBase + radiusMod * Math.cos(ticks / modifier));
-						float x = (float) (radiusX * Math.cos(rad));
-						float z = (float) (radiusZ * Math.sin(rad));
-						float y = (float) Math.cos((ticks + 50 * i) / 5F) / 10F;
-
-						ms.pushPose();
-						ms.translate(x, y, z);
-						float xRotate = (float) Math.sin(ticks * rotationModifier) / 2F;
-						float yRotate = (float) Math.max(0.6F, Math.sin(ticks * 0.1F) / 2F + 0.5F);
-						float zRotate = (float) Math.cos(ticks * rotationModifier) / 2F;
-
-						v /= 2F;
-						ms.translate(v, v, v);
-						ms.mulPose(new Quaternionf().rotateAxis(rad, xRotate, yRotate, zRotate));
-						ms.translate(-v, -v, -v);
-						v *= 2F;
-
-						ItemStack stack = altar.getItemHandler().getItem(i);
-						Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.GROUND,
-								light, overlay, ms, buffers, altar.getLevel(), 0);
-						ms.popPose();
-					}
-
-					ms.popPose();
-				}
+				ItemStackRenderState itemState = new ItemStackRenderState();
+				itemModelResolver.updateForTopItem(itemState, blockEntity.getItemHandler().getItem(i),
+						ItemDisplayContext.GROUND, blockEntity.getLevel(), null, 0);
+				items.add(itemState);
 			}
-
-			float alpha = lava ? 1F : 0.7F;
-
-			ms.translate(-8 / 16F, -0.3125F, -8 / 16F);
-			ms.mulPose(VecHelper.rotateX(90));
-			ms.scale(1 / 16F, 1 / 16F, 1 / 16F);
-
-			TextureAtlasSprite sprite = lava ? this.blockRenderDispatcher.getBlockModel(Blocks.LAVA.defaultBlockState()).getParticleIcon()
-					: this.blockRenderDispatcher.getBlockModel(Blocks.WATER.defaultBlockState()).getParticleIcon();
-			int color = lava ? -1
-					: BiomeColors.getAverageWaterColor(altar.getLevel(), altar.getBlockPos());
-			VertexConsumer buffer = buffers.getBuffer(Sheets.translucentCullBlockSheet());
-			renderIcon(ms, buffer, sprite, color, alpha, overlay, lava ? 0xF000F0 : light);
-			ms.popPose();
+			state.petalItems = List.copyOf(items);
 		}
-		ms.popPose();
 	}
 
-	private void renderIcon(PoseStack ms, VertexConsumer builder, TextureAtlasSprite sprite, int color, float alpha, int overlay, int light) {
-		int red = ((color >> 16) & 0xFF);
-		int green = ((color >> 8) & 0xFF);
-		int blue = (color & 0xFF);
-		Matrix4f mat = ms.last().pose();
-		int start = 3;
-		int end = 13;
-		builder.vertex(mat, start, end, 0).color(red, green, blue, (int) (alpha * 255F))
-				.uv(sprite.getU(start), sprite.getV(end)).overlayCoords(overlay).uv2(light).normal(0, 0, 1).endVertex();
-		builder.vertex(mat, end, end, 0).color(red, green, blue, (int) (alpha * 255F))
-				.uv(sprite.getU(end), sprite.getV(end)).overlayCoords(overlay).uv2(light).normal(0, 0, 1).endVertex();
-		builder.vertex(mat, end, start, 0).color(red, green, blue, (int) (alpha * 255F))
-				.uv(sprite.getU(end), sprite.getV(start)).overlayCoords(overlay).uv2(light).normal(0, 0, 1).endVertex();
-		builder.vertex(mat, start, start, 0).color(red, green, blue, (int) (alpha * 255F))
-				.uv(sprite.getU(start), sprite.getV(start)).overlayCoords(overlay).uv2(light).normal(0, 0, 1).endVertex();
+	@Override
+	public void submit(PetalApothecaryRenderState state, PoseStack poseStack,
+			SubmitNodeCollector submitNodeCollector, CameraRenderState camera) {
+		poseStack.pushPose();
+		poseStack.translate(0.5D, 1.25D, 0.5D);
+		submitPetalItems(state, poseStack, submitNodeCollector);
+		submitFluid(state, poseStack, submitNodeCollector);
+		poseStack.popPose();
 	}
 
+	private static void submitPetalItems(PetalApothecaryRenderState state, PoseStack poseStack,
+			SubmitNodeCollector submitNodeCollector) {
+		if (state.petalItems.isEmpty()) {
+			return;
+		}
+
+		float modelScale = 1F / 8F;
+		double ticks = state.animationTicks;
+		float offsetPerPetal = 360F / state.petalItems.size();
+
+		poseStack.pushPose();
+		poseStack.translate(-0.05F, -0.38F, 0F);
+		poseStack.scale(modelScale, modelScale, modelScale);
+		for (int i = 0; i < state.petalItems.size(); i++) {
+			float offset = offsetPerPetal * i;
+			float degrees = (int) (ticks / 0.25F % 360F + offset);
+			float radians = VecHelper.toRadians(degrees);
+			float radiusX = (float) (1.2F + 0.1F * Math.sin(ticks / 6F));
+			float radiusZ = (float) (1.2F + 0.1F * Math.cos(ticks / 6F));
+			float x = (float) (radiusX * Math.cos(radians));
+			float z = (float) (radiusZ * Math.sin(radians));
+			float y = (float) Math.cos((ticks + 50F * i) / 5F) / 10F;
+
+			poseStack.pushPose();
+			poseStack.translate(x, y, z);
+			float xRotate = (float) Math.sin(ticks * 0.25F) / 2F;
+			float yRotate = (float) Math.max(0.6F, Math.sin(ticks * 0.1F) / 2F + 0.5F);
+			float zRotate = (float) Math.cos(ticks * 0.25F) / 2F;
+			float halfScale = modelScale / 2F;
+
+			poseStack.translate(halfScale, halfScale, halfScale);
+			poseStack.mulPose(new Quaternionf().rotateAxis(radians, xRotate, yRotate, zRotate));
+			poseStack.translate(-halfScale, -halfScale, -halfScale);
+
+			state.petalItems.get(i).submit(
+					poseStack,
+					submitNodeCollector,
+					state.lightCoords,
+					OverlayTexture.NO_OVERLAY,
+					0
+			);
+			poseStack.popPose();
+		}
+		poseStack.popPose();
+	}
+
+	private void submitFluid(PetalApothecaryRenderState state, PoseStack poseStack,
+			SubmitNodeCollector submitNodeCollector) {
+		if (!state.fluidVisible) {
+			return;
+		}
+
+		TextureAtlasSprite sprite = state.lava ? lavaSprite : waterSprite;
+		ClientXplatAbstractions.instance().markSpriteActive(sprite);
+
+		int red = state.fluidColor >> 16 & 0xFF;
+		int green = state.fluidColor >> 8 & 0xFF;
+		int blue = state.fluidColor & 0xFF;
+		int alpha = (int) (state.fluidAlpha * 255F);
+		float uvStart = 3F / 16F;
+		float uvEnd = 13F / 16F;
+
+		poseStack.pushPose();
+		poseStack.translate(-8F / 16F, -0.3125F, -8F / 16F);
+		poseStack.mulPose(VecHelper.rotateX(90F));
+		poseStack.scale(1F / 16F, 1F / 16F, 1F / 16F);
+
+		submitNodeCollector.submitCustomGeometry(poseStack, Sheets.translucentBlockSheet(), (pose, consumer) -> {
+			consumer.addVertex(pose, 3F, 13F, 0F)
+					.setColor(red, green, blue, alpha)
+					.setUv(sprite.getU(uvStart), sprite.getV(uvEnd))
+					.setOverlay(OverlayTexture.NO_OVERLAY)
+					.setLight(state.fluidLight)
+					.setNormal(pose, 0F, 0F, 1F);
+			consumer.addVertex(pose, 13F, 13F, 0F)
+					.setColor(red, green, blue, alpha)
+					.setUv(sprite.getU(uvEnd), sprite.getV(uvEnd))
+					.setOverlay(OverlayTexture.NO_OVERLAY)
+					.setLight(state.fluidLight)
+					.setNormal(pose, 0F, 0F, 1F);
+			consumer.addVertex(pose, 13F, 3F, 0F)
+					.setColor(red, green, blue, alpha)
+					.setUv(sprite.getU(uvEnd), sprite.getV(uvStart))
+					.setOverlay(OverlayTexture.NO_OVERLAY)
+					.setLight(state.fluidLight)
+					.setNormal(pose, 0F, 0F, 1F);
+			consumer.addVertex(pose, 3F, 3F, 0F)
+					.setColor(red, green, blue, alpha)
+					.setUv(sprite.getU(uvStart), sprite.getV(uvStart))
+					.setOverlay(OverlayTexture.NO_OVERLAY)
+					.setLight(state.fluidLight)
+					.setNormal(pose, 0F, 0F, 1F);
+		});
+
+		poseStack.popPose();
+	}
 }

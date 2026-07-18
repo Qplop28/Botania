@@ -8,7 +8,7 @@
  */
 package vazkii.botania.client.render.block_entity.state;
 
-import net.minecraft.client.renderer.block.model.BlockModelRenderState;
+import net.minecraft.client.renderer.block.BlockModelRenderState;
 import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
 
 public class CocoonRenderState extends BlockEntityRenderState {

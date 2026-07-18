@@ -266,9 +266,9 @@ public class FabricCommonInitializer implements ModInitializer {
 		ServerLifecycleEvents.SERVER_STOPPING.register(this::serverStopping);
 		ServerPlayConnectionEvents.DISCONNECT.register(((handler, server) -> FlugelTiaraItem.playerLoggedOut(handler.player)));
 		ServerPlayerEvents.AFTER_RESPAWN.register(ResoluteIvyItem::onPlayerRespawn);
-		ServerTickEvents.END_WORLD_TICK.register(CommonTickHandler::onTick);
-		ServerTickEvents.END_WORLD_TICK.register(GrassSeedsItem::onTickEnd);
-		ServerTickEvents.END_WORLD_TICK.register(TerraTruncatorItem::onTickEnd);
+		ServerTickEvents.END_LEVEL_TICK.register(CommonTickHandler::onTick);
+		ServerTickEvents.END_LEVEL_TICK.register(GrassSeedsItem::onTickEnd);
+		ServerTickEvents.END_LEVEL_TICK.register(TerraTruncatorItem::onTickEnd);
 		UseBlockCallback.EVENT.register(RedStringInterceptorBlock::onInteract);
 		UseBlockCallback.EVENT.register(RingOfLokiItem::onPlayerInteract);
 		UseItemCallback.EVENT.register(EnderAirItem::onPlayerInteract);

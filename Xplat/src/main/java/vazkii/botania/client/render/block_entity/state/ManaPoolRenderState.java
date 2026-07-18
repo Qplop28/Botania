@@ -10,7 +10,7 @@ package vazkii.botania.client.render.block_entity.state;
 
 import net.minecraft.client.renderer.block.BlockModelRenderState;
 import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -23,6 +23,6 @@ public class ManaPoolRenderState extends BlockEntityRenderState {
 	public float poolBottom;
 	public float poolTop;
 	public float manaLevel;
-	public @Nullable ResourceLocation overlayTexture;
+	public @Nullable Identifier overlayTexture;
 	public float overlayAlpha;
 }

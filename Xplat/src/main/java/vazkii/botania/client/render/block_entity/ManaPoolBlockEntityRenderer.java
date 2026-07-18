@@ -10,7 +10,7 @@ package vazkii.botania.client.render.block_entity;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.block.BlockModelResolver;
 import net.minecraft.client.renderer.block.model.BlockDisplayContext;
@@ -19,10 +19,11 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.client.renderer.texture.SpriteGetter;
+import net.minecraft.client.resources.model.sprite.SpriteGetter;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.sprite.SpriteId;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.Vec3;
@@ -37,11 +38,11 @@ import vazkii.botania.common.block.block_entity.mana.ManaPoolBlockEntity;
 import vazkii.botania.common.block.mana.ManaPoolBlock;
 import vazkii.botania.common.helper.ColorHelper;
 import vazkii.botania.common.helper.VecHelper;
+import vazkii.botania.common.lib.LibMisc;
 import vazkii.botania.xplat.ClientXplatAbstractions;
 
 import java.util.Random;
 
-import static vazkii.botania.common.lib.ResourceLocationHelper.prefix;
 
 public class ManaPoolBlockEntityRenderer implements BlockEntityRenderer<ManaPoolBlockEntity, ManaPoolRenderState> {
 	private static final BlockDisplayContext BLOCK_DISPLAY_CONTEXT = BlockDisplayContext.create();
@@ -54,7 +55,7 @@ public class ManaPoolBlockEntityRenderer implements BlockEntityRenderer<ManaPool
 		this.blockModelResolver = context.blockModelResolver();
 		this.sprites = context.sprites();
 		this.waterSprite = context.sprites().get(
-				new SpriteId(TextureAtlas.LOCATION_BLOCKS, prefix("block/mana_water")));
+				new SpriteId(TextureAtlas.LOCATION_BLOCKS, Identifier.fromNamespaceAndPath(LibMisc.MOD_ID, "block/mana_water")));
 	}
 
 	@Override
@@ -105,7 +106,12 @@ public class ManaPoolBlockEntityRenderer implements BlockEntityRenderer<ManaPool
 					Mth.hsvToRgb(Mth.frac(time), 0.6F, 1F), poolColor);
 			state.fabulousTint = 0xFF000000 | color;
 			blockModelResolver.update(state.fabulousModel, blockEntity.getBlockState(), BLOCK_DISPLAY_CONTEXT);
-			state.fabulousModel.setupTints(new int[] { state.fabulousTint });
+			var tintLayers = state.fabulousModel.tintLayers();
+			if (tintLayers.isEmpty()) {
+				tintLayers.add(state.fabulousTint);
+			} else {
+				tintLayers.set(0, state.fabulousTint);
+			}
 			state.fabulousVisible = true;
 		}
 
@@ -168,12 +174,14 @@ public class ManaPoolBlockEntityRenderer implements BlockEntityRenderer<ManaPool
 		float start = uvStartPixels / 16F;
 		float end = uvEndPixels / 16F;
 		int alphaByte = (int) (alpha * 255F);
-		int rgba = color << 8 | alphaByte;
+		int red = color >> 16 & 0xFF;
+		int green = color >> 8 & 0xFF;
+		int blue = color & 0xFF;
 		collector.submitCustomGeometry(poseStack, renderType, (pose, consumer) -> {
-			consumer.addVertex(pose, start, end, 0F).setColor(rgba).setUv(sprite.getU(uvStart), sprite.getV(uvEnd)).setLight(light);
-			consumer.addVertex(pose, end, end, 0F).setColor(rgba).setUv(sprite.getU(uvEnd), sprite.getV(uvEnd)).setLight(light);
-			consumer.addVertex(pose, end, start, 0F).setColor(rgba).setUv(sprite.getU(uvEnd), sprite.getV(uvStart)).setLight(light);
-			consumer.addVertex(pose, start, start, 0F).setColor(rgba).setUv(sprite.getU(uvStart), sprite.getV(uvStart)).setLight(light);
+			consumer.addVertex(pose, start, end, 0F).setColor(red, green, blue, alphaByte).setUv(sprite.getU(uvStart), sprite.getV(uvEnd)).setLight(light);
+			consumer.addVertex(pose, end, end, 0F).setColor(red, green, blue, alphaByte).setUv(sprite.getU(uvEnd), sprite.getV(uvEnd)).setLight(light);
+			consumer.addVertex(pose, end, start, 0F).setColor(red, green, blue, alphaByte).setUv(sprite.getU(uvEnd), sprite.getV(uvStart)).setLight(light);
+			consumer.addVertex(pose, start, start, 0F).setColor(red, green, blue, alphaByte).setUv(sprite.getU(uvStart), sprite.getV(uvStart)).setLight(light);
 		});
 	}
 }

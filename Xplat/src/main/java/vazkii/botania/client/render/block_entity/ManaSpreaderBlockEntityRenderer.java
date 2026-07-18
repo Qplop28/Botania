@@ -89,7 +89,12 @@ public class ManaSpreaderBlockEntityRenderer implements BlockEntityRenderer<Mana
 		}
 
 		blockModelResolver.update(state.bodyModel, blockEntity.getBlockState(), BLOCK_DISPLAY_CONTEXT);
-		state.bodyModel.setupTints(new int[] { state.modelTint });
+		var tintLayers = state.bodyModel.tintLayers();
+		if (tintLayers.isEmpty()) {
+			tintLayers.add(state.modelTint);
+		} else {
+			tintLayers.set(0, state.modelTint);
+		}
 
 		state.coreParts = collectParts(getCoreModel(variant));
 

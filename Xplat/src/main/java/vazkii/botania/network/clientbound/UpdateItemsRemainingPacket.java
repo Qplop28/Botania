@@ -11,6 +11,7 @@ package vazkii.botania.network.clientbound;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.ComponentSerialization;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
@@ -18,6 +19,8 @@ import org.jetbrains.annotations.Nullable;
 
 import vazkii.botania.client.gui.ItemsRemainingRenderHandler;
 import vazkii.botania.network.BotaniaPacket;
+
+import java.util.Optional;
 
 import static vazkii.botania.common.lib.ResourceLocationHelper.prefix;
 
@@ -29,10 +32,10 @@ public record UpdateItemsRemainingPacket(ItemStack stack, int count, @Nullable C
 	public void encode(RegistryFriendlyByteBuf buf) {
 		ItemStack.OPTIONAL_STREAM_CODEC.encode(buf, stack);
 		buf.writeVarInt(count);
-		buf.writeBoolean(tooltip != null);
-		if (tooltip != null) {
-			buf.writeComponent(tooltip);
-		}
+		ComponentSerialization.OPTIONAL_STREAM_CODEC.encode(
+				buf,
+				Optional.ofNullable(tooltip)
+		);
 	}
 
 	@Override
@@ -44,7 +47,7 @@ public record UpdateItemsRemainingPacket(ItemStack stack, int count, @Nullable C
 		return new UpdateItemsRemainingPacket(
 				ItemStack.OPTIONAL_STREAM_CODEC.decode(buf),
 				buf.readVarInt(),
-				buf.readBoolean() ? buf.readComponent() : null
+				ComponentSerialization.OPTIONAL_STREAM_CODEC.decode(buf).orElse(null)
 		);
 	}
 

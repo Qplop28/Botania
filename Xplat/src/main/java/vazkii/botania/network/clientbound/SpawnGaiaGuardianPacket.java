@@ -29,7 +29,7 @@ public record SpawnGaiaGuardianPacket(ClientboundAddEntityPacket inner, int play
 
 	@Override
 	public void encode(RegistryFriendlyByteBuf buf) {
-		inner().write(buf);
+		ClientboundAddEntityPacket.STREAM_CODEC.encode(buf, inner());
 		buf.writeVarInt(playerCount());
 		buf.writeBoolean(hardMode());
 		buf.writeBlockPos(source());
@@ -43,7 +43,7 @@ public record SpawnGaiaGuardianPacket(ClientboundAddEntityPacket inner, int play
 
 	public static SpawnGaiaGuardianPacket decode(RegistryFriendlyByteBuf buf) {
 		return new SpawnGaiaGuardianPacket(
-				new ClientboundAddEntityPacket(buf),
+				ClientboundAddEntityPacket.STREAM_CODEC.decode(buf),
 				buf.readVarInt(),
 				buf.readBoolean(),
 				buf.readBlockPos(),

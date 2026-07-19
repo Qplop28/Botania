@@ -16,7 +16,7 @@ public class NarslimmusComponent extends SerializableComponent {
 
 	@Override
 	public void readFromNbt(CompoundTag tag) {
-		naturalSpawned = tag.getBoolean(TAG_WORLD_SPAWNED);
+		naturalSpawned = tag.getBooleanOr(TAG_WORLD_SPAWNED, false);
 	}
 
 	@Override

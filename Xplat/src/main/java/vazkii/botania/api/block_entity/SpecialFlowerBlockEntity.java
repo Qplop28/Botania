@@ -9,6 +9,7 @@
 package vazkii.botania.api.block_entity;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
@@ -23,6 +24,8 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
 
 import org.jetbrains.annotations.NotNull;
@@ -144,32 +147,36 @@ public abstract class SpecialFlowerBlockEntity extends BlockEntity implements Fl
 	}
 
 	@Override
-	public final void load(CompoundTag cmp) {
-		super.load(cmp);
-		if (cmp.contains(TAG_TICKS_EXISTED)) {
-			ticksExisted = cmp.getInt(TAG_TICKS_EXISTED);
-		}
+	protected final void loadAdditional(ValueInput input) {
+		super.loadAdditional(input);
+		ticksExisted = input.getIntOr(TAG_TICKS_EXISTED, 0);
 		if (getBlockState().getBlock() instanceof FloatingFlowerBlock) {
 			setFloating(true);
 		}
 
 		FloatingFlower.IslandType oldType = floatingData.getIslandType();
-		readFromPacketNBT(cmp);
+		input.read(TAG_FLOATING_DATA, CompoundTag.CODEC)
+				.ifPresent(floatingData::readNBT);
 		if (isFloating() && oldType != floatingData.getIslandType() && level != null) {
 			level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 0);
 		}
 	}
 
 	@Override
-	public final void saveAdditional(CompoundTag cmp) {
-		super.saveAdditional(cmp);
-		cmp.putInt(TAG_TICKS_EXISTED, ticksExisted);
-		writeToPacketNBT(cmp);
+	protected final void saveAdditional(ValueOutput output) {
+		super.saveAdditional(output);
+		output.putInt(TAG_TICKS_EXISTED, ticksExisted);
+		if (isFloating()) {
+			var floatingTag = floatingData.writeNBT();
+			if (floatingTag instanceof CompoundTag compoundTag) {
+				output.store(TAG_FLOATING_DATA, CompoundTag.CODEC, compoundTag);
+			}
+		}
 	}
 
 	@NotNull
 	@Override
-	public CompoundTag getUpdateTag() {
+	public CompoundTag getUpdateTag(HolderLookup.Provider registryLookup) {
 		var tag = new CompoundTag();
 		writeToPacketNBT(tag);
 		return tag;
@@ -192,9 +199,8 @@ public abstract class SpecialFlowerBlockEntity extends BlockEntity implements Fl
 	 * to read from the world NBT.
 	 */
 	public void readFromPacketNBT(CompoundTag cmp) {
-		if (cmp.contains(TAG_FLOATING_DATA)) {
-			floatingData.readNBT(cmp.getCompound(TAG_FLOATING_DATA));
-		}
+		cmp.getCompound(TAG_FLOATING_DATA)
+				.ifPresent(floatingData::readNBT);
 	}
 
 	@Override
@@ -274,14 +280,16 @@ public abstract class SpecialFlowerBlockEntity extends BlockEntity implements Fl
 	}
 
 	public void emitParticle(ParticleOptions options, double xOffset, double yOffset, double zOffset, double xSpeed, double ySpeed, double zSpeed) {
-		if (!level.isClientSide) {
+		if (!level.isClientSide()) {
 			return;
 		}
-		Vec3 offset = level.getBlockState(getEffectivePos()).getOffset(level, getEffectivePos());
+		BlockPos effectivePos = getEffectivePos();
+		BlockState effectiveState = level.getBlockState(effectivePos);
+		Vec3 offset = effectiveState.getOffset(effectivePos);
 		level.addParticle(options,
-				getEffectivePos().getX() + offset.x + xOffset,
-				getEffectivePos().getY() + offset.y + yOffset,
-				getEffectivePos().getZ() + offset.z + zOffset,
+				effectivePos.getX() + offset.x + xOffset,
+				effectivePos.getY() + offset.y + yOffset,
+				effectivePos.getZ() + offset.z + zOffset,
 				xSpeed, ySpeed, zSpeed
 		);
 	}

@@ -10,7 +10,7 @@ package vazkii.botania.network.clientbound;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
@@ -28,8 +28,8 @@ public record SpawnGaiaGuardianPacket(ClientboundAddEntityPacket inner, int play
 	public static final Identifier ID = prefix("spg");
 
 	@Override
-	public void encode(FriendlyByteBuf buf) {
-		inner().write(buf);
+	public void encode(RegistryFriendlyByteBuf buf) {
+		ClientboundAddEntityPacket.STREAM_CODEC.encode(buf, inner());
 		buf.writeVarInt(playerCount());
 		buf.writeBoolean(hardMode());
 		buf.writeBlockPos(source());
@@ -41,9 +41,9 @@ public record SpawnGaiaGuardianPacket(ClientboundAddEntityPacket inner, int play
 		return ID;
 	}
 
-	public static SpawnGaiaGuardianPacket decode(FriendlyByteBuf buf) {
+	public static SpawnGaiaGuardianPacket decode(RegistryFriendlyByteBuf buf) {
 		return new SpawnGaiaGuardianPacket(
-				new ClientboundAddEntityPacket(buf),
+				ClientboundAddEntityPacket.STREAM_CODEC.decode(buf),
 				buf.readVarInt(),
 				buf.readBoolean(),
 				buf.readBlockPos(),

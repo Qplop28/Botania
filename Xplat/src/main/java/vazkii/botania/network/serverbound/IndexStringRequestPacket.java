@@ -1,6 +1,6 @@
 package vazkii.botania.network.serverbound;
 
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -13,12 +13,12 @@ import static vazkii.botania.common.lib.ResourceLocationHelper.prefix;
 public record IndexStringRequestPacket(String message) implements BotaniaPacket {
 	public static final Identifier ID = prefix("idxs");
 
-	public static IndexStringRequestPacket decode(FriendlyByteBuf buf) {
+	public static IndexStringRequestPacket decode(RegistryFriendlyByteBuf buf) {
 		return new IndexStringRequestPacket(buf.readUtf());
 	}
 
 	@Override
-	public void encode(FriendlyByteBuf buf) {
+	public void encode(RegistryFriendlyByteBuf buf) {
 		buf.writeUtf(message);
 	}
 

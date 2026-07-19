@@ -9,7 +9,7 @@
 package vazkii.botania.network.clientbound;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -24,7 +24,7 @@ public record ItemAgePacket(int entityId, int timeCounter) implements BotaniaPac
 	public static final Identifier ID = prefix("ia");
 
 	@Override
-	public void encode(FriendlyByteBuf buf) {
+	public void encode(RegistryFriendlyByteBuf buf) {
 		buf.writeVarInt(entityId());
 		buf.writeVarInt(timeCounter());
 	}
@@ -34,7 +34,7 @@ public record ItemAgePacket(int entityId, int timeCounter) implements BotaniaPac
 		return ID;
 	}
 
-	public static ItemAgePacket decode(FriendlyByteBuf buf) {
+	public static ItemAgePacket decode(RegistryFriendlyByteBuf buf) {
 		return new ItemAgePacket(buf.readVarInt(), buf.readVarInt());
 	}
 

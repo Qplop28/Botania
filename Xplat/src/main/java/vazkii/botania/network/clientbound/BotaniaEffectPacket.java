@@ -12,7 +12,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
@@ -37,23 +37,23 @@ import static vazkii.botania.common.lib.ResourceLocationHelper.prefix;
 
 // Prefer using World.addBlockEvent/Block.eventReceived/TileEntity.receiveClientEvent where possible
 // as those use less network bandwidth (~14 bytes), vs 26+ bytes here
-public record BotaniaEffectPacket(EffectType type, double x, double y, double z, int... args) implements BotaniaPacket {
+public record BotaniaEffectPacket(EffectType effectType, double x, double y, double z, int... args) implements BotaniaPacket {
 
 	public static final Identifier ID = prefix("eff");
 	private static final int MAX_VARIABLE_ARGS = 128;
 
 	@Override
-	public void encode(FriendlyByteBuf buf) {
-		buf.writeByte(type().ordinal());
+	public void encode(RegistryFriendlyByteBuf buf) {
+		buf.writeByte(effectType().ordinal());
 		buf.writeDouble(x());
 		buf.writeDouble(y());
 		buf.writeDouble(z());
 
-		if (type().argCount != -1 && type().argCount != args().length) {
+		if (effectType().argCount != -1 && effectType().argCount != args().length) {
 			throw new IllegalArgumentException("Argument count mismatch");
 		}
 
-		if (type().argCount == -1) {
+		if (effectType().argCount == -1) {
 			if (args().length > MAX_VARIABLE_ARGS) {
 				throw new IllegalArgumentException("Too many variable arguments");
 			}
@@ -69,19 +69,19 @@ public record BotaniaEffectPacket(EffectType type, double x, double y, double z,
 		return ID;
 	}
 
-	public static BotaniaEffectPacket decode(FriendlyByteBuf buf) {
-		EffectType type = EffectType.values()[buf.readByte()];
+	public static BotaniaEffectPacket decode(RegistryFriendlyByteBuf buf) {
+		EffectType effectType = EffectType.values()[buf.readByte()];
 		double x = buf.readDouble();
 		double y = buf.readDouble();
 		double z = buf.readDouble();
 		int argCount;
-		if (type.argCount == -1) {
+		if (effectType.argCount == -1) {
 			argCount = buf.readVarInt();
 			if (argCount > MAX_VARIABLE_ARGS) {
 				throw new IllegalArgumentException("Too many variable arguments");
 			}
 		} else {
-			argCount = type.argCount;
+			argCount = effectType.argCount;
 		}
 		int[] args = new int[argCount];
 
@@ -89,12 +89,12 @@ public record BotaniaEffectPacket(EffectType type, double x, double y, double z,
 			args[i] = buf.readVarInt();
 		}
 
-		return new BotaniaEffectPacket(type, x, y, z, args);
+		return new BotaniaEffectPacket(effectType, x, y, z, args);
 	}
 
 	public static class Handler {
 		public static void handle(BotaniaEffectPacket packet) {
-			var type = packet.type();
+			var effectType = packet.effectType();
 			var x = packet.x();
 			var y = packet.y();
 			var z = packet.z();
@@ -105,7 +105,8 @@ public record BotaniaEffectPacket(EffectType type, double x, double y, double z,
 				@Override
 				public void run() {
 					Level world = mc.level;
-					switch (type) {
+					var random = world.getRandom();
+					switch (effectType) {
 						case PAINT_LENS -> {
 							DyeColor placeColor = DyeColor.byId(args[0]);
 							int hex = ColorHelper.getColorValue(placeColor);
@@ -113,9 +114,9 @@ public record BotaniaEffectPacket(EffectType type, double x, double y, double z,
 							int g = (hex & 0xFF00) >> 8;
 							int b = hex & 0xFF;
 							for (int i = 0; i < 10; i++) {
-								BlockPos pos = BlockPos.containing(x, y, z).relative(Direction.getRandom(world.random));
-								SparkleParticleData data = SparkleParticleData.sparkle(0.6F + (float) Math.random() * 0.5F, r / 255F, g / 255F, b / 255F, 5);
-								world.addParticle(data, pos.getX() + (float) Math.random(), pos.getY() + (float) Math.random(), pos.getZ() + (float) Math.random(), 0, 0, 0);
+								BlockPos pos = BlockPos.containing(x, y, z).relative(Direction.getRandom(random));
+								SparkleParticleData data = SparkleParticleData.sparkle(0.6F + (float) random.nextDouble() * 0.5F, r / 255F, g / 255F, b / 255F, 5);
+								world.addParticle(data, pos.getX() + (float) random.nextDouble(), pos.getY() + (float) random.nextDouble(), pos.getZ() + (float) random.nextDouble(), 0, 0, 0);
 							}
 						}
 						case ARENA_INDICATOR -> {
@@ -136,15 +137,16 @@ public record BotaniaEffectPacket(EffectType type, double x, double y, double z,
 
 							int p = args[1];
 
+							var itemRandom = item.level().getRandom();
 							for (int i = 0; i < p; i++) {
 								double m = 0.01;
-								double d0 = item.level().random.nextGaussian() * m;
-								double d1 = item.level().random.nextGaussian() * m;
-								double d2 = item.level().random.nextGaussian() * m;
+								double d0 = itemRandom.nextGaussian() * m;
+								double d1 = itemRandom.nextGaussian() * m;
+								double d2 = itemRandom.nextGaussian() * m;
 								double d3 = 10.0D;
 								item.level().addParticle(ParticleTypes.POOF,
-										x + item.level().random.nextFloat() * item.getBbWidth() * 2.0F - item.getBbWidth() - d0 * d3, y + item.level().random.nextFloat() * item.getBbHeight() - d1 * d3,
-										z + item.level().random.nextFloat() * item.getBbWidth() * 2.0F - item.getBbWidth() - d2 * d3, d0, d1, d2);
+										x + itemRandom.nextFloat() * item.getBbWidth() * 2.0F - item.getBbWidth() - d0 * d3, y + itemRandom.nextFloat() * item.getBbHeight() - d1 * d3,
+										z + itemRandom.nextFloat() * item.getBbWidth() * 2.0F - item.getBbWidth() - d2 * d3, d0, d1, d2);
 							}
 						}
 						case SPARK_NET_INDICATOR -> {
@@ -161,7 +163,7 @@ public record BotaniaEffectPacket(EffectType type, double x, double y, double z,
 							Vec3 movement = diff.normalize().scale(0.1);
 							int iters = (int) (diff.length() / movement.length());
 							float huePer = 1F / iters;
-							float hueSum = (float) Math.random();
+							float hueSum = (float) random.nextDouble();
 
 							Vec3 currentPos = orig;
 							for (int i = 0; i < iters; i++) {
@@ -186,44 +188,44 @@ public record BotaniaEffectPacket(EffectType type, double x, double y, double z,
 							}
 
 							double rc = 0.45;
-							Vec3 thisVec = VecHelper.fromEntityCenter(e1).add((Math.random() - 0.5) * rc, (Math.random() - 0.5) * rc, (Math.random() - 0.5) * rc);
-							Vec3 receiverVec = VecHelper.fromEntityCenter(e2).add((Math.random() - 0.5) * rc, (Math.random() - 0.5) * rc, (Math.random() - 0.5) * rc);
+							Vec3 thisVec = VecHelper.fromEntityCenter(e1).add((random.nextDouble() - 0.5) * rc, (random.nextDouble() - 0.5) * rc, (random.nextDouble() - 0.5) * rc);
+							Vec3 receiverVec = VecHelper.fromEntityCenter(e2).add((random.nextDouble() - 0.5) * rc, (random.nextDouble() - 0.5) * rc, (random.nextDouble() - 0.5) * rc);
 
 							Vec3 motion = receiverVec.subtract(thisVec).scale(0.04F);
 							int color = args[2];
 							float r = ((color >> 16) & 0xFF) / 255.0F;
 							float g = ((color >> 8) & 0xFF) / 255.0F;
 							float b = (color & 0xFF) / 255.0F;
-							if (world.random.nextFloat() < 0.25) {
-								r += 0.2F * (float) world.random.nextGaussian();
-								g += 0.2F * (float) world.random.nextGaussian();
-								b += 0.2F * (float) world.random.nextGaussian();
+							if (random.nextFloat() < 0.25) {
+								r += 0.2F * (float) random.nextGaussian();
+								g += 0.2F * (float) random.nextGaussian();
+								b += 0.2F * (float) random.nextGaussian();
 							}
-							float size = 0.125F + 0.125F * (float) Math.random();
+							float size = 0.125F + 0.125F * (float) random.nextDouble();
 
 							WispParticleData data = WispParticleData.wisp(size, r, g, b).withNoClip(true);
 							world.addAlwaysVisibleParticle(data, thisVec.x, thisVec.y, thisVec.z, motion.x, motion.y, motion.z);
 						}
 						case ENCHANTER_DESTROY -> {
 							for (int i = 0; i < 50; i++) {
-								float red = (float) Math.random();
-								float green = (float) Math.random();
-								float blue = (float) Math.random();
-								WispParticleData data = WispParticleData.wisp((float) Math.random() * 0.15F + 0.15F, red, green, blue);
-								world.addParticle(data, x, y, z, (float) (Math.random() - 0.5F) * 0.25F, (float) (Math.random() - 0.5F) * 0.25F, (float) (Math.random() - 0.5F) * 0.25F);
+								float red = (float) random.nextDouble();
+								float green = (float) random.nextDouble();
+								float blue = (float) random.nextDouble();
+								WispParticleData data = WispParticleData.wisp((float) random.nextDouble() * 0.15F + 0.15F, red, green, blue);
+								world.addParticle(data, x, y, z, (float) (random.nextDouble() - 0.5F) * 0.25F, (float) (random.nextDouble() - 0.5F) * 0.25F, (float) (random.nextDouble() - 0.5F) * 0.25F);
 							}
 						}
 						case BLACK_LOTUS_DISSOLVE -> {
 							for (int i = 0; i < 50; i++) {
-								float r = (float) Math.random() * 0.35F;
+								float r = (float) random.nextDouble() * 0.35F;
 								float g = 0F;
-								float b = (float) Math.random() * 0.35F;
-								float s = 0.45F * (float) Math.random() * 0.25F;
+								float b = (float) random.nextDouble() * 0.35F;
+								float s = 0.45F * (float) random.nextDouble() * 0.25F;
 
 								float m = 0.045F;
-								float mx = ((float) Math.random() - 0.5F) * m;
-								float my = (float) Math.random() * m;
-								float mz = ((float) Math.random() - 0.5F) * m;
+								float mx = ((float) random.nextDouble() - 0.5F) * m;
+								float my = (float) random.nextDouble() * m;
+								float mz = ((float) random.nextDouble() - 0.5F) * m;
 
 								WispParticleData data = WispParticleData.wisp(s, r, g, b);
 								world.addParticle(data, x, y, z, mx, my, mz);
@@ -256,13 +258,13 @@ public record BotaniaEffectPacket(EffectType type, double x, double y, double z,
 									};
 									WispParticleData data = WispParticleData.wisp(0.85F, colorsfx[0], colorsfx[1], colorsfx[2], 0.25F);
 									Proxy.INSTANCE.addParticleForceNear(world, data, wx, wy, wz, 0, (float) (-g * 0.05), 0);
-									data = WispParticleData.wisp((float) Math.random() * 0.1F + 0.1F, colorsfx[0], colorsfx[1], colorsfx[2], 0.9F);
-									world.addParticle(data, wx, wy, wz, (float) (Math.random() - 0.5) * 0.05F, (float) (Math.random() - 0.5) * 0.05F, (float) (Math.random() - 0.5) * 0.05F);
+									data = WispParticleData.wisp((float) random.nextDouble() * 0.1F + 0.1F, colorsfx[0], colorsfx[1], colorsfx[2], 0.9F);
+									world.addParticle(data, wx, wy, wz, (float) (random.nextDouble() - 0.5) * 0.05F, (float) (random.nextDouble() - 0.5) * 0.05F, (float) (random.nextDouble() - 0.5) * 0.05F);
 
 									if (ticks == 100) {
 										for (int j = 0; j < 15; j++) {
-											data = WispParticleData.wisp((float) Math.random() * 0.15F + 0.15F, colorsfx[0], colorsfx[1], colorsfx[2]);
-											world.addParticle(data, x + 0.5, y + 0.5, z + 0.5, (float) (Math.random() - 0.5F) * 0.125F, (float) (Math.random() - 0.5F) * 0.125F, (float) (Math.random() - 0.5F) * 0.125F);
+											data = WispParticleData.wisp((float) random.nextDouble() * 0.15F + 0.15F, colorsfx[0], colorsfx[1], colorsfx[2]);
+											world.addParticle(data, x + 0.5, y + 0.5, z + 0.5, (float) (random.nextDouble() - 0.5F) * 0.125F, (float) (random.nextDouble() - 0.5F) * 0.125F, (float) (random.nextDouble() - 0.5F) * 0.125F);
 										}
 									}
 								}
@@ -272,11 +274,11 @@ public record BotaniaEffectPacket(EffectType type, double x, double y, double z,
 							Entity entity = world.getEntity(args[0]);
 							if (entity != null) {
 								for (int i = 0; i < 15; i++) {
-									float x1 = (float) (entity.getX() + Math.random());
-									float y1 = (float) (entity.getY() + Math.random());
-									float z1 = (float) (entity.getZ() + Math.random());
-									WispParticleData data = WispParticleData.wisp((float) Math.random(), (float) Math.random(), (float) Math.random(), (float) Math.random(), 1);
-									world.addParticle(data, x1, y1, z1, 0, -(-0.3F + (float) Math.random() * 0.2F), 0);
+									float x1 = (float) (entity.getX() + random.nextDouble());
+									float y1 = (float) (entity.getY() + random.nextDouble());
+									float z1 = (float) (entity.getZ() + random.nextDouble());
+									WispParticleData data = WispParticleData.wisp((float) random.nextDouble(), (float) random.nextDouble(), (float) random.nextDouble(), (float) random.nextDouble(), 1);
+									world.addParticle(data, x1, y1, z1, 0, -(-0.3F + (float) random.nextDouble() * 0.2F), 0);
 								}
 							}
 						}
@@ -297,7 +299,7 @@ public record BotaniaEffectPacket(EffectType type, double x, double y, double z,
 
 							SparkleParticleData data = SparkleParticleData.sparkle(1F, 1F, 1F, 0.25F, 3);
 							for (int i = 0; i < 50; i++) {
-								world.addParticle(data, x1 + Math.random() * target.getBbWidth(), y1 + Math.random() * target.getBbHeight(), z1 + Math.random() * target.getBbWidth(), 0, 0, 0);
+								world.addParticle(data, x1 + random.nextDouble() * target.getBbWidth(), y1 + random.nextDouble() * target.getBbHeight(), z1 + random.nextDouble() * target.getBbWidth(), 0, 0, 0);
 							}
 						}
 						case HALO_CRAFT -> {
@@ -307,8 +309,8 @@ public record BotaniaEffectPacket(EffectType type, double x, double y, double z,
 								Vec3 centerVector = VecHelper.fromEntityCenter(target).add(lookVec3.x * 3, 1.3, lookVec3.z * 3);
 								float m = 0.1F;
 								for (int i = 0; i < 4; i++) {
-									WispParticleData data = WispParticleData.wisp(0.2F + 0.2F * (float) Math.random(), 1F, 0F, 1F);
-									target.level().addParticle(data, centerVector.x, centerVector.y, centerVector.z, ((float) Math.random() - 0.5F) * m, ((float) Math.random() - 0.5F) * m, ((float) Math.random() - 0.5F) * m);
+									WispParticleData data = WispParticleData.wisp(0.2F + 0.2F * (float) random.nextDouble(), 1F, 0F, 1F);
+									target.level().addParticle(data, centerVector.x, centerVector.y, centerVector.z, ((float) random.nextDouble() - 0.5F) * m, ((float) random.nextDouble() - 0.5F) * m, ((float) random.nextDouble() - 0.5F) * m);
 								}
 							}
 
@@ -318,12 +320,12 @@ public record BotaniaEffectPacket(EffectType type, double x, double y, double z,
 							if (p != null) {
 								for (int i = 0; i < 20; i++) {
 									for (int j = 0; j < 5; j++) {
-										WispParticleData data = WispParticleData.wisp(0.35F + (float) Math.random() * 0.1F, 0.25F, 0.25F, 0.25F);
+										WispParticleData data = WispParticleData.wisp(0.35F + (float) random.nextDouble() * 0.1F, 0.25F, 0.25F, 0.25F);
 										world.addParticle(data, p.getX(),
 												p.getY() + i, p.getZ(),
-												0.2F * (float) (Math.random() - 0.5),
-												-0.01F * (float) Math.random(),
-												0.2F * (float) (Math.random() - 0.5));
+												0.2F * (float) (random.nextDouble() - 0.5),
+												-0.01F * (float) random.nextDouble(),
+												0.2F * (float) (random.nextDouble() - 0.5));
 									}
 								}
 							}
@@ -334,13 +336,13 @@ public record BotaniaEffectPacket(EffectType type, double x, double y, double z,
 								Vec3 lookDir = p.getLookAngle();
 								for (int i = 0; i < 20; i++) {
 									for (int j = 0; j < 5; j++) {
-										WispParticleData data = WispParticleData.wisp(0.35F + (float) Math.random() * 0.1F, 0.25F, 0.25F, 0.25F);
+										WispParticleData data = WispParticleData.wisp(0.35F + (float) random.nextDouble() * 0.1F, 0.25F, 0.25F, 0.25F);
 										world.addParticle(data, p.getX() + lookDir.x() * i,
 												p.getY() + lookDir.y() * i,
 												p.getZ() + lookDir.z() * i,
-												0.2F * (float) (Math.random() - 0.5) * (Math.abs(lookDir.y()) + Math.abs(lookDir.z())) + -0.01F * (float) Math.random() * lookDir.x(),
-												0.2F * (float) (Math.random() - 0.5) * (Math.abs(lookDir.x()) + Math.abs(lookDir.z())) + -0.01F * (float) Math.random() * lookDir.y(),
-												0.2F * (float) (Math.random() - 0.5) * (Math.abs(lookDir.y()) + Math.abs(lookDir.x())) + -0.01F * (float) Math.random() * lookDir.z());
+												0.2F * (float) (random.nextDouble() - 0.5) * (Math.abs(lookDir.y()) + Math.abs(lookDir.z())) + -0.01F * (float) random.nextDouble() * lookDir.x(),
+												0.2F * (float) (random.nextDouble() - 0.5) * (Math.abs(lookDir.x()) + Math.abs(lookDir.z())) + -0.01F * (float) random.nextDouble() * lookDir.y(),
+												0.2F * (float) (random.nextDouble() - 0.5) * (Math.abs(lookDir.y()) + Math.abs(lookDir.x())) + -0.01F * (float) random.nextDouble() * lookDir.z());
 									}
 								}
 							}

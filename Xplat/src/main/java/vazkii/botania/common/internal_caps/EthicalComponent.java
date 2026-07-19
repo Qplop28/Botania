@@ -33,7 +33,7 @@ public class EthicalComponent extends SerializableComponent {
 
 	@Override
 	public void readFromNbt(CompoundTag tag) {
-		unethical = tag.getBoolean(TAG_UNETHICAL);
+		unethical = tag.getBooleanOr(TAG_UNETHICAL, false);
 	}
 
 	@Override

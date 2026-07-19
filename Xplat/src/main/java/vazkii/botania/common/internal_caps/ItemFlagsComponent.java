@@ -33,19 +33,19 @@ public class ItemFlagsComponent extends SerializableComponent {
 
 	@Override
 	public void readFromNbt(CompoundTag tag) {
-		elvenPortalSpawned = tag.getBoolean(TAG_PORTAL_SPAWNED);
-		apothecarySpawned = tag.getBoolean(TAG_APOTHECARY_SPAWNED);
-		manaInfusionSpawned = tag.getBoolean(TAG_INFUSION_SPAWNED);
-		runicAltarSpawned = tag.getBoolean(TAG_ALTAR_SPAWNED);
-		timeCounter = tag.getInt(TAG_TIME_COUNTER);
+		elvenPortalSpawned = tag.getBooleanOr(TAG_PORTAL_SPAWNED, false);
+		apothecarySpawned = tag.getBooleanOr(TAG_APOTHECARY_SPAWNED, false);
+		manaInfusionSpawned = tag.getBooleanOr(TAG_INFUSION_SPAWNED, false);
+		runicAltarSpawned = tag.getBooleanOr(TAG_ALTAR_SPAWNED, false);
+		timeCounter = tag.getIntOr(TAG_TIME_COUNTER, 0);
 		// legacy tags
-		if (tag.getBoolean("_elvenPortal")) {
+		if (tag.getBooleanOr("_elvenPortal", false)) {
 			elvenPortalSpawned = true;
 		}
-		if (tag.getInt("manaInfusionCooldown") > 0) {
+		if (tag.getIntOr("manaInfusionCooldown", 0) > 0) {
 			manaInfusionSpawned = true;
 		}
-		if (tag.getInt("runicAltarCooldown") > 0) {
+		if (tag.getIntOr("runicAltarCooldown", 0) > 0) {
 			runicAltarSpawned = true;
 		}
 	}

@@ -8,9 +8,17 @@
  */
 package vazkii.botania.common.handler;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
+
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.util.profiling.Profiler;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -68,7 +76,8 @@ public abstract class EquipmentHandler {
 		private final Map<Player, ItemStack[]> map = new WeakHashMap<>();
 
 		public void onPlayerTick(Player player) {
-			player.level().getProfiler().push("botania:tick_wearables");
+			var profiler = Profiler.get();
+			profiler.push("botania:tick_wearables");
 
 			ItemStack[] oldStacks = map.computeIfAbsent(player, p -> {
 				ItemStack[] array = new ItemStack[9];
@@ -83,12 +92,12 @@ public abstract class EquipmentHandler {
 
 				if (!ItemStack.matches(old, current)) {
 					if (old.getItem() instanceof BaubleItem bauble) {
-						player.getAttributes().removeAttributeModifiers(bauble.getEquippedAttributeModifiers(old));
+						player.getAttributes().removeAttributeModifiers(wrapAttributeModifiers(bauble.getEquippedAttributeModifiers(old)));
 						bauble.onUnequipped(old, player);
 					}
 					if (canEquip(current, player)) {
 						BaubleItem bauble = (BaubleItem) current.getItem();
-						player.getAttributes().addTransientAttributeModifiers(bauble.getEquippedAttributeModifiers(current));
+						player.getAttributes().addTransientAttributeModifiers(wrapAttributeModifiers(bauble.getEquippedAttributeModifiers(current)));
 						bauble.onEquipped(current, player);
 					}
 					oldStacks[i] = current.copy(); // shift-clicking mutates the stack we stored,
@@ -99,7 +108,7 @@ public abstract class EquipmentHandler {
 					((BaubleItem) current.getItem()).onWornTick(current, player);
 				}
 			}
-			player.level().getProfiler().pop();
+			profiler.pop();
 		}
 
 		@Override
@@ -137,6 +146,21 @@ public abstract class EquipmentHandler {
 
 		@Override
 		public void onInit(Item item) {}
+
+		private static Multimap<Holder<Attribute>, AttributeModifier> wrapAttributeModifiers(
+				Multimap<Attribute, AttributeModifier> modifiers
+		) {
+			Multimap<Holder<Attribute>, AttributeModifier> wrapped = HashMultimap.create();
+
+			modifiers.forEach((attribute, modifier) ->
+					wrapped.put(
+							BuiltInRegistries.ATTRIBUTE.wrapAsHolder(attribute),
+							modifier
+					)
+			);
+
+			return wrapped;
+		}
 
 		private static boolean canEquip(ItemStack stack, LivingEntity living) {
 			return stack.getItem() instanceof BaubleItem bauble && bauble.canEquip(stack, living);

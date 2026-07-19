@@ -85,15 +85,15 @@ public final class FabricPlatformModel extends WrapperBlockStateModel {
 	}
 
 	@Override
-	public int materialFlags(BlockAndTintGetter level, BlockPos pos, BlockState state) {
+	public int materialFlags(BlockAndTintGetter level, BlockPos pos, BlockState state, RandomSource random) {
 		BlockStateModel model = contextualModel(level, pos, state);
 		if (model == null) {
-			return super.materialFlags(level, pos, state);
+			return super.materialFlags(level, pos, state, random);
 		}
 		PlatformBlockEntity.PlatformData platformData = platformData(level, pos);
 		return model.materialFlags(level,
 				platformData == null ? pos : platformData.pos(),
-				platformData == null ? state : platformData.state());
+				platformData == null ? state : platformData.state(), random);
 	}
 
 	private static @Nullable BlockStateModel contextualModel(

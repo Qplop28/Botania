@@ -10,8 +10,11 @@ package vazkii.botania.common.internal_caps;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.item.ItemStack;
+
+import vazkii.botania.api.BotaniaAPI;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -31,9 +34,19 @@ public class KeptItemsComponent extends SerializableComponent {
 	@Override
 	public void readFromNbt(CompoundTag tag) {
 		stacks.clear();
-		ListTag list = tag.getList("stacks", Tag.TAG_COMPOUND);
-		for (Tag t : list) {
-			stacks.add(ItemStack.of((CompoundTag) t));
+		ListTag list = tag.getListOrEmpty("stacks");
+		for (Tag element : list) {
+			ItemStack stack = ItemStack.OPTIONAL_CODEC
+					.parse(NbtOps.INSTANCE, element)
+					.resultOrPartial(error ->
+							BotaniaAPI.LOGGER.warn(
+									"Failed to decode kept item stack: {}",
+									error
+							)
+					)
+					.orElse(ItemStack.EMPTY);
+
+			stacks.add(stack);
 		}
 	}
 
@@ -41,7 +54,17 @@ public class KeptItemsComponent extends SerializableComponent {
 	public void writeToNbt(CompoundTag tag) {
 		ListTag list = new ListTag();
 		for (ItemStack stack : stacks) {
-			list.add(stack.save(new CompoundTag()));
+			Tag encoded = ItemStack.OPTIONAL_CODEC
+					.encodeStart(NbtOps.INSTANCE, stack)
+					.resultOrPartial(error ->
+							BotaniaAPI.LOGGER.warn(
+									"Failed to encode kept item stack: {}",
+									error
+							)
+					)
+					.orElseGet(CompoundTag::new);
+
+			list.add(encoded);
 		}
 		tag.put("stacks", list);
 	}

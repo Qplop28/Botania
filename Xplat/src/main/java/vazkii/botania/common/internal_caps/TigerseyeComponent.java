@@ -24,7 +24,7 @@ public class TigerseyeComponent extends SerializableComponent {
 
 	@Override
 	public void readFromNbt(CompoundTag tag) {
-		this.pacified = tag.getBoolean(TAG_PACIFIED);
+		this.pacified = tag.getBooleanOr(TAG_PACIFIED, false);
 	}
 
 	@Override

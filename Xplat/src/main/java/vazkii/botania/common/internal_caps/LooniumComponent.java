@@ -9,7 +9,10 @@
 package vazkii.botania.common.internal_caps;
 
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.world.item.ItemStack;
+
+import vazkii.botania.api.BotaniaAPI;
 
 import java.util.Objects;
 
@@ -61,24 +64,37 @@ public class LooniumComponent extends SerializableComponent {
 
 	@Override
 	public void readFromNbt(CompoundTag tag) {
-		if (tag.contains(TAG_TO_DROP)) {
-			setDrop(ItemStack.of(tag.getCompound(TAG_TO_DROP)));
-		} else {
-			setDrop(ItemStack.EMPTY);
-		}
-		if (tag.contains(TAG_OVERRIDE_DROP)) {
-			setOverrideDrop(tag.getBoolean(TAG_OVERRIDE_DROP));
-		}
-		if (tag.contains(TAG_SLOW_DESPAWN)) {
-			setSlowDespawn(tag.getBoolean(TAG_SLOW_DESPAWN));
-		}
+		ItemStack drop = tag.getCompound(TAG_TO_DROP)
+				.flatMap(compound ->
+						ItemStack.OPTIONAL_CODEC
+								.parse(NbtOps.INSTANCE, compound)
+								.resultOrPartial(error ->
+										BotaniaAPI.LOGGER.warn(
+												"Failed to decode Loonium drop stack: {}",
+												error
+										)
+								)
+				)
+				.orElse(ItemStack.EMPTY);
+
+		setDrop(drop);
+		setOverrideDrop(tag.getBooleanOr(TAG_OVERRIDE_DROP, false));
+		setSlowDespawn(tag.getBooleanOr(TAG_SLOW_DESPAWN, false));
 	}
 
 	@Override
 	public void writeToNbt(CompoundTag tag) {
 		if (isOverrideDrop()) {
 			if (!getDrop().isEmpty()) {
-				tag.put(TAG_TO_DROP, getDrop().save(new CompoundTag()));
+				ItemStack.OPTIONAL_CODEC
+						.encodeStart(NbtOps.INSTANCE, getDrop())
+						.resultOrPartial(error ->
+								BotaniaAPI.LOGGER.warn(
+										"Failed to encode Loonium drop stack: {}",
+										error
+								)
+						)
+						.ifPresent(encoded -> tag.put(TAG_TO_DROP, encoded));
 			}
 			tag.putBoolean(TAG_OVERRIDE_DROP, true);
 		}

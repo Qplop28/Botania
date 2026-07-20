@@ -9,6 +9,8 @@
 package vazkii.botania.common.internal_caps;
 
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 // Component for misc internal Botania flags
 public class ItemFlagsComponent extends SerializableComponent {
@@ -30,6 +32,35 @@ public class ItemFlagsComponent extends SerializableComponent {
 	private static final String TAG_ALTAR_SPAWNED = "RunicAltarSpawned";
 
 	private static final String TAG_TIME_COUNTER = "timeCounter";
+
+	@Override
+	public void readData(ValueInput input) {
+		elvenPortalSpawned = input.getBooleanOr(TAG_PORTAL_SPAWNED, false);
+		apothecarySpawned = input.getBooleanOr(TAG_APOTHECARY_SPAWNED, false);
+		manaInfusionSpawned = input.getBooleanOr(TAG_INFUSION_SPAWNED, false);
+		runicAltarSpawned = input.getBooleanOr(TAG_ALTAR_SPAWNED, false);
+		timeCounter = input.getIntOr(TAG_TIME_COUNTER, 0);
+
+		// legacy tags
+		if (input.getBooleanOr("_elvenPortal", false)) {
+			elvenPortalSpawned = true;
+		}
+		if (input.getIntOr("manaInfusionCooldown", 0) > 0) {
+			manaInfusionSpawned = true;
+		}
+		if (input.getIntOr("runicAltarCooldown", 0) > 0) {
+			runicAltarSpawned = true;
+		}
+	}
+
+	@Override
+	public void writeData(ValueOutput output) {
+		output.putBoolean(TAG_PORTAL_SPAWNED, elvenPortalSpawned);
+		output.putBoolean(TAG_APOTHECARY_SPAWNED, apothecarySpawned);
+		output.putBoolean(TAG_INFUSION_SPAWNED, manaInfusionSpawned);
+		output.putBoolean(TAG_ALTAR_SPAWNED, runicAltarSpawned);
+		output.putInt(TAG_TIME_COUNTER, timeCounter);
+	}
 
 	@Override
 	public void readFromNbt(CompoundTag tag) {

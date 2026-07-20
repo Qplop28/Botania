@@ -8,6 +8,7 @@
  */
 package vazkii.botania.fabric.mixin;
 
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
@@ -41,12 +42,12 @@ public abstract class LivingEntityFabricMixin extends Entity {
 	@Shadow
 	public abstract ItemStack getItemInHand(InteractionHand hand);
 
-	@Inject(at = @At("HEAD"), cancellable = true, method = "dropFromLootTable")
-	private void dropLoonium(DamageSource source, boolean causedByPlayer, CallbackInfo ci) {
+	@Inject(at = @At("HEAD"), cancellable = true, method = "dropFromLootTable(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/damagesource/DamageSource;Z)V")
+	private void dropLoonium(ServerLevel level, DamageSource source, boolean causedByPlayer, CallbackInfo ci) {
 		var self = (LivingEntity) (Object) this;
 		LooniumBlockEntity.dropLooniumItems(self, stack -> {
 			if (!stack.isEmpty()) {
-				self.spawnAtLocation(stack);
+				self.spawnAtLocation(level, stack);
 			}
 			ci.cancel();
 		});
@@ -57,7 +58,7 @@ public abstract class LivingEntityFabricMixin extends Entity {
 	 */
 	@Inject(at = @At("RETURN"), method = "createWitherRose")
 	private void healKiller(@Nullable LivingEntity adversary, CallbackInfo ci) {
-		if (!level().isClientSide && adversary != null) {
+		if (!level().isClientSide() && adversary != null) {
 			SoulCrossMobEffect.onEntityKill((LivingEntity) (Object) this, adversary);
 		}
 
@@ -67,7 +68,7 @@ public abstract class LivingEntityFabricMixin extends Entity {
 	private void onSwing(InteractionHand hand, boolean bl, CallbackInfo ci) {
 		ItemStack stack = getItemInHand(hand);
 		LivingEntity self = (LivingEntity) (Object) this;
-		if (!level().isClientSide) {
+		if (!level().isClientSide()) {
 			if (stack.getItem() instanceof AssemblyHaloItem halo && halo.onEntitySwing(stack, self)) {
 				ci.cancel();
 			} else if (stack.getItem() instanceof ShadedMesaRodItem rod) {

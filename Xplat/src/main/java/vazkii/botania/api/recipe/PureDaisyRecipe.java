@@ -33,7 +33,7 @@ import java.util.Objects;
 
 public interface PureDaisyRecipe extends Recipe<RecipeInput> {
 	Identifier TYPE_ID =
-			new Identifier(BotaniaAPI.MODID, "pure_daisy");
+			Identifier.fromNamespaceAndPath(BotaniaAPI.MODID, "pure_daisy");
 
 	/**
 	 * This gets called every tick, so implementations should keep their

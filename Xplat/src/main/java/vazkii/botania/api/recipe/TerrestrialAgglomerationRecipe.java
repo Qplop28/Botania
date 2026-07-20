@@ -23,7 +23,7 @@ import java.util.Objects;
 public interface TerrestrialAgglomerationRecipe
 		extends Recipe<RecipeInput> {
 	Identifier TERRA_PLATE_ID =
-			new Identifier(BotaniaAPI.MODID, "terra_plate");
+			Identifier.fromNamespaceAndPath(BotaniaAPI.MODID, "terra_plate");
 	Identifier TYPE_ID = TERRA_PLATE_ID;
 
 	int getMana();

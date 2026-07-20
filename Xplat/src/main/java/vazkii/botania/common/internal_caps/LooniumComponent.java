@@ -11,6 +11,8 @@ package vazkii.botania.common.internal_caps;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 import vazkii.botania.api.BotaniaAPI;
 
@@ -46,6 +48,31 @@ public class LooniumComponent extends SerializableComponent {
 
 	public void setSlowDespawn(boolean slowDespawn) {
 		this.slowDespawn = slowDespawn;
+	}
+
+	@Override
+	public void readData(ValueInput input) {
+		ItemStack drop = input.read(TAG_TO_DROP, ItemStack.OPTIONAL_CODEC)
+				.orElse(ItemStack.EMPTY);
+
+		setDrop(drop);
+		setOverrideDrop(input.getBooleanOr(TAG_OVERRIDE_DROP, false));
+		setSlowDespawn(input.getBooleanOr(TAG_SLOW_DESPAWN, false));
+	}
+
+	@Override
+	public void writeData(ValueOutput output) {
+		if (isOverrideDrop()) {
+			if (!getDrop().isEmpty()) {
+				output.store(TAG_TO_DROP, ItemStack.OPTIONAL_CODEC, getDrop());
+			}
+
+			output.putBoolean(TAG_OVERRIDE_DROP, true);
+		}
+
+		if (isSlowDespawn()) {
+			output.putBoolean(TAG_SLOW_DESPAWN, true);
+		}
 	}
 
 	@Override

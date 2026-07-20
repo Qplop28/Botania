@@ -9,11 +9,23 @@
 package vazkii.botania.common.internal_caps;
 
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 import vazkii.botania.common.block.SpectralRailBlock;
 
 public class SpectralRailComponent extends SerializableComponent {
 	public int floatTicks = 0;
+
+	@Override
+	public void readData(ValueInput input) {
+		floatTicks = input.getIntOr(SpectralRailBlock.TAG_FLOAT_TICKS, 0);
+	}
+
+	@Override
+	public void writeData(ValueOutput output) {
+		output.putInt(SpectralRailBlock.TAG_FLOAT_TICKS, floatTicks);
+	}
 
 	@Override
 	public void readFromNbt(CompoundTag tag) {

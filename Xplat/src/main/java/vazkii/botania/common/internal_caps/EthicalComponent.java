@@ -10,6 +10,8 @@ package vazkii.botania.common.internal_caps;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.item.PrimedTnt;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 import vazkii.botania.common.helper.EthicalTntHelper;
 
@@ -29,6 +31,16 @@ public class EthicalComponent extends SerializableComponent {
 
 	public final void markUnethical() {
 		unethical = true;
+	}
+
+	@Override
+	public void readData(ValueInput input) {
+		unethical = input.getBooleanOr(TAG_UNETHICAL, false);
+	}
+
+	@Override
+	public void writeData(ValueOutput output) {
+		output.putBoolean(TAG_UNETHICAL, unethical);
 	}
 
 	@Override

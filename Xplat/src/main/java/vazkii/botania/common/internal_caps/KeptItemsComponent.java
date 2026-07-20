@@ -13,6 +13,8 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 import vazkii.botania.api.BotaniaAPI;
 
@@ -29,6 +31,25 @@ public class KeptItemsComponent extends SerializableComponent {
 
 	public List<ItemStack> getStacks() {
 		return stacks;
+	}
+
+	@Override
+	public void readData(ValueInput input) {
+		stacks.clear();
+
+		for (ItemStack stack : input.listOrEmpty("stacks", ItemStack.OPTIONAL_CODEC)) {
+			stacks.add(stack);
+		}
+	}
+
+	@Override
+	public void writeData(ValueOutput output) {
+		ValueOutput.TypedOutputList<ItemStack> list =
+				output.list("stacks", ItemStack.OPTIONAL_CODEC);
+
+		for (ItemStack stack : stacks) {
+			list.add(stack);
+		}
 	}
 
 	@Override

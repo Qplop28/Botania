@@ -10,11 +10,11 @@ import vazkii.botania.api.brew.Brew;
 
 public class BotaniaRegistries {
 	public static final ResourceKey<Registry<Brew>> BREWS =
-			ResourceKey.createRegistryKey(new Identifier(BotaniaAPI.MODID, "brews"));
+			ResourceKey.createRegistryKey(Identifier.fromNamespaceAndPath(BotaniaAPI.MODID, "brews"));
 
 	/**
 	 * The ID of Botania's Creative Tab
 	 */
 	public static final ResourceKey<CreativeModeTab> BOTANIA_TAB_KEY = ResourceKey.create(Registries.CREATIVE_MODE_TAB,
-			new Identifier(BotaniaAPI.MODID, "botania"));
+			Identifier.fromNamespaceAndPath(BotaniaAPI.MODID, "botania"));
 }

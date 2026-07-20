@@ -23,7 +23,7 @@ import vazkii.botania.common.item.equipment.bauble.RingOfDexterousMotionItem;
 public class KeyboardHandlerFabricMixin {
 	@Inject(at = @At("HEAD"), method = "keyPress")
 	private void keyEvent(long window, int key, int scancode, int action, int modifiers, CallbackInfo ci) {
-		if (window == Minecraft.getInstance().getWindow().getWindow()) {
+		if (window == Minecraft.getInstance().getWindow().handle()) {
 			RingOfDexterousMotionItem.ClientLogic.onKeyDown();
 			KonamiHandler.handleInput(key, action, modifiers);
 		}

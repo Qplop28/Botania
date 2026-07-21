@@ -141,9 +141,9 @@ public class LooniumStructureConfigurationProvider implements DataProvider {
 				)
 				.attributeModifiers(
 						new LooniumMobAttributeModifier(LOONIUM_MODIFIER_HEALTH,
-								Attributes.MAX_HEALTH, 2, AttributeModifier.Operation.MULTIPLY_BASE),
+								Attributes.MAX_HEALTH, 2, AttributeModifier.Operation.ADD_MULTIPLIED_BASE),
 						new LooniumMobAttributeModifier(LOONIUM_MODIFIER_DAMAGE,
-								Attributes.ATTACK_DAMAGE, 1.5, AttributeModifier.Operation.MULTIPLY_BASE)
+								Attributes.ATTACK_DAMAGE, 1.5, AttributeModifier.Operation.ADD_MULTIPLIED_BASE)
 				)
 				.effectsToApply(getStandardEffects(false, true))
 				.build();
@@ -179,9 +179,9 @@ public class LooniumStructureConfigurationProvider implements DataProvider {
 						.equipmentTable(BotaniaLootTables.LOONIUM_WEAPON_AXE_GOLD)
 						.attributeModifiers(
 								new LooniumMobAttributeModifier(LOONIUM_MODIFIER_HEALTH,
-										Attributes.MAX_HEALTH, 1.5, AttributeModifier.Operation.MULTIPLY_BASE),
+										Attributes.MAX_HEALTH, 1.5, AttributeModifier.Operation.ADD_MULTIPLIED_BASE),
 								new LooniumMobAttributeModifier(LOONIUM_MODIFIER_DAMAGE,
-										Attributes.ATTACK_DAMAGE, 1.5, AttributeModifier.Operation.MULTIPLY_BASE)
+										Attributes.ATTACK_DAMAGE, 1.5, AttributeModifier.Operation.ADD_MULTIPLIED_BASE)
 						)
 						.build(),
 				LooniumMobSpawnData.entityWeight(EntityType.HOGLIN, 300).spawnAsAdult().build()

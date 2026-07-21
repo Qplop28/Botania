@@ -21,7 +21,7 @@ import java.util.function.Function;
 public class LooniumStructureConfiguration {
 	public static final int DEFAULT_COST = 35000;
 	public static final int DEFAULT_MAX_NEARBY_MOBS = 10;
-	public static final Codec<LooniumStructureConfiguration> CODEC = ExtraCodecs.validate(
+	public static final Codec<LooniumStructureConfiguration> CODEC =
 			RecordCodecBuilder.create(
 					instance -> instance.group(
 							Identifier.CODEC.optionalFieldOf("parent")
@@ -43,7 +43,7 @@ public class LooniumStructureConfiguration {
 									.optionalFieldOf("effectsToApply")
 									.forGetter(lsc -> Optional.ofNullable(lsc.effectsToApply))
 					).apply(instance, LooniumStructureConfiguration::create)
-			), lsc -> {
+			).validate(lsc -> {
 				if (lsc.parent == null && (lsc.manaCost == null || lsc.boundingBoxType == null || lsc.spawnedMobs == null)) {
 					return DataResult.error(() -> "Mana cost, bounding box type, and spawned mobs must be specified if there is no parent configuration");
 				}
@@ -56,7 +56,7 @@ public class LooniumStructureConfiguration {
 				}
 				return DataResult.success(lsc);
 			});
-	public static final Identifier DEFAULT_CONFIG_ID = new Identifier(BotaniaAPI.MODID, "default");
+	public static final Identifier DEFAULT_CONFIG_ID = Identifier.fromNamespaceAndPath(BotaniaAPI.MODID, "default");
 
 	public final Integer manaCost;
 	public final Integer maxNearbyMobs;

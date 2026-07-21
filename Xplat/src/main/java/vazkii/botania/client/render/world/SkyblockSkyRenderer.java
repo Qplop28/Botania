@@ -57,11 +57,11 @@ public final class SkyblockSkyRenderer implements AutoCloseable {
 			Identifier.parse(ResourcesLib.MISC_PLANET + "5.png")
 	};
 
-	private static final RenderPipeline ALPHA_TEXTURE = pipeline("garden_sky_alpha", RenderPipelines.POSITION_TEX_SNIPPET,
+	private static final RenderPipeline ALPHA_TEXTURE = pipeline("garden_sky_alpha", RenderPipelines.MATRICES_PROJECTION_SNIPPET,
 			DefaultVertexFormat.POSITION_TEX_COLOR, VertexFormat.Mode.QUADS, BlendFunction.TRANSLUCENT, true);
-	private static final RenderPipeline ADDITIVE_TEXTURE = pipeline("garden_sky_additive", RenderPipelines.POSITION_TEX_SNIPPET,
+	private static final RenderPipeline ADDITIVE_TEXTURE = pipeline("garden_sky_additive", RenderPipelines.MATRICES_PROJECTION_SNIPPET,
 			DefaultVertexFormat.POSITION_TEX_COLOR, VertexFormat.Mode.QUADS, BlendFunction.LIGHTNING, true);
-	private static final RenderPipeline ADDITIVE_COLOR = pipeline("garden_stars", RenderPipelines.POSITION_COLOR_SNIPPET,
+	private static final RenderPipeline ADDITIVE_COLOR = pipeline("garden_stars", RenderPipelines.MATRICES_PROJECTION_SNIPPET,
 			DefaultVertexFormat.POSITION, VertexFormat.Mode.QUADS, BlendFunction.LIGHTNING, false);
 	private static final RenderType[] PLANET_LAYERS = new RenderType[PLANETS.length];
 	private static final RenderType RAY_LAYER;

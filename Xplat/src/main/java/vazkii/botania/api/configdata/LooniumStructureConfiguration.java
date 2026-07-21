@@ -22,7 +22,7 @@ public class LooniumStructureConfiguration {
 	public static final int DEFAULT_COST = 35000;
 	public static final int DEFAULT_MAX_NEARBY_MOBS = 10;
 	public static final Codec<LooniumStructureConfiguration> CODEC =
-			RecordCodecBuilder.create(
+			RecordCodecBuilder.<LooniumStructureConfiguration>create(
 					instance -> instance.group(
 							Identifier.CODEC.optionalFieldOf("parent")
 									.forGetter(lsc -> Optional.ofNullable(lsc.parent)),

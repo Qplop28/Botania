@@ -10,6 +10,7 @@ import net.fabricmc.fabric.api.client.rendering.v1.*;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenKeyboardEvents;
 import net.minecraft.client.color.item.ItemTintSources;
+import net.minecraft.client.renderer.item.ItemModels;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.particle.ParticleProvider;
 import net.minecraft.client.particle.SpriteSet;
@@ -36,6 +37,7 @@ import vazkii.botania.client.gui.bag.FlowerPouchGui;
 import vazkii.botania.client.gui.box.BaubleBoxGui;
 import vazkii.botania.client.model.BotaniaLayerDefinitions;
 import vazkii.botania.client.model.TinyPotatoModel;
+import vazkii.botania.client.model.ManaBlasterItemModel;
 import vazkii.botania.client.model.armor.ArmorModels;
 import vazkii.botania.client.render.BotaniaItemTintSource;
 import vazkii.botania.client.render.ColorHandler;
@@ -64,6 +66,7 @@ public class FabricClientInitializer implements ClientModInitializer {
 		ColorHandler.submitBlocks(BlockColorRegistry::register);
 		ColorHandler.initItemTints();
 		ItemTintSources.ID_MAPPER.put(Identifier.fromNamespaceAndPath(LibMisc.MOD_ID, "dynamic_item_color"), BotaniaItemTintSource.MAP_CODEC);
+		ItemModels.ID_MAPPER.put(ClientXplatAbstractions.MANA_GUN_MODEL_LOADER_ID, ManaBlasterItemModel.Unbaked.MAP_CODEC);
 
 		// Guis
 		MenuScreens.register(BotaniaItems.FLOWER_BAG_CONTAINER, FlowerPouchGui::new);

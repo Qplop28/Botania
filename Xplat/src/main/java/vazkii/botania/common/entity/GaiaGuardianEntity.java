@@ -141,13 +141,19 @@ public class GaiaGuardianEntity extends Mob {
 	private BlockPos source = ManaBurst.NO_SOURCE;
 	private final List<UUID> playersWhoAttacked = new ArrayList<>();
 	private UUID bossInfoUUID = UUID.randomUUID();
-	private final ServerBossEvent bossInfo = new ServerBossEvent(
-			bossInfoUUID,
-			BotaniaEntities.DOPPLEGANGER.getDescription(),
-			BossEvent.BossBarColor.PINK,
-			BossEvent.BossBarOverlay.PROGRESS
-	).setCreateWorldFog(true);
+	private final ServerBossEvent bossInfo = createBossInfo(bossInfoUUID);
 	public Player trueKiller = null;
+
+	private static ServerBossEvent createBossInfo(UUID id) {
+		ServerBossEvent event = new ServerBossEvent(
+				id,
+				BotaniaEntities.DOPPLEGANGER.getDescription(),
+				BossEvent.BossBarColor.PINK,
+				BossEvent.BossBarOverlay.PROGRESS
+		);
+		event.setCreateWorldFog(true);
+		return event;
+	}
 
 	public GaiaGuardianEntity(EntityType<GaiaGuardianEntity> type, Level world) {
 		super(type, world);
@@ -679,7 +685,7 @@ public class GaiaGuardianEntity extends Mob {
 								pixie.setProps(players.get(random.nextInt(players.size())), this, 1, 8);
 								pixie.setPos(getX() + getBbWidth() / 2, getY() + 2, getZ() + getBbWidth() / 2);
 								pixie.finalizeSpawn(serverLevel, serverLevel.getCurrentDifficultyAt(pixie.blockPosition()),
-										EntitySpawnReason.MOB_SUMMONED, null, null);
+										EntitySpawnReason.MOB_SUMMONED, null);
 								serverLevel.addFreshEntity(pixie);
 							}
 						}
@@ -696,7 +702,7 @@ public class GaiaGuardianEntity extends Mob {
 					entity.setPos(getX() + 0.5 + Math.random() * range - range / 2, getY() - 1,
 							getZ() + 0.5 + Math.random() * range - range / 2);
 					entity.finalizeSpawn(serverLevel, serverLevel.getCurrentDifficultyAt(entity.blockPosition()),
-							EntitySpawnReason.MOB_SUMMONED, null, null);
+							EntitySpawnReason.MOB_SUMMONED, null);
 					if (entity instanceof WitherSkeleton && hardMode) {
 						entity.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(BotaniaItems.elementiumSword));
 					}
@@ -833,7 +839,7 @@ public class GaiaGuardianEntity extends Mob {
 								pixie.setProps(players.get(random.nextInt(players.size())), this, 1, 8);
 								pixie.setPos(getX() + getBbWidth() / 2, getY() + 2, getZ() + getBbWidth() / 2);
 								pixie.finalizeSpawn(serverLevel, serverLevel.getCurrentDifficultyAt(pixie.blockPosition()),
-										EntitySpawnReason.MOB_SUMMONED, null, null);
+										EntitySpawnReason.MOB_SUMMONED, null);
 								serverLevel.addFreshEntity(pixie);
 							}
 						}

@@ -70,6 +70,9 @@ repositories {
     maven {
         name = "TerraformersMC"
         url = "https://maven.terraformersmc.com/" // for trinkets and emi
+        content {
+            includeGroup "dev.emi"
+        }
     }
     maven {
           name = "Ladysnake Libs"

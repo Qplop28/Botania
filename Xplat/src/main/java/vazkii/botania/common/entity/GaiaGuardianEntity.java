@@ -19,7 +19,6 @@ import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
@@ -56,11 +55,12 @@ import net.minecraft.world.entity.monster.skeleton.WitherSkeleton;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BeaconBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.level.storage.loot.BuiltInLootTables;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -140,14 +140,19 @@ public class GaiaGuardianEntity extends Mob {
 	private boolean hardMode = false;
 	private BlockPos source = ManaBurst.NO_SOURCE;
 	private final List<UUID> playersWhoAttacked = new ArrayList<>();
-	private final ServerBossEvent bossInfo = (ServerBossEvent) new ServerBossEvent(BotaniaEntities.DOPPLEGANGER.getDescription(), BossEvent.BossBarColor.PINK, BossEvent.BossBarOverlay.PROGRESS).setCreateWorldFog(true);
-	private UUID bossInfoUUID = bossInfo.getId();
+	private UUID bossInfoUUID = UUID.randomUUID();
+	private final ServerBossEvent bossInfo = new ServerBossEvent(
+			bossInfoUUID,
+			BotaniaEntities.DOPPLEGANGER.getDescription(),
+			BossEvent.BossBarColor.PINK,
+			BossEvent.BossBarOverlay.PROGRESS
+	).setCreateWorldFog(true);
 	public Player trueKiller = null;
 
 	public GaiaGuardianEntity(EntityType<GaiaGuardianEntity> type, Level world) {
 		super(type, world);
 		xpReward = 825;
-		if (world.isClientSide) {
+		if (world.isClientSide()) {
 			Proxy.INSTANCE.addBoss(this);
 		}
 	}
@@ -162,7 +167,7 @@ public class GaiaGuardianEntity extends Mob {
 
 		//check difficulty
 		if (world.getDifficulty() == Difficulty.PEACEFUL) {
-			if (!world.isClientSide) {
+			if (!world.isClientSide()) {
 				player.sendSystemMessage(Component.translatable("botaniamisc.peacefulNoob").withStyle(ChatFormatting.RED));
 			}
 			return false;
@@ -171,7 +176,7 @@ public class GaiaGuardianEntity extends Mob {
 		//check pylons
 		List<BlockPos> invalidPylonBlocks = checkPylons(world, pos);
 		if (!invalidPylonBlocks.isEmpty()) {
-			if (world.isClientSide) {
+			if (world.isClientSide()) {
 				warnInvalidBlocks(world, invalidPylonBlocks);
 			} else {
 				player.sendSystemMessage(Component.translatable("botaniamisc.needsCatalysts").withStyle(ChatFormatting.RED));
@@ -183,7 +188,7 @@ public class GaiaGuardianEntity extends Mob {
 		//check arena shape
 		List<BlockPos> invalidArenaBlocks = checkArena(world, pos);
 		if (!invalidArenaBlocks.isEmpty()) {
-			if (world.isClientSide) {
+			if (world.isClientSide()) {
 				warnInvalidBlocks(world, invalidArenaBlocks);
 			} else {
 				XplatAbstractions.INSTANCE.sendToPlayer(player, new BotaniaEffectPacket(EffectType.ARENA_INDICATOR, pos.getX(), pos.getY(), pos.getZ()));
@@ -195,10 +200,12 @@ public class GaiaGuardianEntity extends Mob {
 		}
 
 		//all checks ok, spawn the boss
-		if (!world.isClientSide) {
+		if (!world.isClientSide()) {
 			stack.shrink(1);
 
-			GaiaGuardianEntity e = BotaniaEntities.DOPPLEGANGER.create(world);
+			ServerLevel serverLevel = (ServerLevel) world;
+
+			GaiaGuardianEntity e = BotaniaEntities.DOPPLEGANGER.create(serverLevel, EntitySpawnReason.EVENT);
 			e.setPos(pos.getX() + 0.5, pos.getY() + 3, pos.getZ() + 0.5);
 			e.setInvulTime(SPAWN_TICKS);
 			e.setHealth(1F);
@@ -223,13 +230,13 @@ public class GaiaGuardianEntity extends Mob {
 
 			e.playSound(BotaniaSounds.gaiaSummon, 1F, 1F);
 			e.finalizeSpawn(
-				(ServerLevelAccessor) world,
-				world.getCurrentDifficultyAt(e.blockPosition()),
+				serverLevel,
+				serverLevel.getCurrentDifficultyAt(e.blockPosition()),
 				EntitySpawnReason.EVENT,
 				null
 			);
 			
-			world.addFreshEntity(e);
+			serverLevel.addFreshEntity(e);
 
 			for (Player nearbyPlayer : playersAround) {
 				if (nearbyPlayer instanceof ServerPlayer serverPlayer) {
@@ -316,9 +323,9 @@ public class GaiaGuardianEntity extends Mob {
 	}
 
 	@Override
-	protected void defineSynchedData() {
-		super.defineSynchedData();
-		entityData.define(INVUL_TIME, 0);
+	protected void defineSynchedData(SynchedEntityData.Builder builder) {
+		super.defineSynchedData(builder);
+		builder.define(INVUL_TIME, 0);
 	}
 
 	public int getInvulTime() {
@@ -334,38 +341,34 @@ public class GaiaGuardianEntity extends Mob {
 	}
 
 	@Override
-	public void addAdditionalSaveData(CompoundTag cmp) {
-		super.addAdditionalSaveData(cmp);
-		cmp.putInt(TAG_INVUL_TIME, getInvulTime());
-		cmp.putBoolean(TAG_AGGRO, aggro);
-		cmp.putInt(TAG_MOB_SPAWN_TICKS, mobSpawnTicks);
+	public void addAdditionalSaveData(ValueOutput output) {
+		super.addAdditionalSaveData(output);
+		output.putInt(TAG_INVUL_TIME, getInvulTime());
+		output.putBoolean(TAG_AGGRO, aggro);
+		output.putInt(TAG_MOB_SPAWN_TICKS, mobSpawnTicks);
 
-		cmp.putInt(TAG_SOURCE_X, source.getX());
-		cmp.putInt(TAG_SOURCE_Y, source.getY());
-		cmp.putInt(TAG_SOURCE_Z, source.getZ());
+		output.putInt(TAG_SOURCE_X, source.getX());
+		output.putInt(TAG_SOURCE_Y, source.getY());
+		output.putInt(TAG_SOURCE_Z, source.getZ());
 
-		cmp.putBoolean(TAG_HARD_MODE, hardMode);
-		cmp.putInt(TAG_PLAYER_COUNT, playerCount);
+		output.putBoolean(TAG_HARD_MODE, hardMode);
+		output.putInt(TAG_PLAYER_COUNT, playerCount);
 	}
 
 	@Override
-	public void readAdditionalSaveData(CompoundTag cmp) {
-		super.readAdditionalSaveData(cmp);
-		setInvulTime(cmp.getInt(TAG_INVUL_TIME));
-		aggro = cmp.getBoolean(TAG_AGGRO);
-		mobSpawnTicks = cmp.getInt(TAG_MOB_SPAWN_TICKS);
+	public void readAdditionalSaveData(ValueInput input) {
+		super.readAdditionalSaveData(input);
+		setInvulTime(input.getIntOr(TAG_INVUL_TIME, 0));
+		aggro = input.getBooleanOr(TAG_AGGRO, false);
+		mobSpawnTicks = input.getIntOr(TAG_MOB_SPAWN_TICKS, 0);
 
-		int x = cmp.getInt(TAG_SOURCE_X);
-		int y = cmp.getInt(TAG_SOURCE_Y);
-		int z = cmp.getInt(TAG_SOURCE_Z);
+		int x = input.getIntOr(TAG_SOURCE_X, 0);
+		int y = input.getIntOr(TAG_SOURCE_Y, 0);
+		int z = input.getIntOr(TAG_SOURCE_Z, 0);
 		source = new BlockPos(x, y, z);
 
-		hardMode = cmp.getBoolean(TAG_HARD_MODE);
-		if (cmp.contains(TAG_PLAYER_COUNT)) {
-			playerCount = cmp.getInt(TAG_PLAYER_COUNT);
-		} else {
-			playerCount = 1;
-		}
+		hardMode = input.getBooleanOr(TAG_HARD_MODE, false);
+		playerCount = input.getIntOr(TAG_PLAYER_COUNT, 1);
 
 		if (this.hasCustomName()) {
 			this.bossInfo.setName(this.getDisplayName());
@@ -434,7 +437,7 @@ public class GaiaGuardianEntity extends Mob {
 		super.die(source);
 		LivingEntity lastAttacker = getKillCredit();
 
-		if (!level().isClientSide) {
+		if (!level().isClientSide()) {
 			for (UUID u : playersWhoAttacked) {
 				Player player = level().getPlayerByUUID(u);
 				if (!isTruePlayer(player)) {
@@ -471,7 +474,7 @@ public class GaiaGuardianEntity extends Mob {
 			}
 		}
 
-		playSound(BotaniaSounds.gaiaDeath, 1F, (1F + (level().random.nextFloat() - level().random.nextFloat()) * 0.2F) * 0.7F);
+		playSound(BotaniaSounds.gaiaDeath, 1F, (1F + (level().getRandom().nextFloat() - level().getRandom().nextFloat()) * 0.2F) * 0.7F);
 		level().addParticle(ParticleTypes.EXPLOSION_EMITTER, getX(), getY(), getZ(), 1D, 0D, 0D);
 	}
 
@@ -518,7 +521,7 @@ public class GaiaGuardianEntity extends Mob {
 
 	@Override
 	public void remove(RemovalReason reason) {
-		if (level().isClientSide) {
+		if (level().isClientSide()) {
 			Proxy.INSTANCE.removeBoss(this);
 		}
 		super.remove(reason);
@@ -652,30 +655,32 @@ public class GaiaGuardianEntity extends Mob {
 	}
 
 	private void spawnMobs(List<Player> players) {
+		ServerLevel serverLevel = (ServerLevel) level();
+
 		for (int pl = 0; pl < playerCount; pl++) {
-			for (int i = 0; i < 3 + level().random.nextInt(2); i++) {
-				Mob entity = switch (level().random.nextInt(3)) {
+			for (int i = 0; i < 3 + level().getRandom().nextInt(2); i++) {
+				Mob entity = switch (level().getRandom().nextInt(3)) {
 					case 0 -> {
-						if (level().random.nextInt(hardMode ? 3 : 12) == 0) {
-							yield EntityType.WITCH.create(level());
+						if (level().getRandom().nextInt(hardMode ? 3 : 12) == 0) {
+							yield EntityType.WITCH.create(serverLevel, EntitySpawnReason.MOB_SUMMONED);
 						}
-						yield EntityType.ZOMBIE.create(level());
+						yield EntityType.ZOMBIE.create(serverLevel, EntitySpawnReason.MOB_SUMMONED);
 					}
 					case 1 -> {
-						if (level().random.nextInt(8) == 0) {
-							yield EntityType.WITHER_SKELETON.create(level());
+						if (level().getRandom().nextInt(8) == 0) {
+							yield EntityType.WITHER_SKELETON.create(serverLevel, EntitySpawnReason.MOB_SUMMONED);
 						}
-						yield EntityType.SKELETON.create(level());
+						yield EntityType.SKELETON.create(serverLevel, EntitySpawnReason.MOB_SUMMONED);
 					}
 					case 2 -> {
 						if (!players.isEmpty()) {
-							for (int j = 0; j < 1 + level().random.nextInt(hardMode ? 8 : 5); j++) {
-								PixieEntity pixie = new PixieEntity(level());
+							for (int j = 0; j < 1 + level().getRandom().nextInt(hardMode ? 8 : 5); j++) {
+								PixieEntity pixie = new PixieEntity(serverLevel);
 								pixie.setProps(players.get(random.nextInt(players.size())), this, 1, 8);
 								pixie.setPos(getX() + getBbWidth() / 2, getY() + 2, getZ() + getBbWidth() / 2);
-								pixie.finalizeSpawn((ServerLevelAccessor) level(), level().getCurrentDifficultyAt(pixie.blockPosition()),
-										MobSpawnType.MOB_SUMMONED, null, null);
-								level().addFreshEntity(pixie);
+								pixie.finalizeSpawn(serverLevel, serverLevel.getCurrentDifficultyAt(pixie.blockPosition()),
+										EntitySpawnReason.MOB_SUMMONED, null, null);
+								serverLevel.addFreshEntity(pixie);
 							}
 						}
 						yield null;
@@ -690,12 +695,12 @@ public class GaiaGuardianEntity extends Mob {
 					float range = 6F;
 					entity.setPos(getX() + 0.5 + Math.random() * range - range / 2, getY() - 1,
 							getZ() + 0.5 + Math.random() * range - range / 2);
-					entity.finalizeSpawn((ServerLevelAccessor) level(), level().getCurrentDifficultyAt(entity.blockPosition()),
-							MobSpawnType.MOB_SUMMONED, null, null);
+					entity.finalizeSpawn(serverLevel, serverLevel.getCurrentDifficultyAt(entity.blockPosition()),
+							EntitySpawnReason.MOB_SUMMONED, null, null);
 					if (entity instanceof WitherSkeleton && hardMode) {
 						entity.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(BotaniaItems.elementiumSword));
 					}
-					level().addFreshEntity(entity);
+					serverLevel.addFreshEntity(entity);
 				}
 			}
 		}
@@ -707,7 +712,7 @@ public class GaiaGuardianEntity extends Mob {
 
 		int invul = getInvulTime();
 
-		if (level().isClientSide) {
+		if (level().isClientSide()) {
 			particles();
 			Player player = Proxy.INSTANCE.getClientPlayer();
 			if (getPlayersAround().contains(player)) {
@@ -715,6 +720,8 @@ public class GaiaGuardianEntity extends Mob {
 			}
 			return;
 		}
+
+		ServerLevel serverLevel = (ServerLevel) level();
 
 		bossInfo.setProgress(getHealth() / getMaxHealth());
 
@@ -760,7 +767,7 @@ public class GaiaGuardianEntity extends Mob {
 
 		if (invul > 0 && mobSpawnTicks == MOB_SPAWN_TICKS) {
 			if (invul < SPAWN_TICKS) {
-				if (invul > SPAWN_TICKS / 2 && level().random.nextInt(SPAWN_TICKS - invul + 1) == 0) {
+				if (invul > SPAWN_TICKS / 2 && level().getRandom().nextInt(SPAWN_TICKS - invul + 1) == 0) {
 					for (int i = 0; i < 2; i++) {
 						spawnAnim();
 					}
@@ -812,22 +819,22 @@ public class GaiaGuardianEntity extends Mob {
 								int y = (int) players.get(random.nextInt(players.size())).getY();
 								int z = source.getZ() - 10 + random.nextInt(20);
 
-								MagicLandmineEntity landmine = BotaniaEntities.MAGIC_LANDMINE.create(level());
+								MagicLandmineEntity landmine = BotaniaEntities.MAGIC_LANDMINE.create(serverLevel, EntitySpawnReason.MOB_SUMMONED);
 								landmine.setPos(x + 0.5, y, z + 0.5);
 								landmine.summoner = this;
-								level().addFreshEntity(landmine);
+								serverLevel.addFreshEntity(landmine);
 							}
 
 						}
 
 						for (int pl = 0; pl < playerCount; pl++) {
-							for (int i = 0; i < (spawnPixies ? level().random.nextInt(hardMode ? 6 : 3) : 1); i++) {
-								PixieEntity pixie = new PixieEntity(level());
+							for (int i = 0; i < (spawnPixies ? level().getRandom().nextInt(hardMode ? 6 : 3) : 1); i++) {
+								PixieEntity pixie = new PixieEntity(serverLevel);
 								pixie.setProps(players.get(random.nextInt(players.size())), this, 1, 8);
 								pixie.setPos(getX() + getBbWidth() / 2, getY() + 2, getZ() + getBbWidth() / 2);
-								pixie.finalizeSpawn((ServerLevelAccessor) level(), level().getCurrentDifficultyAt(pixie.blockPosition()),
-										MobSpawnType.MOB_SUMMONED, null, null);
-								level().addFreshEntity(pixie);
+								pixie.finalizeSpawn(serverLevel, serverLevel.getCurrentDifficultyAt(pixie.blockPosition()),
+										EntitySpawnReason.MOB_SUMMONED, null, null);
+								serverLevel.addFreshEntity(pixie);
 							}
 						}
 

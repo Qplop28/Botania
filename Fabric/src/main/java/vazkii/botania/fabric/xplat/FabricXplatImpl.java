@@ -614,7 +614,7 @@ import static vazkii.botania.integration.speedrunigt.BotaniaSpeedrunCategories.B
 	public Attribute getStepHeightAttribute() {
 		return Attributes.STEP_HEIGHT.value();
 	}
-	private final TagKey<Block> oreTag = TagKey.create(Registries.BLOCK, new Identifier("c", "ores"));
+	private final TagKey<Block> oreTag = TagKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath("c", "ores"));
 
 	@Override
 	public TagKey<Block> getOreTag() {
@@ -622,9 +622,9 @@ import static vazkii.botania.integration.speedrunigt.BotaniaSpeedrunCategories.B
 	}
 
 	// No standard so we have to check both :wacko:
-	private final TagKey<Block> cGlass = TagKey.create(Registries.BLOCK, new Identifier("c", "glass"));
-	private final TagKey<Block> cGlassBlocks = TagKey.create(Registries.BLOCK, new Identifier("c", "glass_blocks"));
-	private final TagKey<Block> cGlassPanes = TagKey.create(Registries.BLOCK, new Identifier("c", "glass_panes"));
+	private final TagKey<Block> cGlass = TagKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath("c", "glass"));
+	private final TagKey<Block> cGlassBlocks = TagKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath("c", "glass_blocks"));
+	private final TagKey<Block> cGlassPanes = TagKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath("c", "glass_panes"));
 
 	@Override
 	public boolean isInGlassTag(BlockState state) {

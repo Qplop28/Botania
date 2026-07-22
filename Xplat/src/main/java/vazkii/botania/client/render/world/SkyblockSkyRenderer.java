@@ -158,7 +158,7 @@ public final class SkyblockSkyRenderer implements AutoCloseable {
 
 		float rainbowAlpha = dayAngle > .25F ? 1F - dayAngle : dayAngle;
 		rainbowAlpha = .25F - Math.min(.25F, rainbowAlpha);
-		Random random = new Random(((level.getDayTime() + 1000) / 24000L) * 0xFFL);
+		Random random = new Random(((level.getLevelData().getDayTime() + 1000) / 24000L) * 0xFFL);
 		pose.pushPose();
 		pose.mulPose(VecHelper.rotateY(random.nextFloat() * 360));
 		pose.mulPose(VecHelper.rotateZ(random.nextFloat() * 360));

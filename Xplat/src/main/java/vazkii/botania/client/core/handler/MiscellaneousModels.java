@@ -81,8 +81,9 @@ public final class MiscellaneousModels {
 		Map<Identifier, ExtraModelKey<BlockStateModel>> blockModels = resources.listResources(ResourcesLib.PREFIX_MODELS + ResourcesLib.PREFIX_TINY_POTATO,
 				id -> id.getPath().endsWith(ResourcesLib.ENDING_JSON)).keySet().stream()
 				.filter(id -> LibMisc.MOD_ID.equals(id.getNamespace()))
-				.map(id -> new Identifier(id.getNamespace(), id.getPath().substring(ResourcesLib.PREFIX_MODELS.length(),
-						id.getPath().length() - ResourcesLib.ENDING_JSON.length())))
+				.map(id -> Identifier.fromNamespaceAndPath(id.getNamespace(),
+						id.getPath().substring(ResourcesLib.PREFIX_MODELS.length(),
+								id.getPath().length() - ResourcesLib.ENDING_JSON.length())))
 				.collect(Collectors.toUnmodifiableMap(Function.identity(), id -> ExtraModelKey.create(id::toString)));
 		Map<Identifier, ExtraModelKey<ItemModel>> itemModels = blockModels.keySet().stream()
 				.collect(Collectors.toUnmodifiableMap(Function.identity(),

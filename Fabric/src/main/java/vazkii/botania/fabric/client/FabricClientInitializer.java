@@ -1,7 +1,6 @@
 package vazkii.botania.fabric.client;
 
 import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
@@ -10,7 +9,7 @@ import net.fabricmc.fabric.api.client.particle.v1.ParticleProviderRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.*;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenKeyboardEvents;
-import net.minecraft.client.Minecraft;
+import net.minecraft.client.color.item.ItemTintSources;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.particle.ParticleProvider;
 import net.minecraft.client.particle.SpriteSet;
@@ -38,6 +37,7 @@ import vazkii.botania.client.gui.box.BaubleBoxGui;
 import vazkii.botania.client.model.BotaniaLayerDefinitions;
 import vazkii.botania.client.model.TinyPotatoModel;
 import vazkii.botania.client.model.armor.ArmorModels;
+import vazkii.botania.client.render.BotaniaItemTintSource;
 import vazkii.botania.client.render.ColorHandler;
 import vazkii.botania.client.render.entity.*;
 import vazkii.botania.common.block.BotaniaFlowerBlocks;
@@ -60,6 +60,10 @@ public class FabricClientInitializer implements ClientModInitializer {
 				List.of(BotaniaAPIClient.instance(), ClientXplatAbstractions.instance()));
 
 		FabricPacketHandler.initClient();
+
+		ColorHandler.submitBlocks(BlockColorRegistry::register);
+		ColorHandler.initItemTints();
+		ItemTintSources.ID_MAPPER.put(Identifier.fromNamespaceAndPath(LibMisc.MOD_ID, "dynamic_item_color"), BotaniaItemTintSource.MAP_CODEC);
 
 		// Guis
 		MenuScreens.register(BotaniaItems.FLOWER_BAG_CONTAINER, FlowerPouchGui::new);
@@ -105,7 +109,6 @@ public class FabricClientInitializer implements ClientModInitializer {
 		});
 
 		// Events
-		ClientLifecycleEvents.CLIENT_STARTED.register(this::loadComplete);
 		ClientTickEvents.END_CLIENT_TICK.register(ClientTickHandler::clientTickEnd);
 		ClientTickEvents.END_CLIENT_TICK.register(KonamiHandler::clientTick);
 		HudRenderCallback.EVENT.register(HUDHandler::onDrawScreenPost);
@@ -145,10 +148,5 @@ public class FabricClientInitializer implements ClientModInitializer {
 			}
 		};
 		ArmorRenderer.register(renderer, armors);
-	}
-
-	private void loadComplete(Minecraft mc) {
-		ColorHandler.submitBlocks(ColorProviderRegistry.BLOCK::register);
-		ColorHandler.submitItems(ColorProviderRegistry.ITEM::register);
 	}
 }

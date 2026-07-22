@@ -1,0 +1,16 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "botania:item/incense_stick",
+    "tints": [
+      {
+        "type": "botania:dynamic_item_color",
+        "tint_index": 0
+      },
+      {
+        "type": "botania:dynamic_item_color",
+        "tint_index": 1
+      }
+    ]
+  }
+}

@@ -188,7 +188,7 @@ public final class SkyblockSkyRenderer implements AutoCloseable {
 			pose.mulPose(pass < 3 ? VecHelper.rotateY(time * speeds[pass]) : VecHelper.rotateZ(time * speeds[pass]));
 			Vector4f color = new Vector4f(rgb[pass][0], rgb[pass][1], rgb[pass][2], alpha * (pass < 3 ? 1 : .25F));
 			GpuBufferSlice transforms = RenderSystem.getDynamicUniforms().writeTransform(pose.last().pose(), color,
-					new Vector3f(), new Matrix4f(), 0F);
+					new Vector3f(), new Matrix4f());
 			try (RenderPass renderPass = RenderSystem.getDevice().createCommandEncoder().createRenderPass(
 					() -> "Botania garden star pass", target.getColorTextureView(), OptionalInt.empty(),
 					target.getDepthTextureView(), OptionalDouble.empty())) {

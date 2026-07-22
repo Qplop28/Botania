@@ -27,6 +27,7 @@ import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.fabricmc.fabric.mixin.transfer.BucketItemAccessor;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.registries.Registries;
@@ -672,7 +673,7 @@ import static vazkii.botania.integration.speedrunigt.BotaniaSpeedrunCategories.B
 	@Nullable
 	@Override
 	public FoodProperties getFoodProperties(ItemStack stack) {
-		return stack.getItem().getFoodProperties();
+		return stack.get(DataComponents.FOOD);
 	}
 
 	@Override

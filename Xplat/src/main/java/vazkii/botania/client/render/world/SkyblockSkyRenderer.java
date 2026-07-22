@@ -46,19 +46,22 @@ import java.util.Random;
 
 /** Garden of Glass sky submissions for the renderer's modern buffered path. */
 public final class SkyblockSkyRenderer implements AutoCloseable {
-	private static final Identifier SKYBOX = new Identifier(ResourcesLib.MISC_SKYBOX);
-	private static final Identifier RAINBOW = new Identifier(ResourcesLib.MISC_RAINBOW);
+	private static final Identifier SKYBOX = Identifier.parse(ResourcesLib.MISC_SKYBOX);
+	private static final Identifier RAINBOW = Identifier.parse(ResourcesLib.MISC_RAINBOW);
 	private static final Identifier[] PLANETS = {
-			new Identifier(ResourcesLib.MISC_PLANET + "0.png"), new Identifier(ResourcesLib.MISC_PLANET + "1.png"),
-			new Identifier(ResourcesLib.MISC_PLANET + "2.png"), new Identifier(ResourcesLib.MISC_PLANET + "3.png"),
-			new Identifier(ResourcesLib.MISC_PLANET + "4.png"), new Identifier(ResourcesLib.MISC_PLANET + "5.png")
+			Identifier.parse(ResourcesLib.MISC_PLANET + "0.png"),
+			Identifier.parse(ResourcesLib.MISC_PLANET + "1.png"),
+			Identifier.parse(ResourcesLib.MISC_PLANET + "2.png"),
+			Identifier.parse(ResourcesLib.MISC_PLANET + "3.png"),
+			Identifier.parse(ResourcesLib.MISC_PLANET + "4.png"),
+			Identifier.parse(ResourcesLib.MISC_PLANET + "5.png")
 	};
 
-	private static final RenderPipeline ALPHA_TEXTURE = pipeline("garden_sky_alpha", RenderPipelines.POSITION_TEX_SNIPPET,
+	private static final RenderPipeline ALPHA_TEXTURE = pipeline("garden_sky_alpha", RenderPipelines.MATRICES_PROJECTION_SNIPPET,
 			DefaultVertexFormat.POSITION_TEX_COLOR, VertexFormat.Mode.QUADS, BlendFunction.TRANSLUCENT, true);
-	private static final RenderPipeline ADDITIVE_TEXTURE = pipeline("garden_sky_additive", RenderPipelines.POSITION_TEX_SNIPPET,
+	private static final RenderPipeline ADDITIVE_TEXTURE = pipeline("garden_sky_additive", RenderPipelines.MATRICES_PROJECTION_SNIPPET,
 			DefaultVertexFormat.POSITION_TEX_COLOR, VertexFormat.Mode.QUADS, BlendFunction.LIGHTNING, true);
-	private static final RenderPipeline ADDITIVE_COLOR = pipeline("garden_stars", RenderPipelines.POSITION_COLOR_SNIPPET,
+	private static final RenderPipeline ADDITIVE_COLOR = pipeline("garden_stars", RenderPipelines.MATRICES_PROJECTION_SNIPPET,
 			DefaultVertexFormat.POSITION, VertexFormat.Mode.QUADS, BlendFunction.LIGHTNING, false);
 	private static final RenderType[] PLANET_LAYERS = new RenderType[PLANETS.length];
 	private static final RenderType RAY_LAYER;
@@ -91,7 +94,7 @@ public final class SkyblockSkyRenderer implements AutoCloseable {
 	private static RenderPipeline pipeline(String name, RenderPipeline.Snippet snippet, VertexFormat format,
 			VertexFormat.Mode mode, BlendFunction blend, boolean texturedColor) {
 		return RenderPipelines.register(RenderPipeline.builder(snippet)
-				.withLocation(new Identifier(ResourcesLib.PREFIX_MOD + name))
+				.withLocation(Identifier.parse(ResourcesLib.PREFIX_MOD + name))
 				.withVertexShader(texturedColor ? "core/position_tex_color" : "core/position")
 				.withFragmentShader(texturedColor ? "core/position_tex_color" : "core/position")
 				.withVertexFormat(format, mode).withCull(false)

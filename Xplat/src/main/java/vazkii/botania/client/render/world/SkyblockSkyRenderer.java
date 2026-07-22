@@ -28,6 +28,7 @@ import net.minecraft.client.renderer.rendertype.RenderSetup;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
+import net.minecraft.world.attribute.EnvironmentAttributes;
 
 import org.joml.Matrix4f;
 import org.joml.Matrix3f;
@@ -115,7 +116,7 @@ public final class SkyblockSkyRenderer implements AutoCloseable {
 	public void renderExtra(PoseStack pose, ClientLevel level, float partialTick, float insideVoid) {
 		if (closed) { return; }
 		float rain = 1F - level.getRainLevel(partialTick);
-		float dayAngle = level.getTimeOfDay(partialTick);
+		float dayAngle = sampledSunAngle(partialTick) / 360F;
 		float effectiveAngle = dayAngle > .5F ? 1F - dayAngle : dayAngle;
 		float lowAlpha = Math.max(0F, effectiveAngle - .3F) * rain;
 		var buffers = Minecraft.getInstance().renderBuffers().bufferSource();
@@ -157,7 +158,7 @@ public final class SkyblockSkyRenderer implements AutoCloseable {
 
 		float rainbowAlpha = dayAngle > .25F ? 1F - dayAngle : dayAngle;
 		rainbowAlpha = .25F - Math.min(.25F, rainbowAlpha);
-		Random random = new Random(((level.getDayTime() + 1000) / 24000L) * 0xFFL);
+		Random random = new Random(((level.getOverworldClockTime() + 1000) / 24000L) * 0xFFL);
 		pose.pushPose();
 		pose.mulPose(VecHelper.rotateY(random.nextFloat() * 360));
 		pose.mulPose(VecHelper.rotateZ(random.nextFloat() * 360));
@@ -167,9 +168,14 @@ public final class SkyblockSkyRenderer implements AutoCloseable {
 		pose.popPose();
 	}
 
+	private static float sampledSunAngle(float partialTick) {
+		return Minecraft.getInstance().gameRenderer.getMainCamera().attributeProbe()
+				.getValue(EnvironmentAttributes.SUN_ANGLE, partialTick);
+	}
+
 	public void renderStars(PoseStack pose, ClientLevel level, float partialTick) {
 		if (closed) { return; }
-		float angle = level.getTimeOfDay(partialTick);
+		float angle = sampledSunAngle(partialTick) / 360F;
 		float alpha = (1 - level.getRainLevel(partialTick)) * Math.max(.1F, (angle > .5F ? 1 - angle : angle) * 2);
 		float time = (ClientTickHandler.ticksInGame + partialTick + 2000) * .005F;
 		float[] speeds = { 3, 1, 2, 3, 1, 2 };
@@ -182,7 +188,7 @@ public final class SkyblockSkyRenderer implements AutoCloseable {
 			pose.mulPose(pass < 3 ? VecHelper.rotateY(time * speeds[pass]) : VecHelper.rotateZ(time * speeds[pass]));
 			Vector4f color = new Vector4f(rgb[pass][0], rgb[pass][1], rgb[pass][2], alpha * (pass < 3 ? 1 : .25F));
 			GpuBufferSlice transforms = RenderSystem.getDynamicUniforms().writeTransform(pose.last().pose(), color,
-					new Vector3f(), new Matrix4f(), 0F);
+					new Vector3f(), new Matrix4f());
 			try (RenderPass renderPass = RenderSystem.getDevice().createCommandEncoder().createRenderPass(
 					() -> "Botania garden star pass", target.getColorTextureView(), OptionalInt.empty(),
 					target.getDepthTextureView(), OptionalDouble.empty())) {

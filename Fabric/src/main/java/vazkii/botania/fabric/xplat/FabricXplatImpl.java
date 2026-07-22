@@ -682,7 +682,7 @@ import static vazkii.botania.integration.speedrunigt.BotaniaSpeedrunCategories.B
 
 	@Override
 	public boolean isRedStringContainerTarget(BlockEntity be) {
-		if (be.getLevel().isClientSide) {
+		if (be.getLevel().isClientSide()) {
 			return false;
 		}
 		for (Direction value : Direction.values()) {

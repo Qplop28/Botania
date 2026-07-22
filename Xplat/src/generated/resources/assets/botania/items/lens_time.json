@@ -1,0 +1,12 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "botania:item/lens_time",
+    "tints": [
+      {
+        "type": "botania:dynamic_item_color",
+        "tint_index": 0
+      }
+    ]
+  }
+}

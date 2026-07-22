@@ -1,0 +1,12 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "botania:item/spell_cloth",
+    "tints": [
+      {
+        "type": "botania:dynamic_item_color",
+        "tint_index": 0
+      }
+    ]
+  }
+}

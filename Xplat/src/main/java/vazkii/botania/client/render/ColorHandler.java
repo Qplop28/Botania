@@ -10,15 +10,17 @@ package vazkii.botania.client.render;
 
 import net.minecraft.util.Util;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.color.block.BlockColor;
-import net.minecraft.client.color.item.ItemColor;
+import net.minecraft.client.color.block.BlockTintSource;
 import net.minecraft.client.renderer.BiomeColors;
+import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.FoliageColor;
+import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -43,24 +45,70 @@ import vazkii.botania.common.item.lens.LensItem;
 import vazkii.botania.common.item.material.MysticalPetalItem;
 import vazkii.botania.xplat.XplatAbstractions;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public final class ColorHandler {
 	public interface BlockHandlerConsumer {
-		void register(BlockColor handler, Block... blocks);
+		void register(List<BlockTintSource> layers, Block... blocks);
 	}
 
 	public interface ItemHandlerConsumer {
-		void register(ItemColor handler, ItemLike... items);
+		void register(ItemTintHandler handler, ItemLike... items);
+	}
+
+	@FunctionalInterface
+	public interface LegacyBlockTintHandler {
+		int getColor(BlockState state, BlockAndTintGetter world, BlockPos pos, int tintIndex);
+	}
+
+	@FunctionalInterface
+	public interface ItemTintHandler {
+		int getColor(ItemStack stack, int tintIndex);
+	}
+
+	private static final Map<Item, ItemTintHandler> ITEM_TINTS = new HashMap<>();
+
+	private static List<BlockTintSource> tinted(LegacyBlockTintHandler handler) {
+		return List.of(new BlockTintSource() {
+			@Override
+			public int color(BlockState state) {
+				return opaque(handler.getColor(state, null, null, 0));
+			}
+
+			@Override
+			public int colorInWorld(BlockState state, BlockAndTintGetter level, BlockPos pos) {
+				return opaque(handler.getColor(state, level, pos, 0));
+			}
+		});
+	}
+
+	public static void initItemTints() {
+		ITEM_TINTS.clear();
+		submitItems((handler, items) -> {
+			for (ItemLike item : items) {
+				ITEM_TINTS.put(item.asItem(), handler);
+			}
+		});
+	}
+
+	public static int getItemColor(ItemStack stack, int tintIndex) {
+		ItemTintHandler handler = ITEM_TINTS.get(stack.getItem());
+		return opaque(handler == null ? -1 : handler.getColor(stack, tintIndex));
+	}
+
+	private static int opaque(int color) {
+		return color == -1 ? 0xFFFFFFFF : net.minecraft.util.ARGB.opaque(color);
 	}
 
 	public static void submitBlocks(BlockHandlerConsumer blocks) {
 		// [VanillaCopy] BlockColors for vine
-		BlockColor vineColor = (state, world, pos, tint) -> world != null && pos != null ? BiomeColors.getAverageFoliageColor(world, pos) : FoliageColor.getDefaultColor();
-		blocks.register(vineColor, BotaniaBlocks.solidVines);
+		blocks.register(tinted((state, world, pos, tint) -> world != null && pos != null ? BiomeColors.getAverageFoliageColor(world, pos) : FoliageColor.getDefaultColor()), BotaniaBlocks.solidVines);
 
 		// Pool
-		blocks.register(
+		blocks.register(tinted(
 				(state, world, pos, tintIndex) -> {
 					if (tintIndex != 0) {
 						return -1;
@@ -79,21 +127,21 @@ public final class ColorHandler {
 						return color.isEmpty() ? fabulousColor : vazkii.botania.common.helper.MathHelper.multiplyColor(fabulousColor, color.get());
 					}
 					return color.orElse(-1);
-				},
+				}),
 				BotaniaBlocks.manaPool, BotaniaBlocks.creativePool, BotaniaBlocks.dilutedPool, BotaniaBlocks.fabulousPool
 		);
 
 		// Spreader
-		blocks.register(
+		blocks.register(tinted(
 				(state, world, pos, tintIndex) -> {
 					float time = ClientTickHandler.ticksInGame + ClientTickHandler.partialTicks;
 					return Mth.hsvToRgb(time * 5 % 360 / 360F, 0.4F, 0.9F);
-				},
+				}),
 				BotaniaBlocks.gaiaSpreader
 		);
 
 		// Petal Block
-		blocks.register((state, world, pos, tintIndex) -> tintIndex == 0 ? MysticalPetalItem.getPetalLikeColor(((PetalBlock) state.getBlock()).color) : -1,
+		blocks.register(tinted((state, world, pos, tintIndex) -> tintIndex == 0 ? MysticalPetalItem.getPetalLikeColor(((PetalBlock) state.getBlock()).color) : -1),
 				BotaniaBlocks.petalBlockWhite, BotaniaBlocks.petalBlockOrange, BotaniaBlocks.petalBlockMagenta, BotaniaBlocks.petalBlockLightBlue,
 				BotaniaBlocks.petalBlockYellow, BotaniaBlocks.petalBlockLime, BotaniaBlocks.petalBlockPink, BotaniaBlocks.petalBlockGray,
 				BotaniaBlocks.petalBlockSilver, BotaniaBlocks.petalBlockCyan, BotaniaBlocks.petalBlockPurple, BotaniaBlocks.petalBlockBlue,
@@ -101,7 +149,7 @@ public final class ColorHandler {
 		);
 
 		// Platforms
-		blocks.register(
+		blocks.register(tinted(
 				(state, world, pos, tintIndex) -> {
 					if (world != null && pos != null) {
 						BlockEntity tile = world.getBlockEntity(pos);
@@ -115,7 +163,7 @@ public final class ColorHandler {
 						}
 					}
 					return 0xFFFFFF;
-				}, BotaniaBlocks.abstrusePlatform, BotaniaBlocks.spectralPlatform, BotaniaBlocks.infrangiblePlatform);
+				}), BotaniaBlocks.abstrusePlatform, BotaniaBlocks.spectralPlatform, BotaniaBlocks.infrangiblePlatform);
 	}
 
 	public static int getBrewColor(ItemStack stack) {
@@ -228,7 +276,7 @@ public final class ColorHandler {
 
 		items.register((s, t) -> t == 1 && TerraShattererItem.isEnabled(s) ? Mth.hsvToRgb(0.375F, (float) Math.min(1F, Math.sin(Util.getMillis() / 200D) * 0.5 + 1F), 1F) : -1, BotaniaItems.terraPick);
 
-		ItemColor lensHandler = (s, t) -> t == 0 ? ((LensItem) s.getItem()).getLensColor(s, Minecraft.getInstance().level) : -1;
+		ItemTintHandler lensHandler = (s, t) -> t == 0 ? ((LensItem) s.getItem()).getLensColor(s, Minecraft.getInstance().level) : -1;
 		items.register(lensHandler, BotaniaItems.lensNormal, BotaniaItems.lensSpeed, BotaniaItems.lensPower, BotaniaItems.lensTime,
 				BotaniaItems.lensEfficiency, BotaniaItems.lensBounce, BotaniaItems.lensGravity, BotaniaItems.lensMine,
 				BotaniaItems.lensDamage, BotaniaItems.lensPhantom, BotaniaItems.lensMagnet, BotaniaItems.lensExplosive,

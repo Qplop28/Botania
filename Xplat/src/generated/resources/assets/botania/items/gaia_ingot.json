@@ -1,0 +1,12 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "botania:item/gaia_ingot",
+    "tints": [
+      {
+        "type": "botania:dynamic_item_color",
+        "tint_index": 0
+      }
+    ]
+  }
+}

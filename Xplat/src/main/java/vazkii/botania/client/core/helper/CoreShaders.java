@@ -50,8 +50,8 @@ public final class CoreShaders {
 			"core/position_color_tex", DefaultVertexFormat.POSITION_COLOR_TEX, VertexFormat.Mode.QUADS);
 	public static final RenderPipeline FILM_GRAIN_PARTICLE = register("film_grain_particle", RenderPipelines.PARTICLE_SNIPPET,
 			"core/particle", DefaultVertexFormat.PARTICLE, VertexFormat.Mode.QUADS);
-	public static final RenderPipeline DOPPLEGANGER_BAR = register("doppleganger_bar", RenderPipelines.POSITION_TEX_SNIPPET,
-			"core/position_tex", DefaultVertexFormat.POSITION_TEX, VertexFormat.Mode.QUADS);
+	public static final RenderPipeline DOPPLEGANGER_BAR = register("doppleganger_bar", RenderPipelines.GUI_TEXTURED_SNIPPET,
+			"botania:doppleganger_bar", DefaultVertexFormat.POSITION_TEX_COLOR, VertexFormat.Mode.QUADS);
 
 	public static RenderPipeline doppleganger() {
 		return BotaniaConfig.client().useShaders() ? DOPPLEGANGER : RenderPipelines.ENTITY_TRANSLUCENT;
@@ -82,6 +82,6 @@ public final class CoreShaders {
 	}
 
 	public static RenderPipeline dopplegangerBar() {
-		return BotaniaConfig.client().useShaders() ? DOPPLEGANGER_BAR : RenderPipelines.POSITION_TEX;
+		return BotaniaConfig.client().useShaders() ? DOPPLEGANGER_BAR : RenderPipelines.GUI_TEXTURED;
 	}
 }

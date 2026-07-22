@@ -28,6 +28,7 @@ import net.minecraft.client.renderer.rendertype.RenderSetup;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
+import net.minecraft.world.attribute.EnvironmentAttributes;
 
 import org.joml.Matrix4f;
 import org.joml.Matrix3f;
@@ -115,7 +116,7 @@ public final class SkyblockSkyRenderer implements AutoCloseable {
 	public void renderExtra(PoseStack pose, ClientLevel level, float partialTick, float insideVoid) {
 		if (closed) { return; }
 		float rain = 1F - level.getRainLevel(partialTick);
-		float dayAngle = level.getTimeOfDay(partialTick);
+		float dayAngle = sampledSunAngle(partialTick) / 360F;
 		float effectiveAngle = dayAngle > .5F ? 1F - dayAngle : dayAngle;
 		float lowAlpha = Math.max(0F, effectiveAngle - .3F) * rain;
 		var buffers = Minecraft.getInstance().renderBuffers().bufferSource();
@@ -167,9 +168,14 @@ public final class SkyblockSkyRenderer implements AutoCloseable {
 		pose.popPose();
 	}
 
+	private static float sampledSunAngle(float partialTick) {
+		return Minecraft.getInstance().gameRenderer.getMainCamera().attributeProbe()
+				.getValue(EnvironmentAttributes.SUN_ANGLE, partialTick);
+	}
+
 	public void renderStars(PoseStack pose, ClientLevel level, float partialTick) {
 		if (closed) { return; }
-		float angle = level.getTimeOfDay(partialTick);
+		float angle = sampledSunAngle(partialTick) / 360F;
 		float alpha = (1 - level.getRainLevel(partialTick)) * Math.max(.1F, (angle > .5F ? 1 - angle : angle) * 2);
 		float time = (ClientTickHandler.ticksInGame + partialTick + 2000) * .005F;
 		float[] speeds = { 3, 1, 2, 3, 1, 2 };

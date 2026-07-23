@@ -17,8 +17,10 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.AbstractTickableSoundInstance;
 import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
@@ -28,7 +30,9 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerBossEvent;
+import net.minecraft.server.level.ServerEntity;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
@@ -43,6 +47,7 @@ import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityReference;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
@@ -61,7 +66,7 @@ import net.minecraft.world.level.block.entity.BeaconBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
-import net.minecraft.world.level.storage.loot.BuiltInLootTables;
+import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
@@ -117,6 +122,11 @@ public class GaiaGuardianEntity extends Mob {
 	private static final TagKey<Block> BLACKLIST = BotaniaTags.Blocks.GAIA_BREAK_BLACKLIST;
 
 	private static final EntityDataAccessor<Integer> INVUL_TIME = SynchedEntityData.defineId(GaiaGuardianEntity.class, EntityDataSerializers.INT);
+
+	private static final ResourceKey<LootTable> GAIA_LOOT_TABLE =
+			ResourceKey.create(Registries.LOOT_TABLE, prefix("gaia_guardian"));
+	private static final ResourceKey<LootTable> GAIA_HARD_LOOT_TABLE =
+			ResourceKey.create(Registries.LOOT_TABLE, prefix("gaia_guardian_2"));
 
 	private static final List<BlockPos> PYLON_LOCATIONS = ImmutableList.of(
 			new BlockPos(4, 1, 4),
@@ -395,28 +405,42 @@ public class GaiaGuardianEntity extends Mob {
 	}
 
 	@Override
-	public void kill() {
+	public void kill(ServerLevel level) {
 		this.setHealth(0.0F);
 	}
 
-	@Override
-	public boolean hurt(@NotNull DamageSource source, float amount) {
-		Entity e = source.getEntity();
-		if (e instanceof Player player && isTruePlayer(e) && getInvulTime() == 0) {
-
-			if (!playersWhoAttacked.contains(player.getUUID())) {
-				playersWhoAttacked.add(player.getUUID());
-			}
-
-			return super.hurt(source, Math.min(DAMAGE_CAP, amount));
+	@Nullable
+	private Player getValidAttackingPlayer(DamageSource source) {
+		Entity attacker = source.getEntity();
+		if (attacker instanceof Player player && isTruePlayer(attacker) && getInvulTime() == 0) {
+			return player;
 		}
-
-		return false;
+		return null;
 	}
 
 	@Override
-	protected void actuallyHurt(@NotNull DamageSource source, float amount) {
-		super.actuallyHurt(source, Math.min(DAMAGE_CAP, amount));
+	public boolean hurtClient(DamageSource source) {
+		return getValidAttackingPlayer(source) != null
+				&& super.hurtClient(source);
+	}
+
+	@Override
+	public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
+		Player player = getValidAttackingPlayer(source);
+		if (player == null) {
+			return false;
+		}
+
+		if (!playersWhoAttacked.contains(player.getUUID())) {
+			playersWhoAttacked.add(player.getUUID());
+		}
+
+		return super.hurtServer(level, source, Math.min(DAMAGE_CAP, amount));
+	}
+
+	@Override
+	protected void actuallyHurt(ServerLevel level, @NotNull DamageSource source, float amount) {
+		super.actuallyHurt(level, source, Math.min(DAMAGE_CAP, amount));
 
 		Entity attacker = source.getDirectEntity();
 		if (attacker != null) {
@@ -490,15 +514,13 @@ public class GaiaGuardianEntity extends Mob {
 	}
 
 	@Override
-	public Identifier getDefaultLootTable() {
+	protected void dropFromLootTable(ServerLevel level, @NotNull DamageSource source, boolean wasRecentlyHit) {
 		if (mobSpawnTicks > 0) {
-			return BuiltInLootTables.EMPTY;
+			return;
 		}
-		return prefix(hardMode ? "gaia_guardian_2" : "gaia_guardian");
-	}
 
-	@Override
-	protected void dropFromLootTable(@NotNull DamageSource source, boolean wasRecentlyHit) {
+		ResourceKey<LootTable> lootTable = hardMode ? GAIA_HARD_LOOT_TABLE : GAIA_LOOT_TABLE;
+
 		// Save true killer, they get extra loot
 		if (wasRecentlyHit && isTruePlayer(source.getEntity())) {
 			trueKiller = (Player) source.getEntity();
@@ -511,13 +533,13 @@ public class GaiaGuardianEntity extends Mob {
 				continue;
 			}
 
-			Player saveLastAttacker = lastHurtByPlayer;
+			EntityReference<Player> saveLastAttacker = lastHurtByPlayer;
 			Vec3 savePos = position();
 
-			lastHurtByPlayer = player; // Fake attacking player as the killer
+			lastHurtByPlayer = EntityReference.of(player); // Fake attacking player as the killer
 			// Spoof pos so drops spawn at the player
 			setPos(player.getX(), player.getY(), player.getZ());
-			super.dropFromLootTable(player.damageSources().playerAttack(player), wasRecentlyHit);
+			super.dropFromLootTable(level, player.damageSources().playerAttack(player), wasRecentlyHit, lootTable);
 			setPos(savePos.x(), savePos.y(), savePos.z());
 			lastHurtByPlayer = saveLastAttacker;
 		}
@@ -635,16 +657,16 @@ public class GaiaGuardianEntity extends Mob {
 	}
 
 	private void clearPotions(Player player) {
-		Set<MobEffect> effectsToRemove = new HashSet<>();
+		Set<Holder<MobEffect>> effectsToRemove = new HashSet<>();
 		for (var effectInstance : player.getActiveEffects()) {
-			if (effectInstance.getDuration() < 160 && effectInstance.isAmbient() && effectInstance.getEffect().getCategory() != MobEffectCategory.HARMFUL) {
+			if (effectInstance.getDuration() < 160 && effectInstance.isAmbient() && effectInstance.getEffect().value().getCategory() != MobEffectCategory.HARMFUL) {
 				effectsToRemove.add(effectInstance.getEffect());
 			}
 		}
 
 		for (var effect : effectsToRemove) {
 			player.removeEffect(effect);
-			((ServerLevel) level()).getChunkSource().broadcastAndSend(player,
+			((ServerLevel) level()).getChunkSource().sendToTrackingPlayersAndSelf(player,
 					new ClientboundRemoveMobEffectPacket(player.getId(), effect));
 		}
 	}
@@ -748,7 +770,7 @@ public class GaiaGuardianEntity extends Mob {
 		} else {
 			for (Player player : players) {
 				for (EquipmentSlot e : EquipmentSlot.values()) {
-					if (e.getType() == EquipmentSlot.Type.ARMOR && !player.getItemBySlot(e).isEmpty()) {
+					if (e.getType() == EquipmentSlot.Type.HUMANOID_ARMOR && !player.getItemBySlot(e).isEmpty()) {
 						anyWithArmor = true;
 						break;
 					}
@@ -863,7 +885,6 @@ public class GaiaGuardianEntity extends Mob {
 		}
 	}
 
-	@Override
 	public boolean canChangeDimensions() {
 		return false;
 	}
@@ -994,13 +1015,13 @@ public class GaiaGuardianEntity extends Mob {
 	}
 
 	@Override
-	public Packet<ClientGamePacketListener> getAddEntityPacket() {
+	public Packet<ClientGamePacketListener> getAddEntityPacket(ServerEntity serverEntity) {
 		return XplatAbstractions.INSTANCE.toVanillaClientboundPacket(
-				new SpawnGaiaGuardianPacket(new ClientboundAddEntityPacket(this), playerCount, hardMode, source, bossInfoUUID));
+				new SpawnGaiaGuardianPacket(new ClientboundAddEntityPacket(this, serverEntity), playerCount, hardMode, source, bossInfoUUID));
 	}
 
 	@Override
-	public boolean canBeLeashed(Player player) {
+	public boolean canBeLeashed() {
 		return false;
 	}
 

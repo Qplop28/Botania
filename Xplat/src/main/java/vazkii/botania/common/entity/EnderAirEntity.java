@@ -9,13 +9,17 @@
 package vazkii.botania.common.entity;
 
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.particles.ColorParticleOption;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
+import net.minecraft.server.level.ServerEntity;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -30,37 +34,38 @@ public class EnderAirEntity extends Entity {
 	@Override
 	public void tick() {
 		super.tick();
-		if (!level().isClientSide && tickCount > MAX_AGE) {
+		if (!level().isClientSide() && tickCount > MAX_AGE) {
 			discard();
 		}
-		if (level().isClientSide && random.nextBoolean()) {
+		if (level().isClientSide() && random.nextBoolean()) {
 			float r = (EnderAirBottleEntity.PARTICLE_COLOR >> 16 & 0xFF) / 255.0F;
 			float g = (EnderAirBottleEntity.PARTICLE_COLOR >> 8 & 0xFF) / 255.0F;
 			float b = (EnderAirBottleEntity.PARTICLE_COLOR & 0xFF) / 255.0F;
+			ColorParticleOption particle = ColorParticleOption.create(ParticleTypes.ENTITY_EFFECT, r, g, b);
 			for (int i = 0; i < 5; i++) {
 				double x = this.getX() + random.nextDouble();
 				double y = this.getY() + random.nextDouble();
 				double z = this.getZ() + random.nextDouble();
-				level().addAlwaysVisibleParticle(ParticleTypes.ENTITY_EFFECT, x, y, z, r, g, b);
+				level().addAlwaysVisibleParticle(particle, x, y, z, 0, 0, 0);
 			}
 		}
 	}
 
 	@Override
-	protected void defineSynchedData() {}
+	protected void defineSynchedData(SynchedEntityData.Builder builder) {}
 
 	@Override
-	protected void readAdditionalSaveData(@NotNull CompoundTag tag) {
-		tickCount = tag.getInt(TAG_AGE);
+	protected void readAdditionalSaveData(@NotNull ValueInput input) {
+		tickCount = input.getIntOr(TAG_AGE, 0);
 	}
 
 	@Override
-	protected void addAdditionalSaveData(@NotNull CompoundTag tag) {
-		tag.putInt(TAG_AGE, tickCount);
+	protected void addAdditionalSaveData(@NotNull ValueOutput output) {
+		output.putInt(TAG_AGE, tickCount);
 	}
 
 	@Override
-	public Packet<ClientGamePacketListener> getAddEntityPacket() {
-		return new ClientboundAddEntityPacket(this);
+	public Packet<ClientGamePacketListener> getAddEntityPacket(ServerEntity serverEntity) {
+		return new ClientboundAddEntityPacket(this, serverEntity);
 	}
 }

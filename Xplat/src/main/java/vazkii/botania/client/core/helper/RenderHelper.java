@@ -21,6 +21,9 @@ import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexFormat;
 
+import static net.minecraft.util.ARGB.color;
+
+import net.minecraft.util.ARGB;
 import net.minecraft.util.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -91,7 +94,7 @@ public final class RenderHelper {
 	public static final RenderType SPARK = layer("spark", SPARK_PIPELINE, 256, false, false, TextureAtlas.LOCATION_BLOCKS, true, false, true);
 	public static final RenderType LIGHT_RELAY = layer("light_relay", CoreShaders.halo(), 64, false, false, TextureAtlas.LOCATION_BLOCKS);
 	public static final RenderType ICON_OVERLAY = layer("icon_overlay", ICON_OVERLAY_PIPELINE, 128, false, false, TextureAtlas.LOCATION_BLOCKS, true, false, true);
-	public static final RenderType BABYLON_ICON = layer("babylon", CoreShaders.halo(), 64, false, false, new Identifier(ResourcesLib.MISC_BABYLON));
+	public static final RenderType BABYLON_ICON = layer("babylon", CoreShaders.halo(), 64, false, false, Identifier.parse(ResourcesLib.MISC_BABYLON));
 	public static final RenderType MANA_POOL_WATER = layer("mana_pool_water", CoreShaders.manaPool(), 128, false, false, TextureAtlas.LOCATION_BLOCKS, true, false, false);
 	public static final RenderType TERRA_PLATE = layer("terra_plate_rune", CoreShaders.terraPlate(), 128, false, false, TextureAtlas.LOCATION_BLOCKS, true, false, false);
 	public static final RenderType ENCHANTER = layer("enchanter_rune", CoreShaders.enchanter(), 128, false, false, TextureAtlas.LOCATION_BLOCKS, true, false, false);
@@ -116,7 +119,7 @@ public final class RenderHelper {
 			VertexFormat.Mode mode, BlendFunction blend, boolean cull, CompareOp depthCompare,
 			boolean depthWrite, int lineWidth) {
 		var builder = RenderPipeline.builder(snippet)
-				.withLocation(new Identifier(ResourcesLib.PREFIX_MOD + name))
+				.withLocation(Identifier.parse(ResourcesLib.PREFIX_MOD + name))
 				.withVertexFormat(format, mode)
 				.withCull(cull)
 				.withDepthStencilState(new DepthStencilState(depthCompare, depthWrite, 0, 0))
@@ -259,12 +262,12 @@ public final class RenderHelper {
 			float g = ((color & 0xFF00) >> 8) / 255F;
 			float b = (color & 0xFF) / 255F;
 			Matrix4f mat = ms.last().pose();
-			Runnable center = () -> buffer.vertex(mat, 0, 0, 0).color(r, g, b, f1).endVertex();
+			Runnable center = () -> buffer.addVertex(mat, 0, 0, 0).setColor(r, g, b, f1);
 			Runnable[] vertices = {
-					() -> buffer.vertex(mat, -0.866F * f4, f3, -0.5F * f4).color(0, 0, 0, 0).endVertex(),
-					() -> buffer.vertex(mat, 0.866F * f4, f3, -0.5F * f4).color(0, 0, 0, 0).endVertex(),
-					() -> buffer.vertex(mat, 0, f3, 1F * f4).color(0, 0, 0, 0).endVertex(),
-					() -> buffer.vertex(mat, -0.866F * f4, f3, -0.5F * f4).color(0, 0, 0, 0).endVertex()
+					() -> buffer.addVertex(mat, -0.866F * f4, f3, -0.5F * f4).setColor(0, 0, 0, 0),
+					() -> buffer.addVertex(mat, 0.866F * f4, f3, -0.5F * f4).setColor(0, 0, 0, 0),
+					() -> buffer.addVertex(mat, 0, f3, 1F * f4).setColor(0, 0, 0, 0),
+					() -> buffer.addVertex(mat, -0.866F * f4, f3, -0.5F * f4).setColor(0, 0, 0, 0)
 			};
 			triangleFan(center, vertices);
 		}
@@ -291,10 +294,10 @@ public final class RenderHelper {
 	public static void flatRectangle(VertexConsumer buffer, Matrix4f mat,
 			float xMin, float xMax, float y, float zMin, float zMax,
 			int r, int g, int b, int a) {
-		buffer.vertex(mat, xMax, y, zMin).color(r, g, b, a).endVertex();
-		buffer.vertex(mat, xMin, y, zMin).color(r, g, b, a).endVertex();
-		buffer.vertex(mat, xMin, y, zMax).color(r, g, b, a).endVertex();
-		buffer.vertex(mat, xMax, y, zMax).color(r, g, b, a).endVertex();
+		buffer.addVertex(mat, xMax, y, zMin).setColor(r, g, b, a);
+		buffer.addVertex(mat, xMin, y, zMin).setColor(r, g, b, a);
+		buffer.addVertex(mat, xMin, y, zMax).setColor(r, g, b, a);
+		buffer.addVertex(mat, xMax, y, zMax).setColor(r, g, b, a);
 	}
 
 	public static void renderProgressPie(GuiGraphicsExtractor gui, int x, int y, float progress, ItemStack stack) {
@@ -328,14 +331,14 @@ public final class RenderHelper {
 		BufferBuilder buf = Tesselator.getInstance().getBuilder();
 		RenderSystem.setPipeline(RenderPipelines.DEBUG_FILLED);
 		buf.begin(VertexFormat.Mode.TRIANGLE_FAN, DefaultVertexFormat.POSITION_COLOR);
-		buf.vertex(mat, centerX, centerY, 0).color(0, 0.5F, 0.5F, a).endVertex();
+		buf.addVertex(mat, centerX, centerY, 0).setColor(0, 0.5F, 0.5F, a);
 
 		for (int i = degs; i >= 0; i--) {
 			float rad = (i - 90) / 180F * (float) Math.PI;
-			buf.vertex(mat, centerX + Mth.cos(rad) * r, centerY + Mth.sin(rad) * r, 0).color(0F, 1F, 0.5F, a).endVertex();
+			buf.addVertex(mat, centerX + Mth.cos(rad) * r, centerY + Mth.sin(rad) * r, 0).setColor(0F, 1F, 0.5F, a);
 		}
 
-		buf.vertex(mat, centerX, centerY, 0).color(0F, 1F, 0.5F, a).endVertex();
+		buf.addVertex(mat, centerX, centerY, 0).setColor(0F, 1F, 0.5F, a);
 		Tesselator.getInstance().end();
 
 		RenderSystem.disableBlend();
@@ -365,10 +368,10 @@ public final class RenderHelper {
 		float green = ((color >> 8) & 0xFF) / 255F;
 		float blue = (color & 0xFF) / 255F;
 
-		buffer.vertex(mat, startX, endY, 0).color(red, green, blue, alpha).uv(icon.getU(uvStartX), icon.getV(uvEndY)).uv2(light).endVertex();
-		buffer.vertex(mat, endX, endY, 0).color(red, green, blue, alpha).uv(icon.getU(uvEndX), icon.getV(uvEndY)).uv2(light).endVertex();
-		buffer.vertex(mat, endX, startY, 0).color(red, green, blue, alpha).uv(icon.getU(uvEndX), icon.getV(uvStartY)).uv2(light).endVertex();
-		buffer.vertex(mat, startX, startY, 0).color(red, green, blue, alpha).uv(icon.getU(uvStartX), icon.getV(uvStartY)).uv2(light).endVertex();
+		buffer.addVertex(mat, startX, endY, 0).setColor(red, green, blue, alpha).setUv(icon.getU(uvStartX), icon.getV(uvEndY)).setLight(light);
+		buffer.addVertex(mat, endX, endY, 0).setColor(red, green, blue, alpha).setUv(icon.getU(uvEndX), icon.getV(uvEndY)).setLight(light);
+		buffer.addVertex(mat, endX, startY, 0).setColor(red, green, blue, alpha).setUv(icon.getU(uvEndX), icon.getV(uvStartY)).setLight(light);
+		buffer.addVertex(mat, startX, startY, 0).setColor(red, green, blue, alpha).setUv(icon.getU(uvStartX), icon.getV(uvStartY)).setLight(light);
 	}
 
 	/**
@@ -466,48 +469,52 @@ public final class RenderHelper {
 	// Borrowed with permission from https://github.com/XFactHD/FramedBlocks/blob/14f468810fc416b39447512810f0aa86e1012335/src/main/java/xfacthd/framedblocks/client/util/GhostVertexConsumer.java
 	public record GhostVertexConsumer(VertexConsumer wrapped, int alpha) implements VertexConsumer {
 		@Override
-		public VertexConsumer vertex(double x, double y, double z) {
-			return wrapped.vertex(x, y, z);
+		public VertexConsumer addVertex(float x, float y, float z) {
+			wrapped.addVertex(x, y, z);
+			return this;
 		}
 
 		@Override
-		public VertexConsumer color(int red, int green, int blue, int alpha) {
-			return wrapped.color(red, green, blue, (alpha * this.alpha) / 0xFF);
+		public VertexConsumer setColor(int red, int green, int blue, int alpha) {
+			wrapped.setColor(red, green, blue, alpha * this.alpha / 0xFF);
+			return this;
 		}
 
 		@Override
-		public VertexConsumer uv(float u, float v) {
-			return wrapped.uv(u, v);
+		public VertexConsumer setColor(int color) {
+			int adjustedAlpha = ARGB.alpha(color) * this.alpha / 0xFF;
+			wrapped.setColor(color(adjustedAlpha, color));
+			return this;
 		}
 
 		@Override
-		public VertexConsumer overlayCoords(int u, int v) {
-			return wrapped.overlayCoords(u, v);
+		public VertexConsumer setUv(float u, float v) {
+			wrapped.setUv(u, v);
+			return this;
 		}
 
 		@Override
-		public VertexConsumer uv2(int u, int v) {
-			return wrapped.uv2(u, v);
+		public VertexConsumer setUv1(int u, int v) {
+			wrapped.setUv1(u, v);
+			return this;
 		}
 
 		@Override
-		public VertexConsumer normal(float x, float y, float z) {
-			return wrapped.normal(x, y, z);
+		public VertexConsumer setUv2(int u, int v) {
+			wrapped.setUv2(u, v);
+			return this;
 		}
 
 		@Override
-		public void endVertex() {
-			wrapped.endVertex();
+		public VertexConsumer setNormal(float x, float y, float z) {
+			wrapped.setNormal(x, y, z);
+			return this;
 		}
 
 		@Override
-		public void defaultColor(int r, int g, int b, int a) {
-			wrapped.defaultColor(r, g, b, a);
-		}
-
-		@Override
-		public void unsetDefaultColor() {
-			wrapped.unsetDefaultColor();
+		public VertexConsumer setLineWidth(float width) {
+			wrapped.setLineWidth(width);
+			return this;
 		}
 	}
 }

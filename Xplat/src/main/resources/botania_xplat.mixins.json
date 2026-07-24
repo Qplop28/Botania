@@ -68,6 +68,7 @@
  "client": [
     "BlockModelGeneratorsAccessor",
     "client.AbstractContainerScreenAccessor",
+    "client.AbstractRecipeBookScreenAccessor",
     "client.ClientLevelDataMixin",
     "client.ItemInHandRendererMixin",
     "client.LevelRendererAccessor",

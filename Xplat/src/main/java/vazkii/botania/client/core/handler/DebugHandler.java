@@ -29,7 +29,9 @@ public final class DebugHandler {
 	public static void onDrawDebugText(List<String> left) {
 		Minecraft mc = Minecraft.getInstance();
 		Level world = mc.level;
-		if (mc.options.renderDebug && BotaniaConfig.client().debugInfo()) {
+		if (world != null
+				&& mc.gui.getDebugOverlay().showDebugScreen()
+				&& BotaniaConfig.client().debugInfo()) {
 			left.add("");
 			String version = XplatAbstractions.INSTANCE.getBotaniaVersion();
 
@@ -37,7 +39,7 @@ public final class DebugHandler {
 
 			if (Minecraft.getInstance().hasSingleplayerServer()) {
 				ResourceKey<Level> dim = world.dimension();
-				Identifier dimName = dim.location();
+				Identifier dimName = dim.identifier();
 				if (mc.getSingleplayerServer() != null) {
 					Level serverWorld = mc.getSingleplayerServer().getLevel(dim);
 					left.add(PREFIX + String.format("(INTEGRATED SERVER %s) netColl : %d, netPool: %d", dimName, ManaNetworkHandler.instance.getAllCollectorsInWorld(serverWorld).size(), ManaNetworkHandler.instance.getAllPoolsInWorld(serverWorld).size()));

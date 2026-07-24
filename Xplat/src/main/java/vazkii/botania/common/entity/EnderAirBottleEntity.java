@@ -9,9 +9,11 @@
 package vazkii.botania.common.entity;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.core.particles.ItemParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.resources.Identifier;
+import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
@@ -48,14 +50,15 @@ import static vazkii.botania.common.lib.ResourceLocationHelper.prefix;
 
 public class EnderAirBottleEntity extends ThrowableProjectile implements ItemSupplier {
 	public static final int PARTICLE_COLOR = 0x000008;
-	private static final Identifier GHAST_LOOT_TABLE = prefix("ghast_ender_air_crying");
+	private static final ResourceKey<LootTable> GHAST_LOOT_TABLE = ResourceKey.create(Registries.LOOT_TABLE, prefix("ghast_ender_air_crying"));
 
 	public EnderAirBottleEntity(EntityType<EnderAirBottleEntity> type, Level world) {
 		super(type, world);
 	}
 
 	public EnderAirBottleEntity(LivingEntity entity, Level world) {
-		super(BotaniaEntities.ENDER_AIR_BOTTLE, entity, world);
+		super(BotaniaEntities.ENDER_AIR_BOTTLE, entity.getX(), entity.getEyeY() - 0.10000000149011612D, entity.getZ(), world);
+		setOwner(entity);
 	}
 
 	public EnderAirBottleEntity(double x, double y, double z, Level world) {
@@ -77,7 +80,7 @@ public class EnderAirBottleEntity extends ThrowableProjectile implements ItemSup
 	@Override
 	protected void onHitBlock(@NotNull BlockHitResult result) {
 		super.onHitBlock(result);
-		if (level().isClientSide) {
+		if (level().isClientSide()) {
 			return;
 		}
 		convertBlock(result.getBlockPos());
@@ -87,9 +90,10 @@ public class EnderAirBottleEntity extends ThrowableProjectile implements ItemSup
 	@Override
 	protected void onHitEntity(@NotNull EntityHitResult result) {
 		super.onHitEntity(result);
-		if (this.level().isClientSide) {
+		if (this.level().isClientSide()) {
 			return;
 		}
+		ServerLevel serverLevel = (ServerLevel) level();
 		Entity entity = result.getEntity();
 		if (entity.getType() == EntityType.GHAST && this.level().dimension() == Level.OVERWORLD) {
 			this.level().levelEvent(LevelEvent.PARTICLES_SPELL_POTION_SPLASH, blockPosition(), PARTICLE_COLOR);
@@ -102,20 +106,24 @@ public class EnderAirBottleEntity extends ThrowableProjectile implements ItemSup
 			Vec3 vec = new Vec3(lookVec.x(), 0, lookVec.z()).normalize();
 
 			// Position chosen to appear roughly in the ghast's face
-			((ServerLevel) this.level()).sendParticles(new ItemParticleOption(ParticleTypes.ITEM, new ItemStack(Items.GHAST_TEAR)),
+			serverLevel.sendParticles(new ItemParticleOption(ParticleTypes.ITEM, Items.GHAST_TEAR),
 					entity.getX() + (2.3 * vec.x), entity.getY() + vec.y + 2.6, entity.getZ() + (2.3 * vec.z),
 					40,
 					Math.abs(vec.z) + 0.15, 0.2, Math.abs(vec.x) + 0.15, 0.2);
 
-			LootTable table = this.level().getServer().getLootData().getLootTable(GHAST_LOOT_TABLE);
-			LootParams.Builder builder = new LootParams.Builder(((ServerLevel) level()));
+			LootTable table = serverLevel.getServer()
+					.reloadableRegistries()
+					.getLootTable(GHAST_LOOT_TABLE);
+			LootParams.Builder builder = new LootParams.Builder(serverLevel);
 			builder.withParameter(LootContextParams.THIS_ENTITY, entity);
 			builder.withParameter(LootContextParams.ORIGIN, entity.position());
 			builder.withParameter(LootContextParams.DAMAGE_SOURCE, source);
 
 			LootParams context = builder.create(LootContextParamSets.ENTITY);
 			for (ItemStack stack : table.getRandomItems(context)) {
-				ItemEntity item = entity.spawnAtLocation(stack, 2);
+				ItemEntity item = new ItemEntity(serverLevel, entity.getX(), entity.getY() + 2, entity.getZ(), stack);
+				item.setDefaultPickUpDelay();
+				serverLevel.addFreshEntity(item);
 				item.setDeltaMovement(item.getDeltaMovement().add(vec.scale(0.4)));
 			}
 		} else {
@@ -147,7 +155,7 @@ public class EnderAirBottleEntity extends ThrowableProjectile implements ItemSup
 	}
 
 	@Override
-	protected void defineSynchedData() {}
+	protected void defineSynchedData(SynchedEntityData.Builder builder) {}
 
 	@NotNull
 	@Override

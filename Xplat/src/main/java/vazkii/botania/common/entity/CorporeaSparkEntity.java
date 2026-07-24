@@ -13,9 +13,9 @@ import com.google.common.base.Predicates;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.ItemParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -30,8 +30,12 @@ import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.DyeItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -68,10 +72,10 @@ public class CorporeaSparkEntity extends SparkBaseEntity implements CorporeaSpar
 	}
 
 	@Override
-	protected void defineSynchedData() {
-		super.defineSynchedData();
-		entityData.define(MASTER, false);
-		entityData.define(CREATIVE, false);
+	protected void defineSynchedData(SynchedEntityData.Builder builder) {
+		super.defineSynchedData(builder);
+		builder.define(MASTER, false);
+		builder.define(CREATIVE, false);
 	}
 
 	@NotNull
@@ -82,7 +86,7 @@ public class CorporeaSparkEntity extends SparkBaseEntity implements CorporeaSpar
 
 	@Override
 	public void tick() {
-		if (level().isClientSide) {
+		if (level().isClientSide()) {
 			return;
 		}
 
@@ -112,7 +116,9 @@ public class CorporeaSparkEntity extends SparkBaseEntity implements CorporeaSpar
 	}
 
 	private void dropAndKill() {
-		spawnAtLocation(new ItemStack(getSparkItem()), 0F);
+		if (level() instanceof ServerLevel serverLevel) {
+			spawnAtLocation(serverLevel, new ItemStack(getSparkItem()), 0F);
+		}
 		discard();
 	}
 
@@ -213,16 +219,44 @@ public class CorporeaSparkEntity extends SparkBaseEntity implements CorporeaSpar
 
 	@Override
 	public void onItemExtracted(ItemStack stack) {
-		((ServerLevel) level()).sendParticles(new ItemParticleOption(ParticleTypes.ITEM, stack), getX(), getY(), getZ(), 10, 0.125, 0.125, 0.125, 0.05);
+		if (!stack.isEmpty()) {
+			((ServerLevel) level()).sendParticles(
+					new ItemParticleOption(
+							ParticleTypes.ITEM,
+							ItemStackTemplate.fromNonEmptyStack(stack)
+					),
+					getX(),
+					getY(),
+					getZ(),
+					10,
+					0.125,
+					0.125,
+					0.125,
+					0.05
+			);
+		}
 	}
 
 	@Override
 	public void onItemsRequested(List<ItemStack> stacks) {
 		List<Item> shownItems = new ArrayList<>();
 		for (ItemStack stack : stacks) {
-			if (!shownItems.contains(stack.getItem())) {
+			if (!stack.isEmpty() && !shownItems.contains(stack.getItem())) {
 				shownItems.add(stack.getItem());
-				((ServerLevel) level()).sendParticles(new ItemParticleOption(ParticleTypes.ITEM, stack), getX(), getY(), getZ(), 10, 0.125, 0.125, 0.125, 0.05);
+				((ServerLevel) level()).sendParticles(
+						new ItemParticleOption(
+								ParticleTypes.ITEM,
+								ItemStackTemplate.fromNonEmptyStack(stack)
+						),
+						getX(),
+						getY(),
+						getZ(),
+						10,
+						0.125,
+						0.125,
+						0.125,
+						0.05
+				);
 			}
 		}
 	}
@@ -251,11 +285,11 @@ public class CorporeaSparkEntity extends SparkBaseEntity implements CorporeaSpar
 	}
 
 	@Override
-	public InteractionResult interact(Player player, InteractionHand hand) {
+	public InteractionResult interact(Player player, InteractionHand hand, Vec3 location) {
 		ItemStack stack = player.getItemInHand(hand);
 		if (isAlive() && !stack.isEmpty()) {
 			if (stack.getItem() instanceof WandOfTheForestItem) {
-				if (!level().isClientSide) {
+				if (!level().isClientSide()) {
 					if (player.isShiftKeyDown() || !PlayerHelper.isTruePlayer(player)) {
 						dropAndKill();
 						if (isMaster()) {
@@ -265,23 +299,29 @@ public class CorporeaSparkEntity extends SparkBaseEntity implements CorporeaSpar
 						displayRelatives(player, new ArrayList<>(), master);
 					}
 				}
-				return InteractionResult.sidedSuccess(level().isClientSide);
-			} else if (stack.getItem() instanceof DyeItem dye) {
-				DyeColor color = dye.getDyeColor();
-				if (color != getNetwork()) {
-					if (!level().isClientSide) {
+				return level().isClientSide()
+						? InteractionResult.SUCCESS
+						: InteractionResult.CONSUME;
+			} else if (stack.getItem() instanceof DyeItem) {
+				DyeColor color = stack.get(DataComponents.DYE);
+				if (color != null && color != getNetwork()) {
+					if (!level().isClientSide()) {
 						setNetwork(color);
 
 						stack.shrink(1);
 					}
 
-					return InteractionResult.sidedSuccess(level().isClientSide);
+					return level().isClientSide()
+						? InteractionResult.SUCCESS
+						: InteractionResult.CONSUME;
 				}
 			} else if (stack.is(BotaniaItems.phantomInk)) {
-				if (!level().isClientSide) {
+				if (!level().isClientSide()) {
 					setInvisible(true);
 				}
-				return InteractionResult.sidedSuccess(level().isClientSide);
+				return level().isClientSide()
+						? InteractionResult.SUCCESS
+						: InteractionResult.CONSUME;
 			}
 		}
 
@@ -307,17 +347,17 @@ public class CorporeaSparkEntity extends SparkBaseEntity implements CorporeaSpar
 	}
 
 	@Override
-	protected void readAdditionalSaveData(@NotNull CompoundTag cmp) {
-		super.readAdditionalSaveData(cmp);
-		setMaster(cmp.getBoolean(TAG_MASTER));
-		setCreative(cmp.getBoolean(TAG_CREATIVE));
+	protected void readAdditionalSaveData(@NotNull ValueInput input) {
+		super.readAdditionalSaveData(input);
+		setMaster(input.getBooleanOr(TAG_MASTER, false));
+		setCreative(input.getBooleanOr(TAG_CREATIVE, false));
 	}
 
 	@Override
-	protected void addAdditionalSaveData(@NotNull CompoundTag cmp) {
-		super.addAdditionalSaveData(cmp);
-		cmp.putBoolean(TAG_MASTER, isMaster());
-		cmp.putBoolean(TAG_CREATIVE, isCreative());
+	protected void addAdditionalSaveData(@NotNull ValueOutput output) {
+		super.addAdditionalSaveData(output);
+		output.putBoolean(TAG_MASTER, isMaster());
+		output.putBoolean(TAG_CREATIVE, isCreative());
 	}
 
 	public record WandHud(CorporeaSparkEntity entity) implements WandHUD {
@@ -341,7 +381,7 @@ public class CorporeaSparkEntity extends SparkBaseEntity implements CorporeaSpar
 			RenderHelper.renderHUDBox(gui, centerX - width / 2, centerY + 8, centerX + width / 2, centerY + 38);
 
 			RenderHelper.renderItemWithNameCentered(gui, mc, sparkStack, centerY + 10, textColor);
-			gui.drawString(mc.font, networkColorName, centerX - networkColorTextStart, centerY + 28, textColor);
+			gui.text(mc.font, networkColorName, centerX - networkColorTextStart, centerY + 28, textColor);
 		}
 	}
 

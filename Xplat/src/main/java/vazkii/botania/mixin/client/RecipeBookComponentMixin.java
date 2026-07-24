@@ -8,30 +8,24 @@
  */
 package vazkii.botania.mixin.client;
 
+import net.minecraft.client.gui.screens.recipebook.GhostSlots;
 import net.minecraft.client.gui.screens.recipebook.RecipeBookComponent;
 import net.minecraft.world.item.ItemStack;
 
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Unique;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.ModifyVariable;
+import org.spongepowered.asm.mixin.Shadow;
 
 import vazkii.botania.client.core.RecipeBookAccess;
 
 @Mixin(RecipeBookComponent.class)
 public class RecipeBookComponentMixin implements RecipeBookAccess {
-	@Unique
-	private ItemStack hoveredGhostRecipeStack;
+	@Shadow
+	@Final
+	private GhostSlots ghostSlots;
 
 	@Override
 	public ItemStack getHoveredGhostRecipeStack() {
-		return hoveredGhostRecipeStack;
-	}
-
-	// Captures the stack that had its tooltip drawn.
-	@ModifyVariable(method = "renderGhostRecipeTooltip", at = @At("RETURN"), ordinal = 0, require = 0)
-	private ItemStack captureHoveredGhostStack(ItemStack stack) {
-		hoveredGhostRecipeStack = stack;
-		return stack;
+		return ((RecipeBookAccess) ghostSlots).getHoveredGhostRecipeStack();
 	}
 }

@@ -8,7 +8,7 @@
  */
 package vazkii.botania.common.world;
 
-import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import net.minecraft.core.*;
@@ -32,13 +32,13 @@ import static vazkii.botania.common.lib.ResourceLocationHelper.prefix;
 
 public class SkyblockChunkGenerator extends NoiseBasedChunkGenerator {
 	// [VanillaCopy] NoiseBasedChunkGenerator's codec, but calls our constructor
-	public static final Codec<SkyblockChunkGenerator> CODEC = RecordCodecBuilder.create(
+	public static final MapCodec<SkyblockChunkGenerator> CODEC = RecordCodecBuilder.mapCodec(
 			(instance) -> instance.group(
 					BiomeSource.CODEC.fieldOf("biome_source").forGetter((gen) -> gen.biomeSource),
 					NoiseGeneratorSettings.CODEC.fieldOf("settings").forGetter(NoiseBasedChunkGenerator::generatorSettings))
 					.apply(instance, instance.stable(SkyblockChunkGenerator::new)));
 
-	public static void submitRegistration(BiConsumer<Codec<? extends ChunkGenerator>, Identifier> consumer) {
+	public static void submitRegistration(BiConsumer<MapCodec<? extends ChunkGenerator>, Identifier> consumer) {
 		consumer.accept(SkyblockChunkGenerator.CODEC, prefix("skyblock"));
 	}
 
@@ -52,7 +52,7 @@ public class SkyblockChunkGenerator extends NoiseBasedChunkGenerator {
 
 	@NotNull
 	@Override
-	protected Codec<? extends ChunkGenerator> codec() {
+	protected MapCodec<? extends ChunkGenerator> codec() {
 		return CODEC;
 	}
 

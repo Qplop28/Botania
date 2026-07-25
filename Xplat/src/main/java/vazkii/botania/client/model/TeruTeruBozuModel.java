@@ -19,7 +19,12 @@ import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.Identifier;
 
+import org.joml.Vector3fc;
+
 import vazkii.botania.client.render.block_entity.state.TeruTeruBozuRenderState;
+
+import java.util.List;
+import java.util.function.Consumer;
 
 public class TeruTeruBozuModel {
 	private final ModelPart thread;
@@ -54,12 +59,22 @@ public class TeruTeruBozuModel {
 
 	public void submit(TeruTeruBozuRenderState state, PoseStack poseStack,
 			SubmitNodeCollector submitNodeCollector, Identifier texture) {
+		submit(state, poseStack, submitNodeCollector, texture, OverlayTexture.NO_OVERLAY, false, 0);
+	}
+
+	public void submit(TeruTeruBozuRenderState state, PoseStack poseStack,
+			SubmitNodeCollector submitNodeCollector, Identifier texture, int overlay,
+			boolean hasFoil, int outlineColor) {
 		var renderType = RenderTypes.entityCutoutNoCull(texture);
-		submitNodeCollector.submitModelPart(poseStack, state.raining ? sadFace : happyFace, renderType,
-				state.lightCoords, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF, null, state.breakProgress);
-		submitNodeCollector.submitModelPart(poseStack, thread, renderType,
-				state.lightCoords, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF, null, state.breakProgress);
-		submitNodeCollector.submitModelPart(poseStack, cloth, renderType,
-				state.lightCoords, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF, null, state.breakProgress);
+		for (ModelPart part : List.of(state.raining ? sadFace : happyFace, thread, cloth)) {
+			submitNodeCollector.submitModelPart(part, poseStack, renderType, state.lightCoords, overlay,
+					null, false, hasFoil, -1, state.breakProgress, outlineColor);
+		}
+	}
+
+	public void collectItemExtents(PoseStack poseStack, Consumer<Vector3fc> output) {
+		happyFace.getExtentsForGui(poseStack, output);
+		thread.getExtentsForGui(poseStack, output);
+		cloth.getExtentsForGui(poseStack, output);
 	}
 }

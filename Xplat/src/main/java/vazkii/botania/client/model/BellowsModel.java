@@ -15,12 +15,17 @@ import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.CubeListBuilder;
 import net.minecraft.client.model.geom.builders.MeshDefinition;
 import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.Identifier;
 
+import org.joml.Vector3fc;
+
 import vazkii.botania.client.render.block_entity.state.BellowsRenderState;
 import vazkii.botania.common.helper.VecHelper;
+
+import java.util.function.Consumer;
 
 public class BellowsModel {
 	private final ModelPart top;
@@ -55,25 +60,45 @@ public class BellowsModel {
 
 	public void submit(BellowsRenderState state, PoseStack poseStack,
 			SubmitNodeCollector submitNodeCollector, Identifier texture) {
+		submit(state, poseStack, submitNodeCollector, texture, OverlayTexture.NO_OVERLAY, false, 0);
+	}
+
+	public void submit(BellowsRenderState state, PoseStack poseStack,
+			SubmitNodeCollector submitNodeCollector, Identifier texture, int overlay,
+			boolean hasFoil, int outlineColor) {
 		var renderType = RenderTypes.entityCutout(texture);
-		submitNodeCollector.submitModelPart(poseStack, base, renderType, state.lightCoords,
-				OverlayTexture.NO_OVERLAY, 0xFFFFFFFF, null, state.breakProgress);
-		submitNodeCollector.submitModelPart(poseStack, pipe, renderType, state.lightCoords,
-				OverlayTexture.NO_OVERLAY, 0xFFFFFFFF, null, state.breakProgress);
+		submitPart(base, state, poseStack, submitNodeCollector, renderType, overlay, hasFoil, outlineColor);
+		submitPart(pipe, state, poseStack, submitNodeCollector, renderType, overlay, hasFoil, outlineColor);
 
 		float movement = (1F - state.contractionFraction) * 0.5F;
 		poseStack.pushPose();
 		poseStack.translate(0F, movement, 0F);
-		submitNodeCollector.submitModelPart(poseStack, top, renderType, state.lightCoords,
-				OverlayTexture.NO_OVERLAY, 0xFFFFFFFF, null, state.breakProgress);
+		submitPart(top, state, poseStack, submitNodeCollector, renderType, overlay, hasFoil, outlineColor);
 		poseStack.popPose();
 
 		poseStack.pushPose();
 		poseStack.mulPose(VecHelper.rotateX(180F));
 		poseStack.translate(-0.19F, -1.375F, -0.19F);
 		poseStack.scale(1F, state.contractionFraction, 1F);
-		submitNodeCollector.submitModelPart(poseStack, funnel, renderType, state.lightCoords,
-				OverlayTexture.NO_OVERLAY, 0xFFFFFFFF, null, state.breakProgress);
+		submitPart(funnel, state, poseStack, submitNodeCollector, renderType, overlay, hasFoil, outlineColor);
 		poseStack.popPose();
+	}
+
+	public void collectItemExtents(PoseStack poseStack, Consumer<Vector3fc> output) {
+		base.getExtentsForGui(poseStack, output);
+		pipe.getExtentsForGui(poseStack, output);
+		top.getExtentsForGui(poseStack, output);
+		poseStack.pushPose();
+		poseStack.mulPose(VecHelper.rotateX(180F));
+		poseStack.translate(-0.19F, -1.375F, -0.19F);
+		funnel.getExtentsForGui(poseStack, output);
+		poseStack.popPose();
+	}
+
+	private static void submitPart(ModelPart part, BellowsRenderState state, PoseStack poseStack,
+			SubmitNodeCollector collector, RenderType renderType,
+			int overlay, boolean hasFoil, int outlineColor) {
+		collector.submitModelPart(part, poseStack, renderType, state.lightCoords, overlay, null, false,
+				hasFoil, -1, state.breakProgress, outlineColor);
 	}
 }

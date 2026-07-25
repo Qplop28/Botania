@@ -1,0 +1,10 @@
+{
+  "model": {
+    "type": "minecraft:special",
+    "base": "botania:item/corporea_index",
+    "model": {
+      "type": "botania:block_entity",
+      "block": "botania:corporea_index"
+    }
+  }
+}

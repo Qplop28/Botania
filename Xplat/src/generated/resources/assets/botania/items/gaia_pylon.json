@@ -1,0 +1,32 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "property": "minecraft:display_context",
+    "cases": [
+      {
+        "when": [
+          "gui",
+          "firstperson_lefthand",
+          "firstperson_righthand"
+        ],
+        "model": {
+          "type": "minecraft:special",
+          "base": "botania:item/gaia_pylon",
+          "model": {
+            "type": "botania:block_entity",
+            "block": "botania:gaia_pylon",
+            "direct": true
+          }
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:special",
+      "base": "botania:item/gaia_pylon",
+      "model": {
+        "type": "botania:block_entity",
+        "block": "botania:gaia_pylon"
+      }
+    }
+  }
+}

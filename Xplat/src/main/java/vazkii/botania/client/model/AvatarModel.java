@@ -8,17 +8,15 @@
  */
 package vazkii.botania.client.model;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
-
 import net.minecraft.client.model.Model;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.CubeListBuilder;
 import net.minecraft.client.model.geom.builders.MeshDefinition;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.util.Unit;
 
-public class AvatarModel extends Model {
+public class AvatarModel extends Model<Unit> {
 
 	private final ModelPart body;
 	private final ModelPart rightarm;
@@ -28,7 +26,7 @@ public class AvatarModel extends Model {
 	private final ModelPart head;
 
 	public AvatarModel(ModelPart root) {
-		super(RenderType::entitySolid);
+		super(root, RenderType::entitySolid);
 		leftleg = root.getChild("left_leg");
 		rightarm = root.getChild("right_arm");
 		leftarm = root.getChild("left_arm");
@@ -59,16 +57,6 @@ public class AvatarModel extends Model {
 				.addBox(-1.5F, 0.0F, -1.5F, 3, 6, 3),
 				PartPose.offset(-1.5F, 18.0F, -0.5F));
 		return mesh;
-	}
-
-	@Override
-	public void renderToBuffer(PoseStack ms, VertexConsumer buffer, int light, int overlay, float r, float g, float b, float a) {
-		leftleg.render(ms, buffer, light, overlay, r, g, b, a);
-		rightarm.render(ms, buffer, light, overlay, r, g, b, a);
-		leftarm.render(ms, buffer, light, overlay, r, g, b, a);
-		head.render(ms, buffer, light, overlay, r, g, b, a);
-		rightleg.render(ms, buffer, light, overlay, r, g, b, a);
-		body.render(ms, buffer, light, overlay, r, g, b, a);
 	}
 
 }

@@ -15,6 +15,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.ChatFormatting;
 import net.minecraft.util.Util;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.ChatScreen;
 import net.minecraft.client.resources.language.I18n;
@@ -79,7 +80,8 @@ public final class HUDHandler {
 		}
 	}
 
-	public static void onDrawScreenPost(GuiGraphicsExtractor gui, float partialTicks) {
+	public static void onDrawScreenPost(GuiGraphicsExtractor gui, DeltaTracker deltaTracker) {
+		float partialTicks = deltaTracker.getGameTimeDeltaPartialTick(false);
 		PoseStack ms = gui.pose();
 		Minecraft mc = Minecraft.getInstance();
 		if (mc.options.hideGui) {

@@ -15,7 +15,14 @@ import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.CubeListBuilder;
 import net.minecraft.client.model.geom.builders.MeshDefinition;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.util.Mth;
+
+import org.joml.Vector3fc;
+
+import java.util.List;
+import java.util.function.Consumer;
 
 public class NaturaPylonModel implements PylonModel {
 
@@ -110,5 +117,35 @@ public class NaturaPylonModel implements PylonModel {
 		plateb.render(ms, buffer, light, overlay);
 		platel.render(ms, buffer, light, overlay);
 		plater.render(ms, buffer, light, overlay);
+	}
+
+	@Override
+	public void submitRing(PoseStack poseStack, SubmitNodeCollector collector, RenderType renderType,
+			int light, int overlay, boolean hasFoil, int outlineColor) {
+		for (ModelPart part : List.of(platef, plateb, platel, plater)) {
+			submit(part, poseStack, collector, renderType, light, overlay, hasFoil, outlineColor);
+		}
+	}
+
+	@Override
+	public void submitCrystal(PoseStack poseStack, SubmitNodeCollector collector, RenderType renderType,
+			int light, int overlay, boolean hasFoil, int outlineColor) {
+		for (ModelPart part : List.of(shardrft, shardlbt, shardrbt, shardlft, shardrfb, shardlbb, shardrbb, shardlfb)) {
+			submit(part, poseStack, collector, renderType, light, overlay, hasFoil, outlineColor);
+		}
+	}
+
+	@Override
+	public void collectExtents(PoseStack poseStack, Consumer<Vector3fc> output) {
+		for (ModelPart part : List.of(platef, plateb, platel, plater,
+				shardrft, shardlbt, shardrbt, shardlft, shardrfb, shardlbb, shardrbb, shardlfb)) {
+			part.getExtentsForGui(poseStack, output);
+		}
+	}
+
+	private static void submit(ModelPart part, PoseStack poseStack, SubmitNodeCollector collector,
+			RenderType renderType, int light, int overlay, boolean hasFoil, int outlineColor) {
+		collector.submitModelPart(part, poseStack, renderType, light, overlay, null, false,
+				hasFoil, -1, null, outlineColor);
 	}
 }

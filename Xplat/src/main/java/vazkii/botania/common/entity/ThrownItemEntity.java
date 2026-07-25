@@ -8,18 +8,12 @@
  */
 package vazkii.botania.common.entity;
 
-import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.TheEndGatewayBlockEntity;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 
@@ -56,29 +50,8 @@ public class ThrownItemEntity extends ItemEntity {
 		int pickupDelay = ((ItemEntityAccessor) this).getPickupDelay();
 		Predicate<Entity> filter = e -> !e.isSpectator() && e.isAlive() && e.isPickable() && (!(e instanceof Player) || pickupDelay == 0);
 		HitResult hitResult = ProjectileUtil.getHitResultOnMoveVector(this, filter);
-		boolean teleported = false;
-		if (hitResult.getType() == HitResult.Type.BLOCK) {
-			BlockPos blockPos = ((BlockHitResult) hitResult).getBlockPos();
-			BlockState blockState = this.level().getBlockState(blockPos);
-			if (blockState.is(Blocks.NETHER_PORTAL)) {
-				this.handleInsidePortal(blockPos);
-				teleported = true;
-			} else if (blockState.is(Blocks.END_GATEWAY)) {
-				BlockEntity blockEntity = this.level().getBlockEntity(blockPos);
-				if (blockEntity instanceof TheEndGatewayBlockEntity gateway && TheEndGatewayBlockEntity.canEntityTeleport(this)) {
-					TheEndGatewayBlockEntity.teleportEntity(this.level(), blockPos, blockState, this, gateway);
-				}
-
-				teleported = true;
-			}
-		}
-
-		if (teleported) {
-			return;
-		}
-
 		// Bonk any entities hit
-		if (!level().isClientSide && hitResult.getType() == HitResult.Type.ENTITY) {
+		if (!level().isClientSide() && hitResult.getType() == HitResult.Type.ENTITY) {
 			Entity bonk = ((EntityHitResult) hitResult).getEntity();
 			bonk.hurt(damageSources().magic(), 2.0F);
 			Entity item = new ItemEntity(level(), getX(), getY(), getZ(), getItem());
@@ -88,7 +61,7 @@ public class ThrownItemEntity extends ItemEntity {
 			return;
 		}
 
-		if (!level().isClientSide && getDeltaMovement().length() < 1.0F) {
+		if (!level().isClientSide() && getDeltaMovement().length() < 1.0F) {
 			Entity item = new ItemEntity(level(), getX(), getY(), getZ(), getItem());
 			level().addFreshEntity(item);
 			item.setDeltaMovement(getDeltaMovement());

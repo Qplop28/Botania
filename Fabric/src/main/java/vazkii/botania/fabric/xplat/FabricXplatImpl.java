@@ -13,8 +13,7 @@ import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityT
 import net.fabricmc.fabric.api.object.builder.v1.block.type.BlockSetTypeBuilder;
 import net.fabricmc.fabric.api.object.builder.v1.block.type.WoodTypeBuilder;
 import net.fabricmc.fabric.api.registry.StrippableBlockRegistry;
-import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
-import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
+import net.fabricmc.fabric.api.resource.v1.ResourceLoader;
 import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidConstants;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
@@ -42,11 +41,9 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.PreparableReloadListener;
-import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.Unit;
-import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.effect.MobEffect;
@@ -117,8 +114,6 @@ import vazkii.botania.xplat.XplatAbstractions;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -542,18 +537,7 @@ import static vazkii.botania.integration.speedrunigt.BotaniaSpeedrunCategories.B
 
 	@Override
 	public void registerReloadListener(PackType type, Identifier id, PreparableReloadListener listener) {
-		ResourceManagerHelper.get(type).registerReloadListener(new IdentifiableResourceReloadListener() {
-			@Override
-			public CompletableFuture<Void> reload(PreparationBarrier barrier, ResourceManager manager, ProfilerFiller prepProfiler,
-					ProfilerFiller reloadProfiler, Executor backgroundExecutor, Executor gameExecutor) {
-				return listener.reload(barrier, manager, prepProfiler, reloadProfiler, backgroundExecutor, gameExecutor);
-			}
-
-			@Override
-			public Identifier getFabricId() {
-				return id;
-			}
-		});
+		ResourceLoader.get(type).registerReloadListener(id, listener);
 	}
 
 	@Override
@@ -639,7 +623,7 @@ import static vazkii.botania.integration.speedrunigt.BotaniaSpeedrunCategories.B
 
 	@Override
 	public Fluid getBucketFluid(BucketItem item) {
-		return ((BucketItemAccessor) item).fabric_getFluid();
+		return ((BucketItemAccessor) item).fabric_getContent();
 	}
 
 	@Override

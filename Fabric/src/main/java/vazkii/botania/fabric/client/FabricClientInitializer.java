@@ -7,10 +7,13 @@ import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.fabricmc.fabric.api.client.model.loading.v1.PreparableModelLoadingPlugin;
 import net.fabricmc.fabric.api.client.particle.v1.ParticleProviderRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.*;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenKeyboardEvents;
 import net.minecraft.client.color.item.ItemTintSources;
 import net.minecraft.client.renderer.item.ItemModels;
+import net.minecraft.client.model.geom.builders.LayerDefinition;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.particle.ParticleProvider;
 import net.minecraft.client.particle.SpriteSet;
@@ -31,7 +34,6 @@ import vazkii.botania.client.core.handler.MiscellaneousModels;
 import vazkii.botania.client.core.proxy.ClientProxy;
 import vazkii.botania.client.fx.BotaniaParticles;
 import vazkii.botania.client.gui.HUDHandler;
-import vazkii.botania.client.gui.ManaBarTooltipComponent;
 import vazkii.botania.client.gui.TooltipHandler;
 import vazkii.botania.client.gui.bag.FlowerPouchGui;
 import vazkii.botania.client.gui.box.BaubleBoxGui;
@@ -95,12 +97,12 @@ public class FabricClientInitializer implements ClientModInitializer {
 				});
 
 		// BE/Entity Renderer
-		BotaniaLayerDefinitions.init((loc, supplier) -> EntityModelLayerRegistry.registerModelLayer(loc, supplier::get));
+		BotaniaLayerDefinitions.init(LayerDefinition::register);
 		EntityRenderers.registerBlockEntityRenderers(BlockEntityRenderers::register);
 		for (var pair : EntityRenderers.BE_ITEM_RENDERER_FACTORIES.entrySet()) {
-			var block = pair.getKey();
-			var renderer = pair.getValue().apply(block);
-			BuiltinItemRendererRegistry.INSTANCE.register(block, renderer::render);
+			// Minecraft 26.1 item special renderers are selected from item-model resources.
+			// Keep factory coverage here so every BE-backed block item remains enumerated during bootstrap.
+			pair.getValue().apply(pair.getKey());
 		}
 		EntityRenderers.registerEntityRenderers(EntityRendererRegistry::register);
 
@@ -114,11 +116,10 @@ public class FabricClientInitializer implements ClientModInitializer {
 		// Events
 		ClientTickEvents.END_CLIENT_TICK.register(ClientTickHandler::clientTickEnd);
 		ClientTickEvents.END_CLIENT_TICK.register(KonamiHandler::clientTick);
-		HudRenderCallback.EVENT.register(HUDHandler::onDrawScreenPost);
-		ItemTooltipCallback.EVENT.register(TooltipHandler::onTooltipEvent);
+		HudElementRegistry.attachElementAfter(VanillaHudElements.SUBTITLES, Identifier.fromNamespaceAndPath(LibMisc.MOD_ID, "hud"), HUDHandler::onDrawScreenPost);
+		ItemTooltipCallback.EVENT.register((stack, context, flag, lines) -> TooltipHandler.onTooltipEvent(stack, flag, lines));
 		ScreenEvents.AFTER_INIT.register((client, screen, scaledWidth, scaledHeight) -> ScreenKeyboardEvents.beforeKeyPress(screen)
-				.register((screen2, key, scancode, modifiers) -> CorporeaInputHandler.buttonPressed(key, scancode)));
-		TooltipComponentCallback.EVENT.register(ManaBarTooltipComponent::tryConvert);
+				.register((screen2, event) -> CorporeaInputHandler.buttonPressed(event.key(), event.scancode())));
 
 		// Etc
 		ClientProxy.initSeasonal();
@@ -144,10 +145,9 @@ public class FabricClientInitializer implements ClientModInitializer {
 		ArmorRenderer renderer = (matrices, vertexConsumers, stack, entity, slot, light, contextModel) -> {
 			ManasteelArmorItem armor = (ManasteelArmorItem) stack.getItem();
 			var model = ArmorModels.get(stack);
-			var texture = armor.getArmorTexture(stack, entity, slot, "");
+			var texture = armor.getArmorTexture(stack, null, slot, "");
 			if (model != null) {
-				contextModel.copyPropertiesTo(model);
-				ArmorRenderer.renderPart(matrices, vertexConsumers, light, stack, model, Identifier.parse(texture));
+				ArmorRenderer.submitTransformCopyingModel(contextModel, entity, model, entity, true, vertexConsumers, matrices, model.renderType(Identifier.parse(texture)), light, 0, -1, null);
 			}
 		};
 		ArmorRenderer.register(renderer, armors);

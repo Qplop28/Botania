@@ -6,14 +6,17 @@ import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.fabricmc.fabric.api.client.model.loading.v1.PreparableModelLoadingPlugin;
 import net.fabricmc.fabric.api.client.particle.v1.ParticleProviderRegistry;
-import net.fabricmc.fabric.api.client.rendering.v1.*;
+import net.fabricmc.fabric.api.client.rendering.v1.ArmorRenderer;
+import net.fabricmc.fabric.api.client.rendering.v1.BlockColorRegistry;
+import net.fabricmc.fabric.api.client.rendering.v1.ClientTooltipComponentCallback;
+import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
+import net.fabricmc.fabric.api.client.rendering.v1.ModelLayerRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenKeyboardEvents;
 import net.minecraft.client.color.item.ItemTintSources;
 import net.minecraft.client.renderer.item.ItemModels;
-import net.minecraft.client.model.geom.builders.LayerDefinition;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.particle.ParticleProvider;
 import net.minecraft.client.particle.SpriteSet;
@@ -23,6 +26,7 @@ import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.entity.LivingEntity;
 
 import vazkii.botania.api.BotaniaAPI;
 import vazkii.botania.api.BotaniaAPIClient;
@@ -34,6 +38,7 @@ import vazkii.botania.client.core.handler.MiscellaneousModels;
 import vazkii.botania.client.core.proxy.ClientProxy;
 import vazkii.botania.client.fx.BotaniaParticles;
 import vazkii.botania.client.gui.HUDHandler;
+import vazkii.botania.client.gui.ManaBarTooltipComponent;
 import vazkii.botania.client.gui.TooltipHandler;
 import vazkii.botania.client.gui.bag.FlowerPouchGui;
 import vazkii.botania.client.gui.box.BaubleBoxGui;
@@ -97,13 +102,9 @@ public class FabricClientInitializer implements ClientModInitializer {
 				});
 
 		// BE/Entity Renderer
-		BotaniaLayerDefinitions.init(LayerDefinition::register);
+		BotaniaLayerDefinitions.init((location, supplier) ->
+				ModelLayerRegistry.registerModelLayer(location, supplier::get));
 		EntityRenderers.registerBlockEntityRenderers(BlockEntityRenderers::register);
-		for (var pair : EntityRenderers.BE_ITEM_RENDERER_FACTORIES.entrySet()) {
-			// Minecraft 26.1 item special renderers are selected from item-model resources.
-			// Keep factory coverage here so every BE-backed block item remains enumerated during bootstrap.
-			pair.getValue().apply(pair.getKey());
-		}
 		EntityRenderers.registerEntityRenderers(EntityRendererRegistry::register);
 
 		BotaniaParticles.FactoryHandler.registerFactories(new BotaniaParticles.FactoryHandler.Consumer() {
@@ -118,6 +119,7 @@ public class FabricClientInitializer implements ClientModInitializer {
 		ClientTickEvents.END_CLIENT_TICK.register(KonamiHandler::clientTick);
 		HudElementRegistry.attachElementAfter(VanillaHudElements.SUBTITLES, Identifier.fromNamespaceAndPath(LibMisc.MOD_ID, "hud"), HUDHandler::onDrawScreenPost);
 		ItemTooltipCallback.EVENT.register((stack, context, flag, lines) -> TooltipHandler.onTooltipEvent(stack, flag, lines));
+		ClientTooltipComponentCallback.EVENT.register(ManaBarTooltipComponent::tryConvert);
 		ScreenEvents.AFTER_INIT.register((client, screen, scaledWidth, scaledHeight) -> ScreenKeyboardEvents.beforeKeyPress(screen)
 				.register((screen2, event) -> CorporeaInputHandler.buttonPressed(event.key(), event.scancode())));
 
@@ -142,12 +144,14 @@ public class FabricClientInitializer implements ClientModInitializer {
 						&& BuiltInRegistries.ITEM.getKey(i).getNamespace().equals(LibMisc.MOD_ID))
 				.toArray(Item[]::new);
 
-		ArmorRenderer renderer = (matrices, vertexConsumers, stack, entity, slot, light, contextModel) -> {
+		ArmorRenderer renderer = (poseStack, submitNodeCollector, stack, renderState, slot, light, contextModel) -> {
 			ManasteelArmorItem armor = (ManasteelArmorItem) stack.getItem();
 			var model = ArmorModels.get(stack);
 			var texture = armor.getArmorTexture(stack, null, slot, "");
 			if (model != null) {
-				ArmorRenderer.submitTransformCopyingModel(contextModel, entity, model, entity, true, vertexConsumers, matrices, model.renderType(Identifier.parse(texture)), light, 0, -1, null);
+				model.prepareForRender();
+				ArmorRenderer.submitTransformCopyingModel(contextModel, renderState, model, (LivingEntity) null, false,
+						submitNodeCollector, poseStack, model.renderType(Identifier.parse(texture)), light, 0, -1, null);
 			}
 		};
 		ArmorRenderer.register(renderer, armors);

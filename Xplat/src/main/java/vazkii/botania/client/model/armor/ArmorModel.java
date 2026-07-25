@@ -60,8 +60,12 @@ public class ArmorModel extends HumanoidModel<LivingEntity> {
 
 	@Override
 	public void renderToBuffer(PoseStack ms, VertexConsumer buffer, int light, int overlay, float r, float g, float b, float a) {
-		setPartVisibility(slot);
+		prepareForRender();
 		super.renderToBuffer(ms, buffer, light, overlay, r, g, b, a);
+	}
+
+	public void prepareForRender() {
+		setPartVisibility(slot);
 	}
 
 	// [VanillaCopy] HumanoidArmorLayer

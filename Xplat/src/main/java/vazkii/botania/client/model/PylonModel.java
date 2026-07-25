@@ -14,14 +14,20 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.rendertype.RenderType;
 
+import org.joml.Vector3fc;
+
+import java.util.function.Consumer;
+
 public interface PylonModel {
 	void renderRing(PoseStack ms, VertexConsumer buffer, int light, int overlay);
 
 	void renderCrystal(PoseStack ms, VertexConsumer buffer, int light, int overlay);
 
 	void submitRing(PoseStack poseStack, SubmitNodeCollector collector, RenderType renderType,
-			int light, int overlay, int outlineColor);
+			int light, int overlay, boolean hasFoil, int outlineColor);
 
 	void submitCrystal(PoseStack poseStack, SubmitNodeCollector collector, RenderType renderType,
-			int light, int overlay, int outlineColor);
+			int light, int overlay, boolean hasFoil, int outlineColor);
+
+	void collectExtents(PoseStack poseStack, Consumer<Vector3fc> output);
 }

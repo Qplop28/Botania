@@ -19,7 +19,6 @@ import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.special.SpecialModelRenderer;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
-import net.minecraft.util.Unit;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -82,11 +81,6 @@ public class BotaniaBlockEntityItemRenderer implements SpecialModelRenderer<Item
 
 		private RootDelegate(ModelPart root) {
 			this.root = root;
-		}
-
-		@Override
-		public void getExtents(Consumer<Vector3fc> output) {
-			root.getExtentsForGui(new PoseStack(), output);
 		}
 	}
 
@@ -170,9 +164,18 @@ public class BotaniaBlockEntityItemRenderer implements SpecialModelRenderer<Item
 				poseStack.scale(1, -1, -1);
 				poseStack.translate(0.5F, 0, -0.5F);
 				model.submitRing(poseStack, collector, RenderType.entityTranslucent(texture),
-						light, overlay, outlineColor);
-				model.submitCrystal(poseStack, collector, glow, light, overlay, outlineColor);
+						light, overlay, hasFoil, outlineColor);
+				model.submitCrystal(poseStack, collector, glow, light, overlay, hasFoil, outlineColor);
 				poseStack.popPose();
+			}
+
+			@Override
+			public void getExtents(Consumer<Vector3fc> output) {
+				PoseStack poseStack = new PoseStack();
+				poseStack.translate(0, 1.35, 0);
+				poseStack.scale(1, -1, -1);
+				poseStack.translate(0.5F, 0, -0.5F);
+				model.collectExtents(poseStack, output);
 			}
 		};
 	}
@@ -197,8 +200,26 @@ public class BotaniaBlockEntityItemRenderer implements SpecialModelRenderer<Item
 				poseStack.scale(0.75F, 0.75F, 0.75F);
 				Identifier texture = Identifier.parse(state.halloween
 						? ResourcesLib.MODEL_TERU_TERU_BOZU_HALLOWEEN : ResourcesLib.MODEL_TERU_TERU_BOZU);
-				model.submit(state, poseStack, collector, texture, overlay, outlineColor);
+				model.submit(state, poseStack, collector, texture, overlay, hasFoil, outlineColor);
 				poseStack.popPose();
+			}
+
+			@Override
+			public void getExtents(Consumer<Vector3fc> output) {
+				for (int sample = 0; sample < 16; sample++) {
+					float rotation = sample * 360F / 16F;
+					for (float rock : new float[] { -4F, 4F }) {
+						for (float bob : new float[] { -0.05F, 0.05F }) {
+							PoseStack poseStack = new PoseStack();
+							poseStack.mulPose(VecHelper.rotateX(180));
+							poseStack.translate(0.5F, -1.25F + bob, -0.5F);
+							poseStack.mulPose(VecHelper.rotateY(rotation));
+							poseStack.mulPose(VecHelper.rotateZ(rock));
+							poseStack.scale(0.75F, 0.75F, 0.75F);
+							model.collectItemExtents(poseStack, output);
+						}
+					}
+				}
 			}
 		};
 	}
@@ -215,9 +236,18 @@ public class BotaniaBlockEntityItemRenderer implements SpecialModelRenderer<Item
 				poseStack.translate(0.5F, 1.6F, 0.5F);
 				poseStack.scale(1, -1, -1);
 				poseStack.mulPose(VecHelper.rotateY(180));
-				collector.submitModel(model, Unit.INSTANCE, poseStack, model.renderType(texture), light,
-						overlay, 0xFFFFFFFF, outlineColor, null);
+				collector.submitModelPart(model.root(), poseStack, model.renderType(texture), light, overlay,
+						null, false, hasFoil, -1, null, outlineColor);
 				poseStack.popPose();
+			}
+
+			@Override
+			public void getExtents(Consumer<Vector3fc> output) {
+				PoseStack poseStack = new PoseStack();
+				poseStack.translate(0.5F, 1.6F, 0.5F);
+				poseStack.scale(1, -1, -1);
+				poseStack.mulPose(VecHelper.rotateY(180));
+				model.root().getExtentsForGui(poseStack, output);
 			}
 		};
 	}
@@ -237,8 +267,16 @@ public class BotaniaBlockEntityItemRenderer implements SpecialModelRenderer<Item
 				poseStack.pushPose();
 				poseStack.translate(0.5F, 1.5F, 0.5F);
 				poseStack.scale(1, -1, -1);
-				model.submit(state, poseStack, collector, texture, overlay, outlineColor);
+				model.submit(state, poseStack, collector, texture, overlay, hasFoil, outlineColor);
 				poseStack.popPose();
+			}
+
+			@Override
+			public void getExtents(Consumer<Vector3fc> output) {
+				PoseStack poseStack = new PoseStack();
+				poseStack.translate(0.5F, 1.5F, 0.5F);
+				poseStack.scale(1, -1, -1);
+				model.collectItemExtents(poseStack, output);
 			}
 		};
 	}
@@ -259,8 +297,16 @@ public class BotaniaBlockEntityItemRenderer implements SpecialModelRenderer<Item
 				poseStack.pushPose();
 				poseStack.scale(1, -1, -1);
 				poseStack.translate(0.5F, -1.5F, -0.5F);
-				model.submit(state, poseStack, collector, texture, overlay, outlineColor);
+				model.submit(state, poseStack, collector, texture, overlay, hasFoil, outlineColor);
 				poseStack.popPose();
+			}
+
+			@Override
+			public void getExtents(Consumer<Vector3fc> output) {
+				PoseStack poseStack = new PoseStack();
+				poseStack.scale(1, -1, -1);
+				poseStack.translate(0.5F, -1.5F, -0.5F);
+				model.collectItemExtents(poseStack, output);
 			}
 		};
 	}
@@ -283,16 +329,40 @@ public class BotaniaBlockEntityItemRenderer implements SpecialModelRenderer<Item
 				poseStack.mulPose(VecHelper.rotateY(rotation));
 				poseStack.translate(0, 1.5F, 0);
 				poseStack.mulPose(new Quaternionf().rotateAxis(VecHelper.toRadians(60), CORPOREA_ANGLE, 0, CORPOREA_ANGLE));
-				collector.submitModelPart(poseStack, ring, renderType, light, overlay, 0xFFFFFFFF, outlineColor, null);
+				submitPart(ring, poseStack, collector, renderType, light, overlay, hasFoil, outlineColor);
 				poseStack.scale(0.875F, 0.875F, 0.875F);
 				poseStack.mulPose(new Quaternionf().rotateAxis(VecHelper.toRadians(60), CORPOREA_ANGLE, 0, CORPOREA_ANGLE));
 				poseStack.mulPose(VecHelper.rotateY(rotation));
-				collector.submitModelPart(poseStack, ring, renderType, light, overlay, 0xFFFFFFFF, outlineColor, null);
+				submitPart(ring, poseStack, collector, renderType, light, overlay, hasFoil, outlineColor);
 				poseStack.scale(0.875F, 0.875F, 0.875F);
 				poseStack.mulPose(new Quaternionf().rotateAxis(VecHelper.toRadians(60), CORPOREA_ANGLE, 0, CORPOREA_ANGLE));
 				poseStack.mulPose(VecHelper.rotateY(rotation));
-				collector.submitModelPart(poseStack, cube, renderType, light, overlay, 0xFFFFFFFF, outlineColor, null);
+				submitPart(cube, poseStack, collector, renderType, light, overlay, hasFoil, outlineColor);
 				poseStack.popPose();
+			}
+
+			@Override
+			public void getExtents(Consumer<Vector3fc> output) {
+				for (int sample = 0; sample < 16; sample++) {
+					float rotation = sample * 360F / 16F;
+					PoseStack poseStack = new PoseStack();
+					poseStack.translate(0.5, 0, 0.5);
+					poseStack.scale(1.3F, 1.3F, 1.3F);
+					poseStack.translate(0, -0.1, 0);
+					poseStack.translate(0, -1, 0);
+					poseStack.mulPose(VecHelper.rotateY(rotation));
+					poseStack.translate(0, 1.5F, 0);
+					poseStack.mulPose(new Quaternionf().rotateAxis(VecHelper.toRadians(60), CORPOREA_ANGLE, 0, CORPOREA_ANGLE));
+					ring.getExtentsForGui(poseStack, output);
+					poseStack.scale(0.875F, 0.875F, 0.875F);
+					poseStack.mulPose(new Quaternionf().rotateAxis(VecHelper.toRadians(60), CORPOREA_ANGLE, 0, CORPOREA_ANGLE));
+					poseStack.mulPose(VecHelper.rotateY(rotation));
+					ring.getExtentsForGui(poseStack, output);
+					poseStack.scale(0.875F, 0.875F, 0.875F);
+					poseStack.mulPose(new Quaternionf().rotateAxis(VecHelper.toRadians(60), CORPOREA_ANGLE, 0, CORPOREA_ANGLE));
+					poseStack.mulPose(VecHelper.rotateY(rotation));
+					cube.getExtentsForGui(poseStack, output);
+				}
 			}
 		};
 	}
@@ -317,9 +387,24 @@ public class BotaniaBlockEntityItemRenderer implements SpecialModelRenderer<Item
 				poseStack.translate(0.55F, 0.6F, 0.5F);
 				poseStack.mulPose(VecHelper.rotateZ(state.flipRotationDegrees));
 				poseStack.scale(1, -1, -1);
-				model.submit(state, poseStack, collector, texture, overlay, outlineColor);
+				model.submit(state, poseStack, collector, texture, overlay, hasFoil, outlineColor);
 				poseStack.popPose();
 			}
+
+			@Override
+			public void getExtents(Consumer<Vector3fc> output) {
+				PoseStack poseStack = new PoseStack();
+				poseStack.translate(0.55F, 0.6F, 0.5F);
+				poseStack.mulPose(VecHelper.rotateZ(1));
+				poseStack.scale(1, -1, -1);
+				model.collectItemExtents(poseStack, output);
+			}
 		};
+	}
+
+	private static void submitPart(ModelPart part, PoseStack poseStack, SubmitNodeCollector collector,
+			RenderType renderType, int light, int overlay, boolean hasFoil, int outlineColor) {
+		collector.submitModelPart(part, poseStack, renderType, light, overlay, null, false,
+				hasFoil, -1, null, outlineColor);
 	}
 }

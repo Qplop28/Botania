@@ -19,6 +19,11 @@ import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.util.Mth;
 
+import org.joml.Vector3fc;
+
+import java.util.List;
+import java.util.function.Consumer;
+
 public class NaturaPylonModel implements PylonModel {
 
 	private final ModelPart platef;
@@ -116,23 +121,31 @@ public class NaturaPylonModel implements PylonModel {
 
 	@Override
 	public void submitRing(PoseStack poseStack, SubmitNodeCollector collector, RenderType renderType,
-			int light, int overlay, int outlineColor) {
-		collector.submitModelPart(poseStack, platef, renderType, light, overlay, 0xFFFFFFFF, outlineColor, null);
-		collector.submitModelPart(poseStack, plateb, renderType, light, overlay, 0xFFFFFFFF, outlineColor, null);
-		collector.submitModelPart(poseStack, platel, renderType, light, overlay, 0xFFFFFFFF, outlineColor, null);
-		collector.submitModelPart(poseStack, plater, renderType, light, overlay, 0xFFFFFFFF, outlineColor, null);
+			int light, int overlay, boolean hasFoil, int outlineColor) {
+		for (ModelPart part : List.of(platef, plateb, platel, plater)) {
+			submit(part, poseStack, collector, renderType, light, overlay, hasFoil, outlineColor);
+		}
 	}
 
 	@Override
 	public void submitCrystal(PoseStack poseStack, SubmitNodeCollector collector, RenderType renderType,
-			int light, int overlay, int outlineColor) {
-		collector.submitModelPart(poseStack, shardrft, renderType, light, overlay, 0xFFFFFFFF, outlineColor, null);
-		collector.submitModelPart(poseStack, shardlbt, renderType, light, overlay, 0xFFFFFFFF, outlineColor, null);
-		collector.submitModelPart(poseStack, shardrbt, renderType, light, overlay, 0xFFFFFFFF, outlineColor, null);
-		collector.submitModelPart(poseStack, shardlft, renderType, light, overlay, 0xFFFFFFFF, outlineColor, null);
-		collector.submitModelPart(poseStack, shardrfb, renderType, light, overlay, 0xFFFFFFFF, outlineColor, null);
-		collector.submitModelPart(poseStack, shardlbb, renderType, light, overlay, 0xFFFFFFFF, outlineColor, null);
-		collector.submitModelPart(poseStack, shardrbb, renderType, light, overlay, 0xFFFFFFFF, outlineColor, null);
-		collector.submitModelPart(poseStack, shardlfb, renderType, light, overlay, 0xFFFFFFFF, outlineColor, null);
+			int light, int overlay, boolean hasFoil, int outlineColor) {
+		for (ModelPart part : List.of(shardrft, shardlbt, shardrbt, shardlft, shardrfb, shardlbb, shardrbb, shardlfb)) {
+			submit(part, poseStack, collector, renderType, light, overlay, hasFoil, outlineColor);
+		}
+	}
+
+	@Override
+	public void collectExtents(PoseStack poseStack, Consumer<Vector3fc> output) {
+		for (ModelPart part : List.of(platef, plateb, platel, plater,
+				shardrft, shardlbt, shardrbt, shardlft, shardrfb, shardlbb, shardrbb, shardlfb)) {
+			part.getExtentsForGui(poseStack, output);
+		}
+	}
+
+	private static void submit(ModelPart part, PoseStack poseStack, SubmitNodeCollector collector,
+			RenderType renderType, int light, int overlay, boolean hasFoil, int outlineColor) {
+		collector.submitModelPart(part, poseStack, renderType, light, overlay, null, false,
+				hasFoil, -1, null, outlineColor);
 	}
 }

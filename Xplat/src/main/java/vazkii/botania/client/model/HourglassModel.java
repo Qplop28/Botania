@@ -19,8 +19,13 @@ import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.Identifier;
 
+import org.joml.Vector3fc;
+
 import vazkii.botania.client.render.block_entity.state.HoveringHourglassRenderState;
 import vazkii.botania.common.helper.VecHelper;
+
+import java.util.List;
+import java.util.function.Consumer;
 
 public class HourglassModel {
 	private final ModelPart top;
@@ -63,11 +68,12 @@ public class HourglassModel {
 
 	public void submit(HoveringHourglassRenderState state, PoseStack poseStack,
 			SubmitNodeCollector submitNodeCollector, Identifier texture) {
-		submit(state, poseStack, submitNodeCollector, texture, OverlayTexture.NO_OVERLAY, 0);
+		submit(state, poseStack, submitNodeCollector, texture, OverlayTexture.NO_OVERLAY, false, 0);
 	}
 
 	public void submit(HoveringHourglassRenderState state, PoseStack poseStack,
-			SubmitNodeCollector submitNodeCollector, Identifier texture, int overlay, int outlineColor) {
+			SubmitNodeCollector submitNodeCollector, Identifier texture, int overlay,
+			boolean hasFoil, int outlineColor) {
 		float fract1 = state.upperSandFraction;
 		float fract2 = state.lowerSandFraction;
 		if (state.flip) {
@@ -79,9 +85,9 @@ public class HourglassModel {
 		int sandColor = 0xFF000000 | (state.sandColor & 0xFFFFFF);
 		float f = 1F / 16F;
 
-		submitWhite(state, poseStack, submitNodeCollector, texture, ring, overlay, outlineColor);
-		submitWhite(state, poseStack, submitNodeCollector, texture, top, overlay, outlineColor);
-		submitWhite(state, poseStack, submitNodeCollector, texture, bottom, overlay, outlineColor);
+		submitWhite(state, poseStack, submitNodeCollector, texture, ring, overlay, hasFoil, outlineColor);
+		submitWhite(state, poseStack, submitNodeCollector, texture, top, overlay, hasFoil, outlineColor);
+		submitWhite(state, poseStack, submitNodeCollector, texture, bottom, overlay, hasFoil, outlineColor);
 
 		if (fract1 > 0) {
 			poseStack.pushPose();
@@ -92,8 +98,8 @@ public class HourglassModel {
 				poseStack.translate(-2.0F * f, -5.0F * f, -2.0F * f);
 			}
 			poseStack.scale(1F, fract1, 1F);
-			submitNodeCollector.submitModelPart(poseStack, sandT, renderType, state.lightCoords,
-					overlay, sandColor, outlineColor, state.breakProgress);
+			submitNodeCollector.submitModelPart(sandT, poseStack, renderType, state.lightCoords, overlay,
+					null, false, hasFoil, sandColor, state.breakProgress, outlineColor);
 			poseStack.popPose();
 		}
 
@@ -106,19 +112,25 @@ public class HourglassModel {
 				poseStack.translate(-2.0F * f, 1.0F * f, -2.0F * f);
 			}
 			poseStack.scale(1F, fract2, 1F);
-			submitNodeCollector.submitModelPart(poseStack, sandB, renderType, state.lightCoords,
-					overlay, sandColor, outlineColor, state.breakProgress);
+			submitNodeCollector.submitModelPart(sandB, poseStack, renderType, state.lightCoords, overlay,
+					null, false, hasFoil, sandColor, state.breakProgress, outlineColor);
 			poseStack.popPose();
 		}
 
-		submitWhite(state, poseStack, submitNodeCollector, texture, glassT, overlay, outlineColor);
-		submitWhite(state, poseStack, submitNodeCollector, texture, glassB, overlay, outlineColor);
+		submitWhite(state, poseStack, submitNodeCollector, texture, glassT, overlay, hasFoil, outlineColor);
+		submitWhite(state, poseStack, submitNodeCollector, texture, glassB, overlay, hasFoil, outlineColor);
 	}
 
 	private static void submitWhite(HoveringHourglassRenderState state, PoseStack poseStack,
 			SubmitNodeCollector submitNodeCollector, Identifier texture, ModelPart part,
-			int overlay, int outlineColor) {
-		submitNodeCollector.submitModelPart(poseStack, part, RenderTypes.entityTranslucent(texture),
-				state.lightCoords, overlay, 0xFFFFFFFF, outlineColor, state.breakProgress);
+			int overlay, boolean hasFoil, int outlineColor) {
+		submitNodeCollector.submitModelPart(part, poseStack, RenderTypes.entityTranslucent(texture),
+				state.lightCoords, overlay, null, false, hasFoil, -1, state.breakProgress, outlineColor);
+	}
+
+	public void collectItemExtents(PoseStack poseStack, Consumer<Vector3fc> output) {
+		for (ModelPart part : List.of(top, glassT, ring, glassB, bottom, sandT, sandB)) {
+			part.getExtentsForGui(poseStack, output);
+		}
 	}
 }

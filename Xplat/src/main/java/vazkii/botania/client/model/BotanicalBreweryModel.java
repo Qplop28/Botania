@@ -55,6 +55,11 @@ public class BotanicalBreweryModel {
 
 	public void submit(BotanicalBreweryRenderState state, PoseStack poseStack,
 			SubmitNodeCollector submitNodeCollector, Identifier texture) {
+		submit(state, poseStack, submitNodeCollector, texture, OverlayTexture.NO_OVERLAY, 0);
+	}
+
+	public void submit(BotanicalBreweryRenderState state, PoseStack poseStack,
+			SubmitNodeCollector submitNodeCollector, Identifier texture, int overlay, int outlineColor) {
 		float offset = (float) Math.sin(state.animationTime / 40) * 0.1F + 0.05F;
 		float degrees = (float) state.animationTime / 16F;
 		float poleRotation = -degrees * 25F;
@@ -72,11 +77,11 @@ public class BotanicalBreweryModel {
 		}
 
 		submitNodeCollector.submitModelPart(poseStack, pole, renderType, state.lightCoords,
-				OverlayTexture.NO_OVERLAY, 0xFFFFFFFF, null, state.breakProgress);
+				overlay, 0xFFFFFFFF, outlineColor, state.breakProgress);
 		submitNodeCollector.submitModelPart(poseStack, top, renderType, state.lightCoords,
-				OverlayTexture.NO_OVERLAY, 0xFFFFFFFF, null, state.breakProgress);
+				overlay, 0xFFFFFFFF, outlineColor, state.breakProgress);
 		submitNodeCollector.submitModelPart(poseStack, bottom, renderType, state.lightCoords,
-				OverlayTexture.NO_OVERLAY, 0xFFFFFFFF, null, state.breakProgress);
+				overlay, 0xFFFFFFFF, outlineColor, state.breakProgress);
 		poseStack.mulPose(VecHelper.rotateY(-poleRotation));
 
 		if (state.plateCount > 0) {
@@ -100,7 +105,7 @@ public class BotanicalBreweryModel {
 				}
 				poseStack.mulPose(VecHelper.rotateY(plateRotation * 180F / (float) Math.PI));
 				submitNodeCollector.submitModelPart(poseStack, plate, renderType, state.lightCoords,
-						OverlayTexture.NO_OVERLAY, 0xFFFFFFFF, null, state.breakProgress);
+						overlay, 0xFFFFFFFF, outlineColor, state.breakProgress);
 				poseStack.popPose();
 			}
 		}

@@ -54,12 +54,17 @@ public class TeruTeruBozuModel {
 
 	public void submit(TeruTeruBozuRenderState state, PoseStack poseStack,
 			SubmitNodeCollector submitNodeCollector, Identifier texture) {
+		submit(state, poseStack, submitNodeCollector, texture, OverlayTexture.NO_OVERLAY, 0);
+	}
+
+	public void submit(TeruTeruBozuRenderState state, PoseStack poseStack,
+			SubmitNodeCollector submitNodeCollector, Identifier texture, int overlay, int outlineColor) {
 		var renderType = RenderTypes.entityCutoutNoCull(texture);
 		submitNodeCollector.submitModelPart(poseStack, state.raining ? sadFace : happyFace, renderType,
-				state.lightCoords, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF, null, state.breakProgress);
+				state.lightCoords, overlay, 0xFFFFFFFF, outlineColor, state.breakProgress);
 		submitNodeCollector.submitModelPart(poseStack, thread, renderType,
-				state.lightCoords, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF, null, state.breakProgress);
+				state.lightCoords, overlay, 0xFFFFFFFF, outlineColor, state.breakProgress);
 		submitNodeCollector.submitModelPart(poseStack, cloth, renderType,
-				state.lightCoords, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF, null, state.breakProgress);
+				state.lightCoords, overlay, 0xFFFFFFFF, outlineColor, state.breakProgress);
 	}
 }

@@ -55,17 +55,22 @@ public class BellowsModel {
 
 	public void submit(BellowsRenderState state, PoseStack poseStack,
 			SubmitNodeCollector submitNodeCollector, Identifier texture) {
+		submit(state, poseStack, submitNodeCollector, texture, OverlayTexture.NO_OVERLAY, 0);
+	}
+
+	public void submit(BellowsRenderState state, PoseStack poseStack,
+			SubmitNodeCollector submitNodeCollector, Identifier texture, int overlay, int outlineColor) {
 		var renderType = RenderTypes.entityCutout(texture);
 		submitNodeCollector.submitModelPart(poseStack, base, renderType, state.lightCoords,
-				OverlayTexture.NO_OVERLAY, 0xFFFFFFFF, null, state.breakProgress);
+				overlay, 0xFFFFFFFF, outlineColor, state.breakProgress);
 		submitNodeCollector.submitModelPart(poseStack, pipe, renderType, state.lightCoords,
-				OverlayTexture.NO_OVERLAY, 0xFFFFFFFF, null, state.breakProgress);
+				overlay, 0xFFFFFFFF, outlineColor, state.breakProgress);
 
 		float movement = (1F - state.contractionFraction) * 0.5F;
 		poseStack.pushPose();
 		poseStack.translate(0F, movement, 0F);
 		submitNodeCollector.submitModelPart(poseStack, top, renderType, state.lightCoords,
-				OverlayTexture.NO_OVERLAY, 0xFFFFFFFF, null, state.breakProgress);
+				overlay, 0xFFFFFFFF, outlineColor, state.breakProgress);
 		poseStack.popPose();
 
 		poseStack.pushPose();
@@ -73,7 +78,7 @@ public class BellowsModel {
 		poseStack.translate(-0.19F, -1.375F, -0.19F);
 		poseStack.scale(1F, state.contractionFraction, 1F);
 		submitNodeCollector.submitModelPart(poseStack, funnel, renderType, state.lightCoords,
-				OverlayTexture.NO_OVERLAY, 0xFFFFFFFF, null, state.breakProgress);
+				overlay, 0xFFFFFFFF, outlineColor, state.breakProgress);
 		poseStack.popPose();
 	}
 }

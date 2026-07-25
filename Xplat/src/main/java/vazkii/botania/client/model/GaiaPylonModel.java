@@ -15,6 +15,8 @@ import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.CubeListBuilder;
 import net.minecraft.client.model.geom.builders.MeshDefinition;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.util.Mth;
 
 public class GaiaPylonModel implements PylonModel {
@@ -110,6 +112,28 @@ public class GaiaPylonModel implements PylonModel {
 		plateb.render(ms, buffer, light, overlay);
 		platel.render(ms, buffer, light, overlay);
 		plater.render(ms, buffer, light, overlay);
+	}
+
+	@Override
+	public void submitRing(PoseStack poseStack, SubmitNodeCollector collector, RenderType renderType,
+			int light, int overlay, int outlineColor) {
+		collector.submitModelPart(poseStack, platef, renderType, light, overlay, 0xFFFFFFFF, outlineColor, null);
+		collector.submitModelPart(poseStack, plateb, renderType, light, overlay, 0xFFFFFFFF, outlineColor, null);
+		collector.submitModelPart(poseStack, platel, renderType, light, overlay, 0xFFFFFFFF, outlineColor, null);
+		collector.submitModelPart(poseStack, plater, renderType, light, overlay, 0xFFFFFFFF, outlineColor, null);
+	}
+
+	@Override
+	public void submitCrystal(PoseStack poseStack, SubmitNodeCollector collector, RenderType renderType,
+			int light, int overlay, int outlineColor) {
+		collector.submitModelPart(poseStack, shardrft, renderType, light, overlay, 0xFFFFFFFF, outlineColor, null);
+		collector.submitModelPart(poseStack, shardlbt, renderType, light, overlay, 0xFFFFFFFF, outlineColor, null);
+		collector.submitModelPart(poseStack, shardrbt, renderType, light, overlay, 0xFFFFFFFF, outlineColor, null);
+		collector.submitModelPart(poseStack, shardlft, renderType, light, overlay, 0xFFFFFFFF, outlineColor, null);
+		collector.submitModelPart(poseStack, shardrfb, renderType, light, overlay, 0xFFFFFFFF, outlineColor, null);
+		collector.submitModelPart(poseStack, shardlbb, renderType, light, overlay, 0xFFFFFFFF, outlineColor, null);
+		collector.submitModelPart(poseStack, shardrbb, renderType, light, overlay, 0xFFFFFFFF, outlineColor, null);
+		collector.submitModelPart(poseStack, shardlfb, renderType, light, overlay, 0xFFFFFFFF, outlineColor, null);
 	}
 
 	private void setRotation(ModelPart model, float x, float y, float z) {

@@ -2,6 +2,7 @@ package vazkii.botania.client.render.entity;
 
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.ItemEntityRenderer;
 import net.minecraft.client.renderer.entity.NoopRenderer;
@@ -19,8 +20,7 @@ import vazkii.botania.common.block.block_entity.BotaniaBlockEntities;
 import vazkii.botania.common.block.block_entity.GaiaHeadBlockEntity;
 import vazkii.botania.common.entity.BotaniaEntities;
 
-import java.util.Map;
-import java.util.function.Function;
+import java.util.Set;
 
 public final class EntityRenderers {
 	public interface EntityRendererConsumer {
@@ -52,7 +52,8 @@ public final class EntityRenderers {
 	}
 
 	public interface BERConsumer {
-		<E extends BlockEntity> void register(BlockEntityType<E> type, BlockEntityRendererProvider<? super E> factory);
+		<E extends BlockEntity, S extends BlockEntityRenderState> void register(
+				BlockEntityType<? extends E> type, BlockEntityRendererProvider<E, S> factory);
 	}
 
 	public static void registerBlockEntityRenderers(BERConsumer consumer) {
@@ -85,7 +86,8 @@ public final class EntityRenderers {
 		consumer.register(BotaniaBlockEntities.LIGHT_RELAY, LuminizerBlockEntityRenderer::new);
 		consumer.register(BotaniaBlockEntities.BELLOWS, BellowsBlockEntityRenderer::new);
 		@SuppressWarnings("unchecked")
-		BlockEntityRendererProvider<GaiaHeadBlockEntity> gaia = ctx -> (BlockEntityRenderer<GaiaHeadBlockEntity>) (BlockEntityRenderer<?>) new GaiaHeadBlockEntityRenderer(ctx);
+		BlockEntityRendererProvider<GaiaHeadBlockEntity, BlockEntityRenderState> gaia = ctx ->
+				(BlockEntityRenderer<GaiaHeadBlockEntity, BlockEntityRenderState>) (BlockEntityRenderer<?, ?>) new GaiaHeadBlockEntityRenderer(ctx);
 		consumer.register(BotaniaBlockEntities.GAIA_HEAD, gaia);
 		consumer.register(BotaniaBlockEntities.TERU_TERU_BOZU, TeruTeruBozuBlockEntityRenderer::new);
 		consumer.register(BotaniaBlockEntities.AVATAR, AvatarBlockEntityRenderer::new);
@@ -145,16 +147,16 @@ public final class EntityRenderers {
 		consumer.register(BotaniaFlowerBlocks.LABELLIA, SpecialFlowerBlockEntityRenderer::new);
 	}
 
-	public static final Map<Block, Function<Block, TEISR>> BE_ITEM_RENDERER_FACTORIES = Map.of(
-			BotaniaBlocks.manaPylon, PylonBlockEntityRenderer.ItemRenderer::new,
-			BotaniaBlocks.naturaPylon, PylonBlockEntityRenderer.ItemRenderer::new,
-			BotaniaBlocks.gaiaPylon, PylonBlockEntityRenderer.ItemRenderer::new,
-			BotaniaBlocks.teruTeruBozu, TEISR::new,
-			BotaniaBlocks.avatar, TEISR::new,
-			BotaniaBlocks.bellows, TEISR::new,
-			BotaniaBlocks.brewery, TEISR::new,
-			BotaniaBlocks.corporeaIndex, TEISR::new,
-			BotaniaBlocks.hourglass, TEISR::new
+	public static final Set<Block> BE_ITEM_RENDERER_BLOCKS = Set.of(
+			BotaniaBlocks.manaPylon,
+			BotaniaBlocks.naturaPylon,
+			BotaniaBlocks.gaiaPylon,
+			BotaniaBlocks.teruTeruBozu,
+			BotaniaBlocks.avatar,
+			BotaniaBlocks.bellows,
+			BotaniaBlocks.brewery,
+			BotaniaBlocks.corporeaIndex,
+			BotaniaBlocks.hourglass
 	);
 
 	private EntityRenderers() {}

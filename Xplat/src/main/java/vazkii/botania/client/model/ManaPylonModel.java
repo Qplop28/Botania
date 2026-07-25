@@ -15,6 +15,8 @@ import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.CubeListBuilder;
 import net.minecraft.client.model.geom.builders.MeshDefinition;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.util.Mth;
 
 public class ManaPylonModel implements PylonModel {
@@ -85,5 +87,23 @@ public class ManaPylonModel implements PylonModel {
 		plateb.render(ms, buffer, light, overlay);
 		platel.render(ms, buffer, light, overlay);
 		plater.render(ms, buffer, light, overlay);
+	}
+
+	@Override
+	public void submitRing(PoseStack poseStack, SubmitNodeCollector collector, RenderType renderType,
+			int light, int overlay, int outlineColor) {
+		collector.submitModelPart(poseStack, platef, renderType, light, overlay, 0xFFFFFFFF, outlineColor, null);
+		collector.submitModelPart(poseStack, plateb, renderType, light, overlay, 0xFFFFFFFF, outlineColor, null);
+		collector.submitModelPart(poseStack, platel, renderType, light, overlay, 0xFFFFFFFF, outlineColor, null);
+		collector.submitModelPart(poseStack, plater, renderType, light, overlay, 0xFFFFFFFF, outlineColor, null);
+	}
+
+	@Override
+	public void submitCrystal(PoseStack poseStack, SubmitNodeCollector collector, RenderType renderType,
+			int light, int overlay, int outlineColor) {
+		collector.submitModelPart(poseStack, shardlf, renderType, light, overlay, 0xFFFFFFFF, outlineColor, null);
+		collector.submitModelPart(poseStack, shardrf, renderType, light, overlay, 0xFFFFFFFF, outlineColor, null);
+		collector.submitModelPart(poseStack, shardlb, renderType, light, overlay, 0xFFFFFFFF, outlineColor, null);
+		collector.submitModelPart(poseStack, shardrb, renderType, light, overlay, 0xFFFFFFFF, outlineColor, null);
 	}
 }

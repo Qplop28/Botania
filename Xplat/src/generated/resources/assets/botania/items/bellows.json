@@ -1,0 +1,10 @@
+{
+  "model": {
+    "type": "minecraft:special",
+    "base": "botania:item/bellows",
+    "model": {
+      "type": "botania:block_entity",
+      "block": "botania:bellows"
+    }
+  }
+}

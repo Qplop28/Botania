@@ -63,6 +63,11 @@ public class HourglassModel {
 
 	public void submit(HoveringHourglassRenderState state, PoseStack poseStack,
 			SubmitNodeCollector submitNodeCollector, Identifier texture) {
+		submit(state, poseStack, submitNodeCollector, texture, OverlayTexture.NO_OVERLAY, 0);
+	}
+
+	public void submit(HoveringHourglassRenderState state, PoseStack poseStack,
+			SubmitNodeCollector submitNodeCollector, Identifier texture, int overlay, int outlineColor) {
 		float fract1 = state.upperSandFraction;
 		float fract2 = state.lowerSandFraction;
 		if (state.flip) {
@@ -74,9 +79,9 @@ public class HourglassModel {
 		int sandColor = 0xFF000000 | (state.sandColor & 0xFFFFFF);
 		float f = 1F / 16F;
 
-		submitWhite(state, poseStack, submitNodeCollector, texture, ring);
-		submitWhite(state, poseStack, submitNodeCollector, texture, top);
-		submitWhite(state, poseStack, submitNodeCollector, texture, bottom);
+		submitWhite(state, poseStack, submitNodeCollector, texture, ring, overlay, outlineColor);
+		submitWhite(state, poseStack, submitNodeCollector, texture, top, overlay, outlineColor);
+		submitWhite(state, poseStack, submitNodeCollector, texture, bottom, overlay, outlineColor);
 
 		if (fract1 > 0) {
 			poseStack.pushPose();
@@ -88,7 +93,7 @@ public class HourglassModel {
 			}
 			poseStack.scale(1F, fract1, 1F);
 			submitNodeCollector.submitModelPart(poseStack, sandT, renderType, state.lightCoords,
-					OverlayTexture.NO_OVERLAY, sandColor, null, state.breakProgress);
+					overlay, sandColor, outlineColor, state.breakProgress);
 			poseStack.popPose();
 		}
 
@@ -102,17 +107,18 @@ public class HourglassModel {
 			}
 			poseStack.scale(1F, fract2, 1F);
 			submitNodeCollector.submitModelPart(poseStack, sandB, renderType, state.lightCoords,
-					OverlayTexture.NO_OVERLAY, sandColor, null, state.breakProgress);
+					overlay, sandColor, outlineColor, state.breakProgress);
 			poseStack.popPose();
 		}
 
-		submitWhite(state, poseStack, submitNodeCollector, texture, glassT);
-		submitWhite(state, poseStack, submitNodeCollector, texture, glassB);
+		submitWhite(state, poseStack, submitNodeCollector, texture, glassT, overlay, outlineColor);
+		submitWhite(state, poseStack, submitNodeCollector, texture, glassB, overlay, outlineColor);
 	}
 
 	private static void submitWhite(HoveringHourglassRenderState state, PoseStack poseStack,
-			SubmitNodeCollector submitNodeCollector, Identifier texture, ModelPart part) {
+			SubmitNodeCollector submitNodeCollector, Identifier texture, ModelPart part,
+			int overlay, int outlineColor) {
 		submitNodeCollector.submitModelPart(poseStack, part, RenderTypes.entityTranslucent(texture),
-				state.lightCoords, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF, null, state.breakProgress);
+				state.lightCoords, overlay, 0xFFFFFFFF, outlineColor, state.breakProgress);
 	}
 }

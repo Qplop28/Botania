@@ -11,8 +11,17 @@ package vazkii.botania.client.model;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.rendertype.RenderType;
+
 public interface PylonModel {
 	void renderRing(PoseStack ms, VertexConsumer buffer, int light, int overlay);
 
 	void renderCrystal(PoseStack ms, VertexConsumer buffer, int light, int overlay);
+
+	void submitRing(PoseStack poseStack, SubmitNodeCollector collector, RenderType renderType,
+			int light, int overlay, int outlineColor);
+
+	void submitCrystal(PoseStack poseStack, SubmitNodeCollector collector, RenderType renderType,
+			int light, int overlay, int outlineColor);
 }

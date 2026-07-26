@@ -9,7 +9,7 @@
 package vazkii.botania.common.block;
 
 import net.minecraft.core.registries.Registries;
-import net.minecraft.data.worldgen.BootstapContext;
+import net.minecraft.data.worldgen.BootstrapContext;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.block.entity.BannerPattern;
 
@@ -33,7 +33,7 @@ public final class BotaniaBannerPatterns {
 	public static final ResourceKey<BannerPattern> SHOVEL = make("shovel");
 	public static final ResourceKey<BannerPattern> SWORD = make("sword");
 
-	public static void bootstrap(BootstapContext<BannerPattern> context) {
+	public static void bootstrap(BootstrapContext<BannerPattern> context) {
 		register(context, FLOWER, "flower");
 		register(context, LEXICON, "lexicon");
 		register(context, LOGO, "logo");
@@ -51,7 +51,7 @@ public final class BotaniaBannerPatterns {
 		register(context, SWORD, "sword");
 	}
 
-	private static void register(BootstapContext<BannerPattern> context,
+	private static void register(BootstrapContext<BannerPattern> context,
 			ResourceKey<BannerPattern> key, String name) {
 		context.register(key, new BannerPattern(
 				prefix(name),

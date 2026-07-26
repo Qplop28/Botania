@@ -16,6 +16,7 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.data.worldgen.BootstapContext;
 import net.minecraft.world.damagesource.DamageType;
 
+import vazkii.botania.common.block.BotaniaBannerPatterns;
 import vazkii.botania.data.*;
 import vazkii.botania.data.recipes.*;
 
@@ -72,6 +73,7 @@ public class FabricDatagenInitializer implements DataGeneratorEntrypoint {
 	@Override
 	public void buildRegistry(RegistrySetBuilder builder) {
 		builder.add(Registries.DAMAGE_TYPE, FabricDatagenInitializer::damageTypeBC);
+		builder.add(Registries.BANNER_PATTERN, BotaniaBannerPatterns::bootstrap);
 	}
 
 	protected static void damageTypeBC(BootstapContext<DamageType> context) {

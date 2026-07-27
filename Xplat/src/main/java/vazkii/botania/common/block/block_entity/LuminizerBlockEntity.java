@@ -17,6 +17,8 @@ import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.level.ServerEntity;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
@@ -35,10 +37,11 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.gameevent.GameEvent;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import vazkii.botania.api.block.Bound;
@@ -79,7 +82,7 @@ public class LuminizerBlockEntity extends BotaniaBlockEntity implements WandBind
 
 	public void mountEntity(Entity e) {
 		BlockPos nextDest = getNextDestination();
-		if (e.isPassenger() || level.isClientSide || nextDest == null || !isValidBinding()) {
+		if (e.isPassenger() || level.isClientSide() || nextDest == null || !isValidBinding()) {
 			return;
 		}
 
@@ -267,7 +270,7 @@ public class LuminizerBlockEntity extends BotaniaBlockEntity implements WandBind
 		if (isNoParticle()) {
 			return false;
 		}
-		if (!level.isClientSide) {
+		if (!level.isClientSide()) {
 			if (player == null || !player.getAbilities().instabuild) {
 				stack.shrink(1);
 			}
@@ -281,11 +284,11 @@ public class LuminizerBlockEntity extends BotaniaBlockEntity implements WandBind
 	@Override
 	public void readPacketNBT(CompoundTag cmp) {
 		bindPos = new BlockPos(
-				cmp.getInt(TAG_BIND_X),
-				cmp.getInt(TAG_BIND_Y),
-				cmp.getInt(TAG_BIND_Z)
+				cmp.getIntOr(TAG_BIND_X, 0),
+				cmp.getIntOr(TAG_BIND_Y, 0),
+				cmp.getIntOr(TAG_BIND_Z, 0)
 		);
-		noParticle = cmp.getBoolean(TAG_NO_PARTICLE);
+		noParticle = cmp.getBooleanOr(TAG_NO_PARTICLE, false);
 	}
 
 	@Override
@@ -314,7 +317,7 @@ public class LuminizerBlockEntity extends BotaniaBlockEntity implements WandBind
 		}
 
 		@Override
-		protected void defineSynchedData() {
+		protected void defineSynchedData(SynchedEntityData.Builder entityData) {
 			entityData.define(EXIT_POS, ManaBurst.NO_SOURCE);
 		}
 
@@ -322,7 +325,7 @@ public class LuminizerBlockEntity extends BotaniaBlockEntity implements WandBind
 		public void tick() {
 			super.tick();
 
-			if (getPassengers().isEmpty() && !level().isClientSide) {
+			if (getPassengers().isEmpty() && !level().isClientSide()) {
 				discard();
 				return;
 			}
@@ -338,7 +341,7 @@ public class LuminizerBlockEntity extends BotaniaBlockEntity implements WandBind
 			BlockPos pos = blockPosition();
 			BlockPos exitPos = getExitPos();
 
-			if (!level().isClientSide && pos.equals(exitPos)) {
+			if (!level().isClientSide() && pos.equals(exitPos)) {
 				boolean done = true;
 				BlockEntity tile = level().getBlockEntity(pos);
 				if (tile instanceof LuminizerBlockEntity relay) {
@@ -392,21 +395,21 @@ public class LuminizerBlockEntity extends BotaniaBlockEntity implements WandBind
 		}
 
 		@Override
-		public boolean hurt(@NotNull DamageSource source, float damage) {
+		public boolean hurtServer(ServerLevel level, DamageSource source, float damage) {
 			return false;
 		}
 
 		@Override
-		protected void readAdditionalSaveData(@NotNull CompoundTag cmp) {
-			setExit(new BlockPos(cmp.getInt(TAG_EXIT_X), cmp.getInt(TAG_EXIT_Y), cmp.getInt(TAG_EXIT_Z)));
+		protected void readAdditionalSaveData(ValueInput input) {
+			setExit(new BlockPos(input.getIntOr(TAG_EXIT_X, 0), input.getIntOr(TAG_EXIT_Y, 0), input.getIntOr(TAG_EXIT_Z, 0)));
 		}
 
 		@Override
-		protected void addAdditionalSaveData(@NotNull CompoundTag cmp) {
+		protected void addAdditionalSaveData(ValueOutput output) {
 			BlockPos exit = getExitPos();
-			cmp.putInt(TAG_EXIT_X, exit.getX());
-			cmp.putInt(TAG_EXIT_Y, exit.getY());
-			cmp.putInt(TAG_EXIT_Z, exit.getZ());
+			output.putInt(TAG_EXIT_X, exit.getX());
+			output.putInt(TAG_EXIT_Y, exit.getY());
+			output.putInt(TAG_EXIT_Z, exit.getZ());
 		}
 
 		// [VanillaCopy] Pig logic to select a dismount location
@@ -437,8 +440,8 @@ public class LuminizerBlockEntity extends BotaniaBlockEntity implements WandBind
 		}
 
 		@Override
-		public Packet<ClientGamePacketListener> getAddEntityPacket() {
-			return new ClientboundAddEntityPacket(this);
+		public Packet<ClientGamePacketListener> getAddEntityPacket(ServerEntity serverEntity) {
+			return new ClientboundAddEntityPacket(this, serverEntity);
 		}
 
 		public BlockPos getExitPos() {

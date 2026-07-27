@@ -209,7 +209,12 @@ public class ManaBurstEntity extends ThrowableProjectile implements ManaBurst {
 	}
 
 	@Override
-	protected boolean isAffectedByFluids() {
+	protected boolean updateFluidInteraction() {
+		return false;
+	}
+
+	@Override
+	public boolean isInLava() {
 		return false;
 	}
 
@@ -293,6 +298,7 @@ public class ManaBurstEntity extends ThrowableProjectile implements ManaBurst {
 	@Override
 	protected void readAdditionalSaveData(ValueInput input) {
 		super.readAdditionalSaveData(input);
+		input.read("Motion", Vec3.CODEC).ifPresent(this::setDeltaMovement);
 		setTicksExisted(input.getIntOr(TAG_TICKS_EXISTED, 0));
 		setColor(input.getIntOr(TAG_COLOR, 0));
 		setMana(input.getIntOr(TAG_MANA, 0));
@@ -368,7 +374,7 @@ public class ManaBurstEntity extends ThrowableProjectile implements ManaBurst {
 
 			if (!noParticles && shouldDoFakeParticles()) {
 				SparkleParticleData data = SparkleParticleData.fake(0.4F * size, r, g, b, 1);
-				level().addParticle(data, true, getX(), getY(), getZ(), 0, 0, 0);
+				level().addParticle(data, true, false, getX(), getY(), getZ(), 0, 0, 0);
 			}
 		} else {
 			Player player = Proxy.INSTANCE.getClientPlayer();
@@ -572,7 +578,7 @@ public class ManaBurstEntity extends ThrowableProjectile implements ManaBurst {
 		}
 
 		if (receiver instanceof ManaCollector collector) {
-			mana *= collector.getManaYieldMultiplier(this);
+			mana = (int) (mana * collector.getManaYieldMultiplier(this));
 		}
 
 		if (mana > 0) {
@@ -612,7 +618,7 @@ public class ManaBurstEntity extends ThrowableProjectile implements ManaBurst {
 	}
 
 	@Override
-	public float getGravity() {
+	protected double getDefaultGravity() {
 		return getBurstGravity();
 	}
 
@@ -850,7 +856,8 @@ public class ManaBurstEntity extends ThrowableProjectile implements ManaBurst {
 
 	public record PositionProperties(BlockPos coords, BlockState state) {
 		public static PositionProperties fromEntity(Entity entity) {
-			return new PositionProperties(entity.blockPosition(), entity.getFeetBlockState());
+			BlockPos pos = entity.blockPosition();
+			return new PositionProperties(pos, entity.level().getBlockState(pos));
 		}
 
 		public boolean coordsEqual(PositionProperties props) {

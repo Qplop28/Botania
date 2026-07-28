@@ -8,13 +8,12 @@
  */
 package vazkii.botania.common.brew.effect;
 
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.FishingHook;
-
-import org.jetbrains.annotations.NotNull;
 
 public class AllureMobEffect extends MobEffect {
 
@@ -23,18 +22,19 @@ public class AllureMobEffect extends MobEffect {
 	}
 
 	@Override
-	public boolean isDurationEffectTick(int duration, int amplifier) {
+	public boolean shouldApplyEffectTickThisTick(int tickCount, int amplification) {
 		return true;
 	}
 
 	@Override
-	public void applyEffectTick(@NotNull LivingEntity living, int amplified) {
+	public boolean applyEffectTick(ServerLevel level, LivingEntity living, int amplification) {
 		if (living instanceof Player player) {
 			FishingHook hook = player.fishing;
 			if (hook != null) {
 				hook.tick();
 			}
 		}
+		return true;
 	}
 
 }

@@ -8,11 +8,10 @@
  */
 package vazkii.botania.common.brew.effect;
 
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.entity.LivingEntity;
-
-import org.jetbrains.annotations.NotNull;
 
 public class FeatherfeetMobEffect extends MobEffect {
 
@@ -21,15 +20,16 @@ public class FeatherfeetMobEffect extends MobEffect {
 	}
 
 	@Override
-	public boolean isDurationEffectTick(int duration, int amplifier) {
+	public boolean shouldApplyEffectTickThisTick(int tickCount, int amplification) {
 		return true;
 	}
 
 	@Override
-	public void applyEffectTick(@NotNull LivingEntity living, int amplified) {
+	public boolean applyEffectTick(ServerLevel level, LivingEntity living, int amplification) {
 		if (living.fallDistance > 2.5F) {
 			living.fallDistance = 2.5F;
 		}
+		return true;
 	}
 
 }

@@ -8,6 +8,7 @@
  */
 package vazkii.botania.common.brew.effect;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.entity.LivingEntity;
@@ -21,7 +22,7 @@ public class SoulCrossMobEffect extends MobEffect {
 	}
 
 	public static void onEntityKill(LivingEntity dying, LivingEntity killer) {
-		if (killer.hasEffect(BotaniaMobEffects.soulCross)) {
+		if (killer.hasEffect(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(BotaniaMobEffects.soulCross))) {
 			killer.heal(dying.getMaxHealth() / 20);
 		}
 	}

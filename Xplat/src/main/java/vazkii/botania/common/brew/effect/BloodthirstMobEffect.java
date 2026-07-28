@@ -9,6 +9,7 @@
 package vazkii.botania.common.brew.effect;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.entity.MobCategory;
@@ -30,8 +31,8 @@ public class BloodthirstMobEffect extends MobEffect {
 		if (entityClass == MobCategory.MONSTER) {
 			AABB aabb = new AABB(pos).inflate(RANGE);
 			for (Player player : world.players()) {
-				if (player.hasEffect(BotaniaMobEffects.bloodthrst)
-						&& !player.hasEffect(BotaniaMobEffects.emptiness)
+				if (player.hasEffect(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(BotaniaMobEffects.bloodthrst))
+						&& !player.hasEffect(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(BotaniaMobEffects.emptiness))
 						&& player.getBoundingBox().intersects(aabb)) {
 					return true;
 				}

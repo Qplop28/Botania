@@ -8,6 +8,7 @@
  */
 package vazkii.botania.common.brew.effect;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.entity.LivingEntity;
@@ -30,7 +31,7 @@ public class EmptinessMobEffect extends MobEffect {
 			AABB aabb = new AABB(entity.getX() - RANGE, entity.getY() - RANGE, entity.getZ() - RANGE,
 					entity.getX() + RANGE, entity.getY() + RANGE, entity.getZ() + RANGE);
 			for (Player player : entity.level().players()) {
-				if (player.hasEffect(BotaniaMobEffects.emptiness) && player.getBoundingBox().intersects(aabb)) {
+				if (player.hasEffect(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(BotaniaMobEffects.emptiness)) && player.getBoundingBox().intersects(aabb)) {
 					return true;
 				}
 			}

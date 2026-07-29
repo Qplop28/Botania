@@ -37,13 +37,15 @@ public class OvergrowthSeedItem extends Item {
 
 		BlockState state = world.getBlockState(pos);
 		if (state.is(Blocks.GRASS_BLOCK)) {
-			if (!world.isClientSide) {
+			if (!world.isClientSide()) {
 				world.levelEvent(LevelEvent.PARTICLES_DESTROY_BLOCK, pos, Block.getId(state));
 				world.gameEvent(null, GameEvent.BLOCK_CHANGE, pos);
 				world.setBlockAndUpdate(pos, BotaniaBlocks.enchantedSoil.defaultBlockState());
 				ctx.getItemInHand().shrink(1);
 			}
-			return InteractionResult.sidedSuccess(world.isClientSide());
+			return world.isClientSide()
+					? InteractionResult.SUCCESS
+					: InteractionResult.SUCCESS_SERVER;
 		}
 		return InteractionResult.PASS;
 	}

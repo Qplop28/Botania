@@ -150,9 +150,9 @@ public class LifeAggregatorItem extends Item {
 						tag -> tag.put(TAG_SPAWNER, spawnerTag));
 				world.destroyBlock(pos, false);
 				if (player != null) {
-					player.getCooldowns().addCooldown(this, 20);
+					player.getCooldowns().addCooldown(stack, 20);
 					if (player instanceof ServerPlayer serverPlayer) {
-						UseItemSuccessTrigger.INSTANCE.trigger(serverPlayer, stack, serverPlayer.serverLevel(),
+						UseItemSuccessTrigger.INSTANCE.trigger(serverPlayer, stack, serverPlayer.level(),
 								pos.getX(), pos.getY(), pos.getZ());
 					}
 					player.onEquippedItemBroken(stack.getItem(), ctx.getHand().asEquipmentSlot());

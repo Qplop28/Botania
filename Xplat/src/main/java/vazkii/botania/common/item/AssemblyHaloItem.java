@@ -24,6 +24,7 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.recipebook.ServerPlaceRecipe;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.*;
 import net.minecraft.world.Container;
@@ -39,6 +40,7 @@ import net.minecraft.world.entity.player.StackedItemContents;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.world.inventory.RecipeBookMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
@@ -48,7 +50,6 @@ import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.item.crafting.RecipeType;
-import net.minecraft.world.item.crafting.ServerPlaceRecipe;
 import net.minecraft.world.item.crafting.display.RecipeDisplay;
 import net.minecraft.world.item.crafting.display.ShapedCraftingRecipeDisplay;
 import net.minecraft.world.item.crafting.display.ShapelessCraftingRecipeDisplay;
@@ -153,9 +154,9 @@ public class AssemblyHaloItem extends Item {
 
 	private static boolean hasRoomFor(Inventory inv, ItemStack stack) {
 		ItemStack remaining = stack.copy();
-		List<ItemStack> contents = new ArrayList<>(inv.getContainerSize());
-		for (int i = 0; i < inv.getContainerSize(); i++) {
-			contents.add(inv.getItem(i).copy());
+		List<ItemStack> contents = new ArrayList<>(Inventory.INVENTORY_SIZE);
+		for (ItemStack existing : inv.getNonEquipmentItems()) {
+			contents.add(existing.copy());
 		}
 		for (ItemStack existing : contents) {
 			if (ItemStack.isSameItemSameComponents(existing, remaining)) {
@@ -193,9 +194,9 @@ public class AssemblyHaloItem extends Item {
 		AssemblyHaloContainer menu = new AssemblyHaloContainer(-1, player.getInventory(),
 				ContainerLevelAccess.create(level, BlockPos.ZERO));
 		List<Slot> grid = menu.slots.subList(1, 10);
-		ServerPlaceRecipe.PostPlaceAction action = ServerPlaceRecipe.placeRecipe(menu, 3, 3, grid, grid,
+		RecipeBookMenu.PostPlaceAction action = ServerPlaceRecipe.placeRecipe(menu, 3, 3, grid, grid,
 				player.getInventory(), holder, false, false);
-		if (action != ServerPlaceRecipe.PostPlaceAction.NOTHING) {
+		if (action != RecipeBookMenu.PostPlaceAction.NOTHING) {
 			returnGrid(player, grid);
 			return;
 		}
@@ -216,7 +217,11 @@ public class AssemblyHaloItem extends Item {
 		for (Slot inputSlot : grid) {
 			inputSlot.set(ItemStack.EMPTY);
 		}
-		player.getInventory().add(result);
+		ItemStack outputToGive = result.copy();
+		player.getInventory().add(outputToGive);
+		if (!outputToGive.isEmpty()) {
+			player.drop(outputToGive, false);
+		}
 		for (ItemStack remainder : remainders) {
 			if (!remainder.isEmpty() && !player.getInventory().add(remainder)) {
 				player.drop(remainder, false);
@@ -371,8 +376,7 @@ public class AssemblyHaloItem extends Item {
 			return;
 		}
 		recipeManager.getRecipeFor(RecipeType.CRAFTING, input, serverLevel).ifPresent(recipe -> {
-			for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
-				ItemStack stack = player.getInventory().getItem(i);
+			for (ItemStack stack : player.getInventory().getNonEquipmentItems()) {
 				if (!stack.isEmpty() && stack.getItem() instanceof AssemblyHaloItem) {
 					rememberLastRecipe(recipe.id().identifier(), stack);
 				}

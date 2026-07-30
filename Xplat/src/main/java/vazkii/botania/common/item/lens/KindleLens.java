@@ -10,6 +10,7 @@ package vazkii.botania.common.item.lens;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.ItemStack;
@@ -25,8 +26,8 @@ public class KindleLens extends Lens {
 	@Override
 	public void updateBurst(ManaBurst burst, ItemStack stack) {
 		Entity entity = burst.entity();
-		if (!entity.level().isClientSide) {
-			entity.setSecondsOnFire(3);
+		if (!entity.level().isClientSide()) {
+			entity.igniteForSeconds(3.0F);
 		}
 	}
 
@@ -34,7 +35,7 @@ public class KindleLens extends Lens {
 	public boolean collideBurst(ManaBurst burst, HitResult rtr, boolean isManaBlock, boolean shouldKill, ItemStack stack) {
 		Projectile entity = burst.entity();
 
-		if (!entity.level().isClientSide && rtr.getType() == HitResult.Type.BLOCK
+		if (entity.level() instanceof ServerLevel level && rtr.getType() == HitResult.Type.BLOCK
 				&& !burst.isFake() && !isManaBlock) {
 			BlockHitResult brtr = (BlockHitResult) rtr;
 			BlockPos pos = brtr.getBlockPos();
@@ -42,19 +43,19 @@ public class KindleLens extends Lens {
 
 			BlockPos offPos = pos.relative(dir);
 
-			BlockState stateAt = entity.level().getBlockState(pos);
-			BlockState stateAtOffset = entity.level().getBlockState(offPos);
+			BlockState stateAt = level.getBlockState(pos);
+			BlockState stateAtOffset = level.getBlockState(offPos);
 
-			if (stateAt.is(Blocks.NETHER_PORTAL) && entity.mayInteract(entity.level(), pos)) {
-				entity.level().destroyBlock(pos, false, entity);
+			if (stateAt.is(Blocks.NETHER_PORTAL) && entity.mayInteract(level, pos)) {
+				level.destroyBlock(pos, false, entity);
 			}
-			if (!entity.mayInteract(entity.level(), offPos)) {
+			if (!entity.mayInteract(level, offPos)) {
 				return true;
 			}
 			if (stateAtOffset.is(Blocks.NETHER_PORTAL)) {
-				entity.level().destroyBlock(offPos, false, entity);
-			} else if (BaseFireBlock.canBePlacedAt(entity.level(), offPos, dir.getOpposite())) {
-				entity.level().setBlockAndUpdate(offPos, BaseFireBlock.getState(entity.level(), offPos));
+				level.destroyBlock(offPos, false, entity);
+			} else if (BaseFireBlock.canBePlacedAt(level, offPos, dir.getOpposite())) {
+				level.setBlockAndUpdate(offPos, BaseFireBlock.getState(level, offPos));
 			}
 		}
 

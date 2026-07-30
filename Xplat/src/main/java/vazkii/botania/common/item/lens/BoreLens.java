@@ -43,7 +43,7 @@ public class BoreLens extends Lens {
 		Projectile entity = burst.entity();
 		Level level = entity.level();
 
-		if (level.isClientSide || rtr.getType() != HitResult.Type.BLOCK) {
+		if (!(level instanceof ServerLevel serverLevel) || rtr.getType() != HitResult.Type.BLOCK) {
 			return false;
 		}
 
@@ -59,8 +59,8 @@ public class BoreLens extends Lens {
 				|| state.is(Blocks.MOVING_PISTON) || state.is(Blocks.PISTON_HEAD))) {
 			return false;
 		}
-		if (!entity.mayInteract(level, collidePos) || entity.getOwner() instanceof ServerPlayer player
-				&& player.blockActionRestricted(level, collidePos, player.gameMode.getGameModeForPlayer())) {
+		if (!entity.mayInteract(serverLevel, collidePos) || entity.getOwner() instanceof ServerPlayer player
+				&& player.blockActionRestricted(serverLevel, collidePos, player.gameMode.getGameModeForPlayer())) {
 			return true;
 		}
 
@@ -74,7 +74,7 @@ public class BoreLens extends Lens {
 		BlockPos source = burst.getBurstSourceBlockPos();
 		if (!isManaBlock && canHarvest(harvestLevel, state) && hardness != -1 && (burst.isFake() || mana >= 24)) {
 			if (!burst.hasAlreadyCollidedAt(collidePos) && !burst.isFake()) {
-				List<ItemStack> items = Block.getDrops(state, (ServerLevel) level, collidePos, tile);
+				List<ItemStack> items = Block.getDrops(state, serverLevel, collidePos, tile);
 
 				if (!level.destroyBlock(collidePos, false, entity)) {
 					return true;
@@ -99,7 +99,7 @@ public class BoreLens extends Lens {
 					dropPosition = Vec3.atCenterOf(collidePos);
 				}
 
-				if (level.getGameRules().get(GameRules.BLOCK_DROPS)) {
+				if (serverLevel.getGameRules().get(GameRules.BLOCK_DROPS)) {
 					for (ItemStack stack_ : items) {
 						ItemEntity itemEntity = new ItemEntity(level, dropPosition.x, dropPosition.y, dropPosition.z, stack_);
 						itemEntity.setDefaultPickUpDelay();

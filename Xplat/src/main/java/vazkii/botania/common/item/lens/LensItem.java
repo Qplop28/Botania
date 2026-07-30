@@ -10,6 +10,7 @@ package vazkii.botania.common.item.lens;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.util.Mth;
@@ -17,6 +18,7 @@ import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.HitResult;
 
@@ -28,7 +30,7 @@ import vazkii.botania.common.helper.ColorHelper;
 import vazkii.botania.common.helper.ItemNBTHelper;
 import vazkii.botania.common.item.BotaniaItems;
 
-import java.util.List;
+import java.util.function.Consumer;
 
 public class LensItem extends Item implements ControlLensItem, CompositableLensItem, TinyPlanetExcempt {
 	public static final int PROP_NONE = 0,
@@ -52,16 +54,17 @@ public class LensItem extends Item implements ControlLensItem, CompositableLensI
 	}
 
 	@Override
-	public void appendHoverText(ItemStack stack, Level world, List<Component> stacks, TooltipFlag flags) {
+	public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display,
+			Consumer<Component> stacks, TooltipFlag flags) {
 		int storedColor = getStoredColor(stack);
 		if (storedColor != -1) {
 			var colorName = Component.translatable(storedColor == 16 ? "botania.color.rainbow" : "color.minecraft." + DyeColor.byId(storedColor));
-			TextColor realColor = TextColor.fromRgb(getLensColor(stack, world));
-			stacks.add(Component.translatable("botaniamisc.color", colorName).withStyle(s -> s.withColor(realColor)));
+			TextColor realColor = TextColor.fromRgb(getLensColor(stack, context.level()));
+			stacks.accept(Component.translatable("botaniamisc.color", colorName).withStyle(s -> s.withColor(realColor)));
 		}
 
 		if (lens instanceof StormLens) {
-			stacks.add(Component.translatable("botaniamisc.creative").withStyle(ChatFormatting.GRAY));
+			stacks.accept(Component.translatable("botaniamisc.creative").withStyle(ChatFormatting.GRAY));
 		}
 	}
 
@@ -72,8 +75,8 @@ public class LensItem extends Item implements ControlLensItem, CompositableLensI
 		if (compositeLens.isEmpty()) {
 			return super.getName(stack);
 		}
-		String shortKeyA = stack.getDescriptionId() + ".short";
-		String shortKeyB = compositeLens.getDescriptionId() + ".short";
+		String shortKeyA = stack.getItem().getDescriptionId(stack) + ".short";
+		String shortKeyB = compositeLens.getItem().getDescriptionId(compositeLens) + ".short";
 		return Component.translatable("item.botania.composite_lens", Component.translatable(shortKeyA), Component.translatable(shortKeyB));
 	}
 
@@ -108,7 +111,7 @@ public class LensItem extends Item implements ControlLensItem, CompositableLensI
 	public void updateBurst(ManaBurst burst, ItemStack stack) {
 		int storedColor = getStoredColor(stack);
 
-		if (storedColor == 16 && burst.entity().level().isClientSide) {
+		if (storedColor == 16 && burst.entity().level().isClientSide()) {
 			burst.setColor(getLensColor(stack, burst.entity().level()));
 		}
 
@@ -189,9 +192,8 @@ public class LensItem extends Item implements ControlLensItem, CompositableLensI
 		CompoundTag cmp = ItemNBTHelper.getCompound(stack, TAG_COMPOSITE_LENS, true);
 		if (cmp == null) {
 			return ItemStack.EMPTY;
-		} else {
-			return ItemStack.of(cmp);
 		}
+		return ItemStack.OPTIONAL_CODEC.parse(NbtOps.INSTANCE, cmp.copy()).result().orElse(ItemStack.EMPTY);
 	}
 
 	@Override
@@ -199,8 +201,11 @@ public class LensItem extends Item implements ControlLensItem, CompositableLensI
 		if (compositeLens.isEmpty()) {
 			ItemNBTHelper.removeEntry(sourceLens, TAG_COMPOSITE_LENS);
 		} else {
-			CompoundTag cmp = compositeLens.save(new CompoundTag());
-			ItemNBTHelper.setCompound(sourceLens, TAG_COMPOSITE_LENS, cmp);
+			ItemStack.OPTIONAL_CODEC.encodeStart(NbtOps.INSTANCE, compositeLens)
+					.result()
+					.filter(CompoundTag.class::isInstance)
+					.map(CompoundTag.class::cast)
+					.ifPresent(cmp -> ItemNBTHelper.setCompound(sourceLens, TAG_COMPOSITE_LENS, cmp));
 		}
 		return sourceLens;
 	}

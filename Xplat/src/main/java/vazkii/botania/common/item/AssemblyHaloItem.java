@@ -24,7 +24,6 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.recipebook.ServerPlaceRecipe;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.*;
 import net.minecraft.world.Container;
@@ -194,8 +193,12 @@ public class AssemblyHaloItem extends Item {
 		AssemblyHaloContainer menu = new AssemblyHaloContainer(-1, player.getInventory(),
 				ContainerLevelAccess.create(level, BlockPos.ZERO));
 		List<Slot> grid = menu.slots.subList(1, 10);
-		RecipeBookMenu.PostPlaceAction action = ServerPlaceRecipe.placeRecipe(menu, 3, 3, grid, grid,
-				player.getInventory(), holder, false, false);
+		RecipeBookMenu.PostPlaceAction action = menu.handlePlacement(
+				false,
+				false,
+				holder,
+				level,
+				player.getInventory());
 		if (action != RecipeBookMenu.PostPlaceAction.NOTHING) {
 			returnGrid(player, grid);
 			return;

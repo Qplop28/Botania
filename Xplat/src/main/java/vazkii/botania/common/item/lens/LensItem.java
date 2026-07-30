@@ -59,7 +59,7 @@ public class LensItem extends Item implements ControlLensItem, CompositableLensI
 		int storedColor = getStoredColor(stack);
 		if (storedColor != -1) {
 			var colorName = Component.translatable(storedColor == 16 ? "botania.color.rainbow" : "color.minecraft." + DyeColor.byId(storedColor));
-			TextColor realColor = TextColor.fromRgb(getLensColor(stack, context.level()));
+			TextColor realColor = TextColor.fromRgb(getLensColor(stack, null));
 			stacks.accept(Component.translatable("botaniamisc.color", colorName).withStyle(s -> s.withColor(realColor)));
 		}
 
@@ -75,8 +75,8 @@ public class LensItem extends Item implements ControlLensItem, CompositableLensI
 		if (compositeLens.isEmpty()) {
 			return super.getName(stack);
 		}
-		String shortKeyA = stack.getItem().getDescriptionId(stack) + ".short";
-		String shortKeyB = compositeLens.getItem().getDescriptionId(compositeLens) + ".short";
+		String shortKeyA = stack.getItem().getDescriptionId() + ".short";
+		String shortKeyB = compositeLens.getItem().getDescriptionId() + ".short";
 		return Component.translatable("item.botania.composite_lens", Component.translatable(shortKeyA), Component.translatable(shortKeyB));
 	}
 

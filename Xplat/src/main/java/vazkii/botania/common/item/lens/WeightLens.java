@@ -34,14 +34,13 @@ public class WeightLens extends Lens {
 	@Override
 	public boolean collideBurst(ManaBurst burst, HitResult pos, boolean isManaBlock, boolean shouldKill, ItemStack stack) {
 		Projectile entity = burst.entity();
-		if (!entity.level().isClientSide && !burst.isFake() && pos.getType() == HitResult.Type.BLOCK) {
+		if (entity.level() instanceof ServerLevel level && !burst.isFake() && pos.getType() == HitResult.Type.BLOCK) {
 			int harvestLevel = BotaniaConfig.common().harvestLevelWeight();
 
-			ServerLevel level = (ServerLevel) entity.level();
 			BlockPos bPos = ((BlockHitResult) pos).getBlockPos();
 			BlockState state = level.getBlockState(bPos);
 
-			if (entity.mayInteract(entity.level(), bPos)
+			if (entity.mayInteract(level, bPos)
 					&& FallingBlock.isFree(level.getBlockState(bPos.below()))
 					&& state.getDestroySpeed(level, bPos) != -1
 					&& level.getBlockEntity(bPos) == null
@@ -65,7 +64,9 @@ public class WeightLens extends Lens {
 		if (harvestToolStack.isEmpty()) {
 			return false;
 		}
-		harvestToolStack.enchant(Enchantments.SILK_TOUCH, 1);
+		var silkTouch = level.registryAccess().lookupOrThrow(net.minecraft.core.registries.Registries.ENCHANTMENT)
+				.getOrThrow(Enchantments.SILK_TOUCH);
+		harvestToolStack.enchant(silkTouch, 1);
 
 		Item blockItem = state.getBlock().asItem();
 		for (var drop : Block.getDrops(state, level, pos, null, owner, harvestToolStack)) {

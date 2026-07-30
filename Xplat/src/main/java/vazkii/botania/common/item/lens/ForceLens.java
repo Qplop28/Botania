@@ -10,6 +10,7 @@ package vazkii.botania.common.item.lens;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -29,21 +30,24 @@ public class ForceLens extends Lens {
 	@Override
 	public boolean collideBurst(ManaBurst burst, HitResult pos, boolean isManaBlock, boolean shouldKill, ItemStack stack) {
 		Entity entity = burst.entity();
+		if (!(entity.level() instanceof ServerLevel level)) {
+			return shouldKill;
+		}
 		if (pos.getType() == HitResult.Type.BLOCK
 				&& !burst.isFake()
 				&& !isManaBlock) {
 			BlockHitResult rtr = (BlockHitResult) pos;
 			BlockPos blockPos = rtr.getBlockPos();
-			BlockState state = entity.level().getBlockState(blockPos);
+			BlockState state = level.getBlockState(blockPos);
 			ItemStack sourceLens = burst.getSourceLens();
 			boolean isWarp = sourceLens.is(BotaniaItems.lensWarp);
 			if (isWarp && state.is(BotaniaBlocks.pistonRelay)) {
 				// warp+force should not move the force relay
 				return false;
 			}
-			if (entity.mayInteract(entity.level(), blockPos)) {
+			if (entity.mayInteract(level, blockPos)) {
 				// mana burst could have been warped here, so don't assume that any block is unmovable
-				moveBlocks(entity.level(), blockPos.relative(rtr.getDirection()), rtr.getDirection().getOpposite(),
+				moveBlocks(level, blockPos.relative(rtr.getDirection()), rtr.getDirection().getOpposite(),
 						ManaBurst.NO_SOURCE);
 			}
 		}

@@ -14,6 +14,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.RenderBuffers;
+import net.minecraft.client.renderer.SubmitNodeStorage;
 
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4fc;
@@ -32,6 +33,9 @@ public class LevelRendererMixin {
 	@Final
 	private RenderBuffers renderBuffers;
 	@Shadow
+	@Final
+	private SubmitNodeStorage submitNodeStorage;
+	@Shadow
 	@Nullable
 	private ClientLevel level;
 
@@ -48,7 +52,7 @@ public class LevelRendererMixin {
 				PoseStack pose = new PoseStack();
 				pose.last().pose().set(modelViewMatrix);
 				WorldOverlays.renderWorldLast(minecraft.gameRenderer.getMainCamera(), ClientTickHandler.partialTicks,
-						pose, renderBuffers, level);
+						pose, renderBuffers, level, submitNodeStorage);
 			}
 		});
 	}

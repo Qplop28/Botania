@@ -14,6 +14,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.SlotAccess;
 import net.minecraft.world.entity.player.Player;
@@ -22,30 +23,34 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.Level;
+import net.minecraft.server.level.ServerLevel;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import vazkii.botania.client.lib.ResourcesLib;
 import vazkii.botania.common.handler.BotaniaSounds;
 import vazkii.botania.common.helper.ItemNBTHelper;
 
-import java.util.List;
+import java.util.function.Consumer;
 
 public class ManufactoryHaloItem extends AssemblyHaloItem {
 	public static final String TAG_ACTIVE = "active";
 
-	private static final Identifier glowTexture = new Identifier(ResourcesLib.MISC_GLOW_CYAN);
+	private static final Identifier glowTexture = Identifier.parse(ResourcesLib.MISC_GLOW_CYAN);
 
 	public ManufactoryHaloItem(Item.Properties props) {
 		super(props);
 	}
 
 	@Override
-	public void inventoryTick(ItemStack stack, Level world, Entity entity, int pos, boolean equipped) {
-		super.inventoryTick(stack, world, entity, pos, equipped);
+	public void inventoryTick(ItemStack stack, ServerLevel world, Entity entity, @Nullable EquipmentSlot equipmentSlot) {
+		super.inventoryTick(stack, world, entity, equipmentSlot);
 
-		if (!world.isClientSide && entity instanceof Player player && !equipped && isActive(stack)) {
+		if (!world.isClientSide() && entity instanceof Player player
+				&& equipmentSlot != EquipmentSlot.MAINHAND && isActive(stack)) {
 
 			for (int i = 1; i < SEGMENTS; i++) {
 				tryCraft(player, stack, i, false);
@@ -59,11 +64,12 @@ public class ManufactoryHaloItem extends AssemblyHaloItem {
 	}
 
 	@Override
-	public void appendHoverText(@NotNull ItemStack stack, Level world, @NotNull List<Component> stacks, @NotNull TooltipFlag flags) {
+	public void appendHoverText(@NotNull ItemStack stack, Item.TooltipContext context, TooltipDisplay display,
+			Consumer<Component> stacks, @NotNull TooltipFlag flags) {
 		if (isActive(stack)) {
-			stacks.add(Component.translatable("botaniamisc.active"));
+			stacks.accept(Component.translatable("botaniamisc.active"));
 		} else {
-			stacks.add(Component.translatable("botaniamisc.inactive"));
+			stacks.accept(Component.translatable("botaniamisc.inactive"));
 		}
 	}
 

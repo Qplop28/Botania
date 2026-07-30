@@ -17,6 +17,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderBuffers;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.language.I18n;
@@ -30,20 +32,31 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.player.StackedContents;
+import net.minecraft.world.entity.player.StackedItemContents;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.item.crafting.RecipeType;
-import net.minecraft.world.item.crafting.ShapedRecipe;
+import net.minecraft.world.item.crafting.ServerPlaceRecipe;
+import net.minecraft.world.item.crafting.display.RecipeDisplay;
+import net.minecraft.world.item.crafting.display.ShapedCraftingRecipeDisplay;
+import net.minecraft.world.item.crafting.display.ShapelessCraftingRecipeDisplay;
+import net.minecraft.world.item.crafting.display.SlotDisplay;
+import net.minecraft.world.item.crafting.display.SlotDisplayContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.block.Blocks;
 
 import org.jetbrains.annotations.NotNull;
@@ -55,14 +68,20 @@ import vazkii.botania.client.core.helper.RenderHelper;
 import vazkii.botania.client.gui.crafting.AssemblyHaloContainer;
 import vazkii.botania.client.lib.ResourcesLib;
 import vazkii.botania.common.annotations.SoftImplement;
-import vazkii.botania.common.crafting.BotaniaRecipeTypes;
+import vazkii.botania.mixin.RecipeManagerAccessor;
 import vazkii.botania.common.helper.ItemNBTHelper;
 import vazkii.botania.common.helper.PlayerHelper;
 import vazkii.botania.common.helper.VecHelper;
+import vazkii.botania.network.clientbound.BotaniaEffectPacket;
+import vazkii.botania.network.EffectType;
+import vazkii.botania.xplat.XplatAbstractions;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class AssemblyHaloItem extends Item {
 
-	private static final Identifier glowTexture = new Identifier(ResourcesLib.MISC_GLOW_GREEN);
+	private static final Identifier glowTexture = Identifier.parse(ResourcesLib.MISC_GLOW_GREEN);
 	private static final ItemStack craftingTable = new ItemStack(Blocks.CRAFTING_TABLE);
 
 	public static final int SEGMENTS = 12;
@@ -80,9 +99,9 @@ public class AssemblyHaloItem extends Item {
 	@Override
 	public InteractionResult use(Level world, Player player, @NotNull InteractionHand hand) {
 		ItemStack stack = player.getItemInHand(hand);
-		if (!world.isClientSide) {
+		if (!world.isClientSide()) {
 			int segment = getSegmentLookedAt(stack, player);
-			Recipe<?> recipe = getSavedRecipe(world, stack, segment);
+			RecipeHolder<CraftingRecipe> recipe = getSavedRecipe(world, stack, segment);
 
 			if (segment == 0) {
 				// Pos is never used by workbench, so use origin.
@@ -94,9 +113,9 @@ public class AssemblyHaloItem extends Item {
 						stack.getHoverName()));
 			} else {
 				if (recipe == null) {
-					Recipe<?> lastRecipe = getLastRecipe(world, stack);
+					RecipeHolder<CraftingRecipe> lastRecipe = getLastRecipe(world, stack);
 					if (lastRecipe != null) {
-						saveRecipe(stack, lastRecipe.getId(), segment);
+						saveRecipe(stack, lastRecipe.id().identifier(), segment);
 					}
 				} else {
 					tryCraft(player, stack, segment, true);
@@ -110,16 +129,15 @@ public class AssemblyHaloItem extends Item {
 	}
 
 	@Override
-	public void inventoryTick(ItemStack stack, Level world, Entity entity, int pos, boolean equipped) {
+	public void inventoryTick(ItemStack stack, ServerLevel world, Entity entity, @Nullable EquipmentSlot equipmentSlot) {
 		if (!(entity instanceof LivingEntity living)) {
 			return;
 		}
 
 		boolean eqLastTick = wasEquipped(stack);
 
-		if (!equipped && living.getOffhandItem() == stack) {
-			equipped = true;
-		}
+		boolean equipped = equipmentSlot == EquipmentSlot.MAINHAND
+				&& living.getMainHandItem() == stack || living.getOffhandItem() == stack;
 
 		if (eqLastTick != equipped) {
 			setEquipped(stack, equipped);
@@ -134,24 +152,99 @@ public class AssemblyHaloItem extends Item {
 	}
 
 	private static boolean hasRoomFor(Inventory inv, ItemStack stack) {
-		Inventory dummy = new Inventory(inv.player);
-		for (int i = 0; i < inv.items.size(); i++) {
-			dummy.items.set(i, inv.items.get(i).copy());
+		ItemStack remaining = stack.copy();
+		List<ItemStack> contents = new ArrayList<>(inv.getContainerSize());
+		for (int i = 0; i < inv.getContainerSize(); i++) {
+			contents.add(inv.getItem(i).copy());
 		}
-		// warning: must be careful to not cause side effects / dupes with dummy here
-		return dummy.add(stack.copy());
+		for (ItemStack existing : contents) {
+			if (ItemStack.isSameItemSameComponents(existing, remaining)) {
+				int moved = Math.min(remaining.getCount(), existing.getMaxStackSize() - existing.getCount());
+				existing.grow(moved);
+				remaining.shrink(moved);
+			}
+		}
+		for (ItemStack existing : contents) {
+			if (remaining.isEmpty()) {
+				break;
+			}
+			if (existing.isEmpty()) {
+				remaining.shrink(Math.min(remaining.getCount(), remaining.getMaxStackSize()));
+			}
+		}
+		return remaining.isEmpty();
 	}
 
-	private static boolean canCraftHeuristic(Player player, Recipe<CraftingContainer> recipe) {
-		StackedContents accounter = new StackedContents();
+	private static boolean canCraftHeuristic(Player player, CraftingRecipe recipe) {
+		StackedItemContents accounter = new StackedItemContents();
 		player.getInventory().fillStackedContents(accounter);
-		return accounter.canCraft(recipe, null);
+		return accounter.canCraft(recipe, 1, null);
 	}
 
-		void tryCraft(Player player, ItemStack halo, int slot, boolean particles) {
-			// Assembly Halo autocrafting must be migrated to Minecraft 26.1's
-			// static ServerPlaceRecipe and RecipeHolder pipeline.
+	void tryCraft(Player player, ItemStack halo, int slot, boolean particles) {
+		if (!(player instanceof ServerPlayer) || !(player.level() instanceof ServerLevel level)) {
+			return;
 		}
+		RecipeHolder<CraftingRecipe> holder = getSavedRecipe(level, halo, slot);
+		if (holder == null) {
+			return;
+		}
+
+		AssemblyHaloContainer menu = new AssemblyHaloContainer(-1, player.getInventory(),
+				ContainerLevelAccess.create(level, BlockPos.ZERO));
+		List<Slot> grid = menu.slots.subList(1, 10);
+		ServerPlaceRecipe.PostPlaceAction action = ServerPlaceRecipe.placeRecipe(menu, 3, 3, grid, grid,
+				player.getInventory(), holder, false, false);
+		if (action != ServerPlaceRecipe.PostPlaceAction.NOTHING) {
+			returnGrid(player, grid);
+			return;
+		}
+
+		CraftingInput input = craftingInput(grid);
+		CraftingRecipe recipe = holder.value();
+		if (!recipe.matches(input, level)) {
+			returnGrid(player, grid);
+			return;
+		}
+		ItemStack result = recipe.assemble(input);
+		if (result.isEmpty() || !hasRoomFor(player.getInventory(), result)) {
+			returnGrid(player, grid);
+			return;
+		}
+
+		List<ItemStack> remainders = recipe.getRemainingItems(input);
+		for (Slot inputSlot : grid) {
+			inputSlot.set(ItemStack.EMPTY);
+		}
+		player.getInventory().add(result);
+		for (ItemStack remainder : remainders) {
+			if (!remainder.isEmpty() && !player.getInventory().add(remainder)) {
+				player.drop(remainder, false);
+			}
+		}
+		player.getInventory().setChanged();
+		if (particles) {
+			XplatAbstractions.INSTANCE.sendToTracking(player, new BotaniaEffectPacket(EffectType.HALO_CRAFT,
+					player.getX(), player.getY(), player.getZ(), player.getId()));
+		}
+	}
+
+	private static CraftingInput craftingInput(List<Slot> slots) {
+		return CraftingInput.of(3, 3, slots.stream().map(slot -> slot.getItem().copy()).toList());
+	}
+
+	private static void returnGrid(Player player, List<Slot> grid) {
+		for (Slot slot : grid) {
+			ItemStack stack = slot.getItem();
+			if (!stack.isEmpty()) {
+				if (!player.getInventory().add(stack)) {
+					player.drop(stack, false);
+				}
+				slot.set(ItemStack.EMPTY);
+			}
+		}
+		player.getInventory().setChanged();
+	}
 
 	@SoftImplement("IForgeItem")
 	public boolean onEntitySwing(ItemStack stack, LivingEntity living) {
@@ -160,7 +253,7 @@ public class AssemblyHaloItem extends Item {
 			return false;
 		}
 
-		Recipe<?> recipe = getSavedRecipe(living.level(), stack, segment);
+		RecipeHolder<CraftingRecipe> recipe = getSavedRecipe(living.level(), stack, segment);
 		if (recipe != null && living.isShiftKeyDown()) {
 			saveRecipe(stack, null, segment);
 			return true;
@@ -209,15 +302,25 @@ public class AssemblyHaloItem extends Item {
 	}
 
 	@Nullable
-	private static Recipe<CraftingContainer> getSavedRecipe(Level world, ItemStack halo, int position) {
+	private static RecipeHolder<CraftingRecipe> getSavedRecipe(Level world, ItemStack halo, int position) {
 		String savedId = ItemNBTHelper.getString(halo, TAG_STORED_RECIPE_PREFIX + position, "");
 		Identifier id = savedId.isEmpty() ? null : Identifier.tryParse(savedId);
 
 		if (position <= 0 || position >= SEGMENTS || id == null) {
 			return null;
 		} else {
-			return BotaniaRecipeTypes.getRecipes(world, RecipeType.CRAFTING).get(id);
+			return findCraftingRecipe(world, id);
 		}
+	}
+
+	@Nullable
+	private static RecipeHolder<CraftingRecipe> findCraftingRecipe(Level level, Identifier id) {
+		if (!(level.recipeAccess() instanceof RecipeManager recipeManager)) {
+			return null;
+		}
+		return ((RecipeManagerAccessor) recipeManager).botania_getRecipeMap()
+				.byType(RecipeType.CRAFTING).stream()
+				.filter(holder -> holder.id().identifier().equals(id)).findFirst().orElse(null);
 	}
 
 	private static void saveRecipe(ItemStack halo, @Nullable Identifier id, int position) {
@@ -234,13 +337,22 @@ public class AssemblyHaloItem extends Item {
 		} else if (position >= SEGMENTS) {
 			return ItemStack.EMPTY;
 		} else {
-			Recipe<?> recipe = getSavedRecipe(world, stack, position);
+			RecipeHolder<CraftingRecipe> recipe = getSavedRecipe(world, stack, position);
 			if (recipe != null) {
-				return recipe.getResultItem(world.registryAccess());
+				return displayResult(recipe.value(), world);
 			} else {
 				return ItemStack.EMPTY;
 			}
 		}
+	}
+
+	private static ItemStack displayResult(CraftingRecipe recipe, Level level) {
+		if (recipe.display().isEmpty()) {
+			return ItemStack.EMPTY;
+		}
+		List<ItemStack> stacks = recipe.display().getFirst().result()
+				.resolveForStacks(SlotDisplayContext.fromLevel(level));
+		return stacks.isEmpty() ? ItemStack.EMPTY : stacks.getFirst().copy();
 	}
 
 	public static void onItemCrafted(Player player, Container inv) {
@@ -251,11 +363,18 @@ public class AssemblyHaloItem extends Item {
 			return;
 		}
 
-		player.level().getRecipeManager().getRecipeFor(RecipeType.CRAFTING, cc, player.level()).ifPresent(recipe -> {
+		if (!(player.level() instanceof ServerLevel serverLevel)) {
+			return;
+		}
+		CraftingInput input = cc.asCraftInput();
+		if (!(serverLevel.recipeAccess() instanceof RecipeManager recipeManager)) {
+			return;
+		}
+		recipeManager.getRecipeFor(RecipeType.CRAFTING, input, serverLevel).ifPresent(recipe -> {
 			for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
 				ItemStack stack = player.getInventory().getItem(i);
 				if (!stack.isEmpty() && stack.getItem() instanceof AssemblyHaloItem) {
-					rememberLastRecipe(recipe.getId(), stack);
+					rememberLastRecipe(recipe.id().identifier(), stack);
 				}
 			}
 		});
@@ -266,11 +385,11 @@ public class AssemblyHaloItem extends Item {
 	}
 
 	@Nullable
-	private static Recipe<CraftingContainer> getLastRecipe(Level world, ItemStack halo) {
+	private static RecipeHolder<CraftingRecipe> getLastRecipe(Level world, ItemStack halo) {
 		String savedId = ItemNBTHelper.getString(halo, TAG_LAST_CRAFTING, "");
 		Identifier id = savedId.isEmpty() ? null : Identifier.tryParse(savedId);
 
-		return BotaniaRecipeTypes.getRecipes(world, RecipeType.CRAFTING).get(id);
+		return id == null ? null : findCraftingRecipe(world, id);
 	}
 
 	private static boolean wasEquipped(ItemStack stack) {
@@ -294,7 +413,8 @@ public class AssemblyHaloItem extends Item {
 	}
 
 	public static class Rendering {
-		public static void onRenderWorldLast(Camera camera, float partialTicks, PoseStack ms, RenderBuffers buffers) {
+		public static void onRenderWorldLast(Camera camera, float partialTicks, PoseStack ms, RenderBuffers buffers,
+				SubmitNodeCollector submitNodeCollector) {
 			Player player = Minecraft.getInstance().player;
 			ItemStack stack = PlayerHelper.getFirstHeldItemClass(player, AssemblyHaloItem.class);
 			if (stack.isEmpty()) {
@@ -303,9 +423,9 @@ public class AssemblyHaloItem extends Item {
 
 			MultiBufferSource.BufferSource bufferSource = buffers.bufferSource();
 
-			double renderPosX = camera.getPosition().x();
-			double renderPosY = camera.getPosition().y();
-			double renderPosZ = camera.getPosition().z();
+			double renderPosX = camera.position().x();
+			double renderPosY = camera.position().y();
+			double renderPosZ = camera.position().z();
 
 			ms.pushPose();
 			float alpha = ((float) Math.sin((ClientTickHandler.ticksInGame + partialTicks) * 0.2F) * 0.5F + 0.5F) * 0.4F + 0.3F;
@@ -352,8 +472,10 @@ public class AssemblyHaloItem extends Item {
 					ms.translate(seg == 0 ? 0.5F : 0F, seg == 0 ? -0.1F : 0.6F, 0F);
 
 					ms.mulPose(VecHelper.rotateY(90.0F));
-					Minecraft.getInstance().getItemRenderer().renderStatic(slotStack, ItemDisplayContext.GUI,
-							0xF000F0, OverlayTexture.NO_OVERLAY, ms, bufferSource, player.level(), player.getId());
+					ItemStackRenderState itemState = new ItemStackRenderState();
+					Minecraft.getInstance().getItemModelResolver().updateForTopItem(itemState, slotStack,
+							ItemDisplayContext.GUI, player.level(), player, player.getId());
+					itemState.submit(ms, submitNodeCollector, 0xF000F0, OverlayTexture.NO_OVERLAY, player.getId());
 				}
 				ms.popPose();
 
@@ -376,14 +498,14 @@ public class AssemblyHaloItem extends Item {
 					float xp = (float) Math.cos(ang * Math.PI / 180F) * s;
 					float zp = (float) Math.sin(ang * Math.PI / 180F) * s;
 
-					buffer.vertex(mat, xp * m, y, zp * m).color(r, g, b, a).uv(u, v).endVertex();
-					buffer.vertex(mat, xp, y0, zp).color(r, g, b, a).uv(u, 0).endVertex();
+					buffer.addVertex(mat, xp * m, y, zp * m).setColor(r, g, b, a).setUv(u, v);
+					buffer.addVertex(mat, xp, y0, zp).setColor(r, g, b, a).setUv(u, 0);
 
 					xp = (float) Math.cos((ang + 1) * Math.PI / 180F) * s;
 					zp = (float) Math.sin((ang + 1) * Math.PI / 180F) * s;
 
-					buffer.vertex(mat, xp, y0, zp).color(r, g, b, a).uv(0, 0).endVertex();
-					buffer.vertex(mat, xp * m, y, zp * m).color(r, g, b, a).uv(0, v).endVertex();
+					buffer.addVertex(mat, xp, y0, zp).setColor(r, g, b, a).setUv(0, 0);
+					buffer.addVertex(mat, xp * m, y, zp * m).setColor(r, g, b, a).setUv(0, v);
 				}
 				y0 = 0;
 				ms.popPose();
@@ -404,31 +526,33 @@ public class AssemblyHaloItem extends Item {
 
 				gui.fill(x - 6, y - 6, x + l + 6, y + 37, 0x22000000);
 				gui.fill(x - 4, y - 4, x + l + 4, y + 35, 0x22000000);
-				gui.renderItem(craftingTable, mc.getWindow().getGuiScaledWidth() / 2 - 8, mc.getWindow().getGuiScaledHeight() / 2 - 52);
+				gui.item(craftingTable, mc.getWindow().getGuiScaledWidth() / 2 - 8, mc.getWindow().getGuiScaledHeight() / 2 - 52);
 
-				gui.drawString(mc.font, name, x, y, 0xFFFFFF);
+				gui.text(mc.font, name, x, y, 0xFFFFFF);
 			} else {
-				Recipe<CraftingContainer> recipe = getSavedRecipe(player.level(), stack, slot);
+				RecipeHolder<CraftingRecipe> holder = getSavedRecipe(player.level(), stack, slot);
 				Component label;
 				boolean setRecipe = false;
 
-				if (recipe == null) {
+				if (holder == null) {
 					label = Component.translatable("botaniamisc.unsetRecipe");
-					recipe = getLastRecipe(player.level(), stack);
+					holder = getLastRecipe(player.level(), stack);
 				} else {
-					label = recipe.getResultItem(player.level().registryAccess()).getHoverName();
+					label = displayResult(holder.value(), player.level()).getHoverName();
 					setRecipe = true;
 				}
 
-				renderRecipe(gui, label, recipe, player, setRecipe);
+				renderRecipe(gui, label, holder, player, setRecipe);
 			}
 		}
 
-		private static void renderRecipe(GuiGraphicsExtractor gui, Component label, @Nullable Recipe<CraftingContainer> recipe, Player player, boolean isSavedRecipe) {
+		private static void renderRecipe(GuiGraphicsExtractor gui, Component label,
+				@Nullable RecipeHolder<CraftingRecipe> holder, Player player, boolean isSavedRecipe) {
 			Minecraft mc = Minecraft.getInstance();
+			CraftingRecipe recipe = holder == null ? null : holder.value();
 
-			ItemStack recipeResult;
-			if (recipe != null && !(recipeResult = recipe.getResultItem(player.level().registryAccess())).isEmpty()) {
+			ItemStack recipeResult = recipe == null ? ItemStack.EMPTY : displayResult(recipe, player.level());
+			if (!recipeResult.isEmpty()) {
 				int x = mc.getWindow().getGuiScaledWidth() / 2 - 45;
 				int y = mc.getWindow().getGuiScaledHeight() / 2 - 90;
 
@@ -438,32 +562,37 @@ public class AssemblyHaloItem extends Item {
 				gui.fill(x + 66, y + 14, x + 92, y + 40, 0x22000000);
 				gui.fill(x - 2, y - 2, x + 56, y + 56, 0x22000000);
 
-				int wrap = recipe instanceof ShapedRecipe shaped ? shaped.getWidth() : 3;
-				for (int i = 0; i < recipe.getIngredients().size(); i++) {
-					Ingredient ingr = recipe.getIngredients().get(i);
-					if (ingr != Ingredient.EMPTY) {
-						ItemStack stack = ingr.getItems()[ClientTickHandler.ticksInGame / 20 % ingr.getItems().length];
+				RecipeDisplay display = recipe.display().getFirst();
+				int wrap = display instanceof ShapedCraftingRecipeDisplay shaped ? shaped.width() : 3;
+				List<SlotDisplay> ingredients = display instanceof ShapedCraftingRecipeDisplay shaped
+						? shaped.ingredients()
+						: display instanceof ShapelessCraftingRecipeDisplay shapeless
+								? shapeless.ingredients() : List.of();
+				for (int i = 0; i < ingredients.size(); i++) {
+					List<ItemStack> choices = ingredients.get(i).resolveForStacks(SlotDisplayContext.fromLevel(player.level()));
+					if (!choices.isEmpty()) {
+						ItemStack stack = choices.get(ClientTickHandler.ticksInGame / 20 % choices.size());
 						int xpos = x + i % wrap * 18;
 						int ypos = y + i / wrap * 18;
 						gui.fill(xpos, ypos, xpos + 16, ypos + 16, 0x22000000);
 
-						gui.renderItem(stack, xpos, ypos);
+						gui.item(stack, xpos, ypos);
 					}
 				}
 
-				gui.renderItem(recipeResult, x + 72, y + 18);
-				gui.renderItemDecorations(mc.font, recipeResult, x + 72, y + 18);
+				gui.item(recipeResult, x + 72, y + 18);
+				gui.itemDecorations(mc.font, recipeResult, x + 72, y + 18, null);
 
 			}
 
 			int yoff = 110;
 			if (isSavedRecipe && recipe != null && !canCraftHeuristic(player, recipe)) {
 				String warning = ChatFormatting.RED + I18n.get("botaniamisc.cantCraft");
-				gui.drawCenteredString(mc.font, warning, mc.getWindow().getGuiScaledWidth() / 2, mc.getWindow().getGuiScaledHeight() / 2 - yoff, 0xFFFFFF);
+				gui.centeredText(mc.font, warning, mc.getWindow().getGuiScaledWidth() / 2, mc.getWindow().getGuiScaledHeight() / 2 - yoff, 0xFFFFFF);
 				yoff += 12;
 			}
 
-			gui.drawCenteredString(mc.font, label, mc.getWindow().getGuiScaledWidth() / 2, mc.getWindow().getGuiScaledHeight() / 2 - yoff, 0xFFFFFF);
+			gui.centeredText(mc.font, label, mc.getWindow().getGuiScaledWidth() / 2, mc.getWindow().getGuiScaledHeight() / 2 - yoff, 0xFFFFFF);
 		}
 	}
 }

@@ -10,9 +10,9 @@ package vazkii.botania.common.item.equipment.bauble;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.model.HumanoidModel;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.model.player.PlayerModel;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.entity.state.AvatarRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.TickTask;
@@ -28,7 +28,9 @@ import net.minecraft.world.phys.AABB;
 
 import vazkii.botania.api.mana.ManaItemHandler;
 import vazkii.botania.client.render.AccessoryRenderRegistry;
-import vazkii.botania.client.render.AccessoryRenderer;
+import vazkii.botania.client.render.accessory.AccessoryExtractionContext;
+import vazkii.botania.client.render.accessory.AccessoryRenderData;
+import vazkii.botania.client.render.accessory.DeferredAccessoryRenderer;
 import vazkii.botania.common.block.flower.functional.HeiseiDreamBlockEntity;
 import vazkii.botania.common.handler.BotaniaSounds;
 import vazkii.botania.common.handler.EquipmentHandler;
@@ -49,7 +51,7 @@ public class CharmOfTheDivaItem extends BaubleItem {
 
 	public CharmOfTheDivaItem(Properties props) {
 		super(props);
-		Proxy.INSTANCE.runOnClient(() -> () -> AccessoryRenderRegistry.register(this, new Renderer()));
+		Proxy.INSTANCE.runOnClient(() -> () -> AccessoryRenderRegistry.registerDeferred(this, new Renderer()));
 	}
 
 	private static Predicate<Mob> getCharmTargetPredicate(Player player, ServerLevel level, Mob mobToCharm) {
@@ -105,14 +107,21 @@ public class CharmOfTheDivaItem extends BaubleItem {
 		}
 	}
 
-	public static class Renderer implements AccessoryRenderer {
+	public static class Renderer implements DeferredAccessoryRenderer {
 		@Override
-		public void doRender(HumanoidModel<?> bipedModel, ItemStack stack, LivingEntity living, PoseStack ms, MultiBufferSource buffers, int light, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
-			bipedModel.head.translateAndRotate(ms);
-			ms.translate(0.15, -0.42, -0.35);
-			ms.scale(0.4F, -0.4F, -0.4F);
-			Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.NONE,
-					light, OverlayTexture.NO_OVERLAY, ms, buffers, living.level(), living.getId());
+		public void extract(AccessoryRenderData data, ItemStack stack, Player player, float partialTicks,
+				AccessoryExtractionContext context) {
+			data.itemState.clear();
+			context.itemModels().updateForLiving(data.itemState, stack, ItemDisplayContext.NONE, player);
+		}
+
+		@Override
+		public void submit(AccessoryRenderData data, ItemStack stack, PlayerModel model, AvatarRenderState state,
+				PoseStack poseStack, SubmitNodeCollector collector, int lightCoords) {
+			model.head.translateAndRotate(poseStack);
+			poseStack.translate(0.15, -0.42, -0.35);
+			poseStack.scale(0.4F, -0.4F, -0.4F);
+			data.itemState.submit(poseStack, collector, lightCoords, OverlayTexture.NO_OVERLAY, state.outlineColor);
 		}
 	}
 }

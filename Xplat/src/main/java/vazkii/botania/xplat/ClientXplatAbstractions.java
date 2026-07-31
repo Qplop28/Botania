@@ -3,6 +3,7 @@ package vazkii.botania.xplat;
 import com.mojang.blaze3d.vertex.PoseStack;
 
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
 import net.minecraft.client.renderer.texture.AbstractTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -27,7 +28,8 @@ public interface ClientXplatAbstractions {
 	Identifier MANA_GUN_MODEL_LOADER_ID = prefix("mana_gun");
 
 	// Event firing
-	void fireRenderTinyPotato(BlockEntity potato, Component name, float tickDelta, PoseStack ms, MultiBufferSource buffers, int light, int overlay);
+	void fireRenderTinyPotato(BlockPos pos, Component name, String contributor, float tickDelta,
+			PoseStack poseStack, SubmitNodeCollector collector, int light, int overlay);
 
 	// Networking
 	void sendToServer(BotaniaPacket packet);

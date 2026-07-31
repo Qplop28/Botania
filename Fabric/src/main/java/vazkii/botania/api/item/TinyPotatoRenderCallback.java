@@ -12,20 +12,21 @@ import com.mojang.blaze3d.vertex.PoseStack;
 
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.level.block.entity.BlockEntity;
 
 /**
  * Why would you ever want this ._.
  */
 public interface TinyPotatoRenderCallback {
 	Event<TinyPotatoRenderCallback> EVENT = EventFactory.createArrayBacked(TinyPotatoRenderCallback.class,
-			listeners -> (be, n, td, ms, buf, light, ov) -> {
+			listeners -> (pos, name, contributor, tickDelta, poseStack, collector, light, overlay) -> {
 				for (TinyPotatoRenderCallback listener : listeners) {
-					listener.onRender(be, n, td, ms, buf, light, ov);
+					listener.onRender(pos, name, contributor, tickDelta, poseStack, collector, light, overlay);
 				}
 			});
 
-	void onRender(BlockEntity potato, Component name, float tickDelta, PoseStack ms, MultiBufferSource buffers, int light, int overlay);
+	void onRender(BlockPos pos, Component name, String contributor, float tickDelta,
+			PoseStack poseStack, SubmitNodeCollector collector, int light, int overlay);
 }

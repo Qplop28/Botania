@@ -5,6 +5,7 @@
 package vazkii.botania.client.render.block_entity.state;
 
 import net.minecraft.client.renderer.block.dispatch.BlockStateModelPart;
+import net.minecraft.client.renderer.block.BlockModelRenderState;
 import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.core.BlockPos;
@@ -32,7 +33,22 @@ public class TinyPotatoRenderState extends BlockEntityRenderState {
 	public BlockPos blockPos = BlockPos.ZERO;
 	public Direction facing = Direction.NORTH;
 	public List<BlockStateModelPart> bodyParts = List.of();
-	public List<BlockStateModelPart> extraModelParts = List.of();
+	public final ItemStackRenderState bodyItem = new ItemStackRenderState();
+	public List<BlockStateModelPart> phiFlowerParts = List.of();
+	public List<BlockStateModelPart> nerfBatParts = List.of();
+	public List<BlockStateModelPart> goldfishParts = List.of();
+	public boolean showPhiFlower;
+	public boolean showNerfBat;
+	public boolean showGoldfish;
+	public boolean showMartyBoot;
+	public boolean showJibrilHalo;
+	public boolean showKingDaddyExtras;
+	public boolean showDefaultFlower;
+	public final ItemStackRenderState martyBoot = new ItemStackRenderState();
+	public final ItemStackRenderState manaRing1 = new ItemStackRenderState();
+	public final ItemStackRenderState manaRing2 = new ItemStackRenderState();
+	public final ItemStackRenderState defaultFlower = new ItemStackRenderState();
+	public final BlockModelRenderState cake = new BlockModelRenderState();
 	public final List<ItemStackRenderState> attachedItems = itemStates(6);
 	public final Direction[] attachedSides = new Direction[6];
 	public final boolean[] attachedPresent = new boolean[6];
@@ -40,8 +56,6 @@ public class TinyPotatoRenderState extends BlockEntityRenderState {
 	public final boolean[] attachedPotato = new boolean[6];
 	public final boolean[] attachedSkull = new boolean[6];
 	public final boolean[] attachedKing = new boolean[6];
-	public final List<ItemStackRenderState> extraItems = itemStates(4);
-	public int extraItemCount;
 
 	private static List<ItemStackRenderState> itemStates(int count) {
 		List<ItemStackRenderState> states = new ArrayList<>(count);

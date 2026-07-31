@@ -12,6 +12,7 @@ import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.block.BlockModelRenderState;
 import net.minecraft.client.renderer.block.BlockModelResolver;
+import net.minecraft.client.renderer.block.model.BlockDisplayContext;
 import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
 import net.minecraft.client.renderer.block.dispatch.BlockStateModelPart;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
@@ -23,6 +24,7 @@ import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.RandomSource;
@@ -44,10 +46,12 @@ import vazkii.botania.client.core.handler.MiscellaneousModels;
 import vazkii.botania.client.lib.ResourcesLib;
 import vazkii.botania.client.render.block_entity.state.TinyPotatoRenderState;
 import vazkii.botania.common.block.block_entity.TinyPotatoBlockEntity;
+import vazkii.botania.common.block.BotaniaBlocks;
 import vazkii.botania.common.handler.ContributorList;
 import vazkii.botania.common.helper.VecHelper;
 import vazkii.botania.common.item.BotaniaItems;
 import vazkii.botania.common.item.block.TinyPotatoBlockItem;
+import vazkii.botania.common.item.equipment.bauble.FlugelTiaraItem;
 import vazkii.botania.xplat.ClientXplatAbstractions;
 
 import java.util.ArrayList;
@@ -62,6 +66,7 @@ public class TinyPotatoBlockEntityRenderer
 	public static final String DEFAULT = "default";
 	public static final String HALLOWEEN = "halloween";
 	private static final Pattern ESCAPED = Pattern.compile("[^a-z0-9/._-]");
+	private static final BlockDisplayContext BLOCK_DISPLAY_CONTEXT = BlockDisplayContext.create();
 	private final BlockModelResolver blockModelResolver;
 	private final ItemModelResolver itemModelResolver;
 	private final Font font;
@@ -129,8 +134,13 @@ public class TinyPotatoBlockEntityRenderer
 		state.renderBody = !(state.name.equals("mami") || state.name.equals("soaryn")
 				|| state.name.equals("eloraam") && jump != 0);
 		state.bodyParts = collect(getModel(state.name));
-		state.extraModelParts = List.of();
-		state.extraItemCount = 0;
+		state.bodyItem.clear();
+		ItemStack bodyStack = new ItemStack(BotaniaBlocks.tinyPotato).setHoverName(state.displayName.copy());
+		if (state.enchanted) {
+			bodyStack.set(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true);
+		}
+		itemModelResolver.updateForTopItem(state.bodyItem, bodyStack, ItemDisplayContext.NONE,
+				blockEntity.getLevel(), null, blockEntity.getBlockPos().hashCode());
 		for (int i = 0; i < 6; i++) {
 			state.attachedItems.get(i).clear();
 			state.attachedPresent[i] = false;
@@ -159,43 +169,56 @@ public class TinyPotatoBlockEntityRenderer
 			itemModelResolver.updateForTopItem(state.attachedItems.get(i), stack, ItemDisplayContext.HEAD,
 					blockEntity.getLevel(), null, blockEntity.getBlockPos().hashCode() + i);
 		}
-		for (var item : state.extraItems) {
-			item.clear();
-		}
 		extractContributorExtras(blockEntity, state);
 		extractName(state);
 	}
 
 	private void extractContributorExtras(TinyPotatoBlockEntity blockEntity, TinyPotatoRenderState state) {
-		BlockStateModel model = switch (state.name) {
-			case "phi", "vazkii" -> MiscellaneousModels.INSTANCE.phiFlowerModel();
-			case "haighyorkie" -> MiscellaneousModels.INSTANCE.goldfishModel();
-			default -> null;
-		};
-		if (model != null) {
-			state.extraModelParts = collect(model);
-		}
-		List<ItemStack> items = new ArrayList<>();
+		state.phiFlowerParts = state.nerfBatParts = state.goldfishParts = List.of();
+		state.showPhiFlower = state.showNerfBat = state.showGoldfish = false;
+		state.showMartyBoot = state.showJibrilHalo = state.showKingDaddyExtras = state.showDefaultFlower = false;
+		state.martyBoot.clear();
+		state.manaRing1.clear();
+		state.manaRing2.clear();
+		state.defaultFlower.clear();
 		switch (state.name) {
-			case "vazkii" -> state.extraModelParts = collect(MiscellaneousModels.INSTANCE.nerfBatModel());
-			case "martysgames", "marty" -> items.add(new ItemStack(BotaniaItems.infiniteFruit).setHoverName(Component.literal("das boot")));
-			case "jibril" -> items.add(new ItemStack(BotaniaItems.flightTiara));
+			case "phi" -> {
+				state.showPhiFlower = true;
+				state.phiFlowerParts = collect(MiscellaneousModels.INSTANCE.phiFlowerModel());
+			}
+			case "vazkii" -> {
+				state.showPhiFlower = state.showNerfBat = true;
+				state.phiFlowerParts = collect(MiscellaneousModels.INSTANCE.phiFlowerModel());
+				state.nerfBatParts = collect(MiscellaneousModels.INSTANCE.nerfBatModel());
+			}
+			case "haighyorkie" -> {
+				state.showGoldfish = true;
+				state.goldfishParts = collect(MiscellaneousModels.INSTANCE.goldfishModel());
+			}
+			case "martysgames", "marty" -> {
+				state.showMartyBoot = true;
+				ItemStack boot = new ItemStack(BotaniaItems.infiniteFruit).setHoverName(Component.literal("das boot"));
+				itemModelResolver.updateForTopItem(state.martyBoot, boot, ItemDisplayContext.HEAD,
+						blockEntity.getLevel(), null, blockEntity.getBlockPos().hashCode() + 31);
+			}
+			case "jibril" -> state.showJibrilHalo = true;
 			case "kingdaddydmac" -> {
-				items.add(new ItemStack(BotaniaItems.manaRing));
-				items.add(new ItemStack(BotaniaItems.manaRing));
-				items.add(new ItemStack(Blocks.CAKE));
+				state.showKingDaddyExtras = true;
+				itemModelResolver.updateForTopItem(state.manaRing1, new ItemStack(BotaniaItems.manaRing), ItemDisplayContext.HEAD,
+						blockEntity.getLevel(), null, blockEntity.getBlockPos().hashCode() + 32);
+				itemModelResolver.updateForTopItem(state.manaRing2, new ItemStack(BotaniaItems.manaRing), ItemDisplayContext.HEAD,
+						blockEntity.getLevel(), null, blockEntity.getBlockPos().hashCode() + 33);
+				blockModelResolver.update(state.cake, Blocks.CAKE.defaultBlockState(), BLOCK_DISPLAY_CONTEXT);
 			}
 			default -> {
+				ContributorList.firstStart();
 				ItemStack flower = ContributorList.getFlower(state.name);
 				if (!flower.isEmpty()) {
-					items.add(flower.copy());
+					state.showDefaultFlower = true;
+					itemModelResolver.updateForTopItem(state.defaultFlower, flower.copy(), ItemDisplayContext.HEAD,
+							blockEntity.getLevel(), null, blockEntity.getBlockPos().hashCode() + 34);
 				}
 			}
-		}
-		state.extraItemCount = Math.min(items.size(), state.extraItems.size());
-		for (int i = 0; i < state.extraItemCount; i++) {
-			itemModelResolver.updateForTopItem(state.extraItems.get(i), items.get(i), ItemDisplayContext.HEAD,
-					blockEntity.getLevel(), null, blockEntity.getBlockPos().hashCode() + 31 + i);
 		}
 	}
 
@@ -222,8 +245,7 @@ public class TinyPotatoBlockEntityRenderer
 		if (state.renderBody) {
 			poseStack.pushPose();
 			poseStack.translate(-0.5F, 0, -0.5F);
-			collector.submitBlockModel(poseStack, Sheets.translucentCullBlockSheet(), state.bodyParts,
-					BlockModelRenderState.EMPTY_TINTS, state.lightCoords, OverlayTexture.NO_OVERLAY, 0);
+			state.bodyItem.submit(poseStack, collector, state.lightCoords, OverlayTexture.NO_OVERLAY, 0);
 			poseStack.popPose();
 		}
 		poseStack.translate(0, 1.5F, 0);
@@ -278,16 +300,56 @@ public class TinyPotatoBlockEntityRenderer
 		poseStack.pushPose();
 		poseStack.translate(0, 1, 0);
 		poseStack.scale(0.25F, 0.25F, 0.25F);
-		if (!state.extraModelParts.isEmpty()) {
-			poseStack.mulPose(new Quaternionf().rotateAxis(VecHelper.toRadians(20), 1, 0, 1));
-			collector.submitBlockModel(poseStack, Sheets.translucentCullBlockSheet(), state.extraModelParts,
-					BlockModelRenderState.EMPTY_TINTS, state.lightCoords, OverlayTexture.NO_OVERLAY, 0);
-		}
-		for (int i = 0; i < state.extraItemCount; i++) {
+		if (state.showPhiFlower) {
 			poseStack.pushPose();
-			if (state.name.equals("kingdaddydmac")) poseStack.translate(0, 0, i * -2F);
-			state.extraItems.get(i).submit(poseStack, collector, state.lightCoords, OverlayTexture.NO_OVERLAY, 0);
+			poseStack.translate(-0.08, 0.1, 0.4);
+			poseStack.mulPose(VecHelper.rotateY(90F));
+			poseStack.mulPose(new Quaternionf().rotateAxis(VecHelper.toRadians(20), 1, 0, 1));
+			collector.submitBlockModel(poseStack, Sheets.translucentCullBlockSheet(), state.phiFlowerParts,
+					BlockModelRenderState.EMPTY_TINTS, state.lightCoords, OverlayTexture.NO_OVERLAY, 0);
 			poseStack.popPose();
+		}
+		if (state.showNerfBat) {
+			poseStack.scale(1.25F, 1.25F, 1.25F);
+			poseStack.mulPose(VecHelper.rotateX(180F));
+			poseStack.mulPose(VecHelper.rotateY(-90F));
+			poseStack.translate(0.2, -1.25, -0.075);
+			collector.submitBlockModel(poseStack, Sheets.translucentCullBlockSheet(), state.nerfBatParts,
+					BlockModelRenderState.EMPTY_TINTS, state.lightCoords, OverlayTexture.NO_OVERLAY, 0);
+		} else if (state.showGoldfish) {
+			poseStack.scale(1.25F, 1.25F, 1.25F);
+			poseStack.mulPose(VecHelper.rotateZ(180F));
+			poseStack.mulPose(VecHelper.rotateY(-90F));
+			poseStack.translate(-0.5F, -1.2F, -0.075F);
+			collector.submitBlockModel(poseStack, Sheets.translucentCullBlockSheet(), state.goldfishParts,
+					BlockModelRenderState.EMPTY_TINTS, state.lightCoords, OverlayTexture.NO_OVERLAY, 0);
+		} else if (state.showMartyBoot) {
+			poseStack.scale(0.7F, 0.7F, 0.7F);
+			poseStack.mulPose(VecHelper.rotateZ(180F));
+			poseStack.translate(-0.3F, -2.7F, -1.2F);
+			poseStack.mulPose(VecHelper.rotateZ(15F));
+			state.martyBoot.submit(poseStack, collector, state.lightCoords, OverlayTexture.NO_OVERLAY, 0);
+		} else if (state.showJibrilHalo) {
+			poseStack.scale(1.5F, 1.5F, 1.5F);
+			poseStack.translate(0F, 0.8F, 0F);
+			FlugelTiaraItem.ClientLogic.submitHalo(poseStack, collector, state.partialTicks);
+		} else if (state.showKingDaddyExtras) {
+			poseStack.scale(0.5F, 0.5F, 0.5F);
+			poseStack.mulPose(VecHelper.rotateZ(180F));
+			poseStack.mulPose(VecHelper.rotateY(90F));
+			poseStack.pushPose();
+			poseStack.translate(0F, -2.5F, 0.65F);
+			state.manaRing1.submit(poseStack, collector, state.lightCoords, OverlayTexture.NO_OVERLAY, 0);
+			poseStack.translate(0F, 0F, -4F);
+			state.manaRing2.submit(poseStack, collector, state.lightCoords, OverlayTexture.NO_OVERLAY, 0);
+			poseStack.popPose();
+			poseStack.translate(1.5, -4, -2.5);
+			state.cake.submit(poseStack, collector, state.lightCoords, OverlayTexture.NO_OVERLAY, 0);
+		} else if (state.showDefaultFlower) {
+			poseStack.mulPose(VecHelper.rotateX(180F));
+			poseStack.mulPose(VecHelper.rotateY(180F));
+			poseStack.translate(0, -0.78, -0.5);
+			state.defaultFlower.submit(poseStack, collector, state.lightCoords, OverlayTexture.NO_OVERLAY, 0);
 		}
 		poseStack.popPose();
 	}

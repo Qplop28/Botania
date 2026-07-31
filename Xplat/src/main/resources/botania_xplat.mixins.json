@@ -77,7 +77,6 @@
     "client.RecipeBookComponentMixin",
     "client.GhostSlotsMixin",
     "client.RecipeBookPageAccessor",
-    "client.SkullBlockRendererMixin",
     "client.SkyRendererMixin",
     "client.SoundEngineMixin",
     "client.SplashManagerMixin"

@@ -16,6 +16,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
@@ -299,6 +300,20 @@ public class FlugelTiaraItem extends BaubleItem implements CustomCreativeTabCont
 	}
 
 	public static class ClientLogic {
+		public static void submitHalo(PoseStack poseStack, SubmitNodeCollector collector, float partialTicks) {
+			poseStack.translate(0.2, -0.65, 0);
+			poseStack.mulPose(VecHelper.rotateZ(30));
+			poseStack.mulPose(VecHelper.rotateY(ClientTickHandler.ticksInGame));
+			poseStack.scale(0.75F, -0.75F, -0.75F);
+			collector.submitCustomGeometry(poseStack, RenderHelper.HALO, (pose, buffer) -> {
+				Matrix4f matrix = pose.pose();
+				buffer.vertex(matrix, -1F, 0, -1F).color(1F, 1F, 1F, 1F).uv(0, 0).endVertex();
+				buffer.vertex(matrix, 1F, 0, -1F).color(1F, 1F, 1F, 1F).uv(1, 0).endVertex();
+				buffer.vertex(matrix, 1F, 0, 1F).color(1F, 1F, 1F, 1F).uv(1, 1).endVertex();
+				buffer.vertex(matrix, -1F, 0, 1F).color(1F, 1F, 1F, 1F).uv(0, 1).endVertex();
+			});
+		}
+
 		public static void renderHalo(@Nullable HumanoidModel<?> model, @Nullable LivingEntity living, PoseStack ms, MultiBufferSource buffers, float partialTicks) {
 			if (model != null) {
 				model.body.translateAndRotate(ms);

@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
 import net.minecraft.client.renderer.texture.AbstractTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -25,8 +26,10 @@ import vazkii.botania.xplat.ClientXplatAbstractions;
 
 public class FabricClientXplatImpl implements ClientXplatAbstractions {
 	@Override
-	public void fireRenderTinyPotato(BlockEntity potato, Component name, float tickDelta, PoseStack ms, MultiBufferSource buffers, int light, int overlay) {
-		TinyPotatoRenderCallback.EVENT.invoker().onRender(potato, name, tickDelta, ms, buffers, light, overlay);
+	public void fireRenderTinyPotato(BlockPos pos, Component name, String contributor, float tickDelta,
+			PoseStack poseStack, SubmitNodeCollector collector, int light, int overlay) {
+		TinyPotatoRenderCallback.EVENT.invoker().onRender(pos, name, contributor, tickDelta,
+				poseStack, collector, light, overlay);
 	}
 
 	@Override

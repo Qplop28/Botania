@@ -16,6 +16,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.special.SpecialModelRenderer;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
@@ -163,7 +164,7 @@ public class BotaniaBlockEntityItemRenderer implements SpecialModelRenderer<Item
 				poseStack.translate(0, 1.35, 0);
 				poseStack.scale(1, -1, -1);
 				poseStack.translate(0.5F, 0, -0.5F);
-				model.submitRing(poseStack, collector, RenderType.entityTranslucent(texture),
+				model.submitRing(poseStack, collector, RenderTypes.entityTranslucent(texture),
 						light, overlay, hasFoil, outlineColor);
 				model.submitCrystal(poseStack, collector, glow, light, overlay, hasFoil, outlineColor);
 				poseStack.popPose();
@@ -315,7 +316,7 @@ public class BotaniaBlockEntityItemRenderer implements SpecialModelRenderer<Item
 		ModelPart root = context.entityModelSet().bakeLayer(BotaniaModelLayers.CORPOREA_INDEX);
 		ModelPart ring = root.getChild("ring");
 		ModelPart cube = root.getChild("cube");
-		RenderType renderType = RenderType.entityCutoutNoCull(Identifier.parse(ResourcesLib.MODEL_CORPOREA_INDEX));
+		RenderType renderType = RenderTypes.entityCutoutNoCull(Identifier.parse(ResourcesLib.MODEL_CORPOREA_INDEX));
 		return new RootDelegate(root) {
 			@Override
 			public void submit(ItemStack stack, PoseStack poseStack, SubmitNodeCollector collector,

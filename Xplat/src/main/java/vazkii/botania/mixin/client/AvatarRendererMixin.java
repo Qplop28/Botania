@@ -34,7 +34,7 @@ public abstract class AvatarRendererMixin<AvatarlikeEntity extends Avatar & Clie
 	@Inject(method = "<init>", at = @At("TAIL"))
 	private void botania$addAccessoryLayer(EntityRendererProvider.Context context, boolean slim, CallbackInfo ci) {
 		botania$accessoryContext = new AccessoryExtractionContext(
-				context.getItemModelResolver(), context.getBlockModelResolver());
+				context.getItemModelResolver(), context.getBlockModelResolver(), context.getModelSet());
 		addLayer(new AccessoryRenderLayer(this));
 	}
 

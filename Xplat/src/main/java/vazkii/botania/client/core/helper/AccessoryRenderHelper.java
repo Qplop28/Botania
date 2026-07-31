@@ -10,18 +10,9 @@ package vazkii.botania.client.core.helper;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 
-import net.minecraft.world.entity.LivingEntity;
-
 import vazkii.botania.common.helper.VecHelper;
 
 public final class AccessoryRenderHelper {
-
-	/**
-	 * Rotates the render for a bauble correctly if the player is sneaking.
-	 */
-	public static void rotateIfSneaking(PoseStack poseStack, LivingEntity living) {
-		rotateIfSneaking(poseStack, living.isCrouching());
-	}
 
 	public static void rotateIfSneaking(PoseStack poseStack, boolean crouching) {
 		if (crouching) {

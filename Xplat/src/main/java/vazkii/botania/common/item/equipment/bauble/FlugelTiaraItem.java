@@ -58,8 +58,8 @@ import java.util.List;
 
 public class FlugelTiaraItem extends BaubleItem implements CustomCreativeTabContents {
 
-	private static final Identifier textureHud = new Identifier(ResourcesLib.GUI_HUD_ICONS);
-	public static final Identifier textureHalo = new Identifier(ResourcesLib.MISC_HALO);
+	private static final Identifier textureHud = Identifier.parse(ResourcesLib.GUI_HUD_ICONS);
+	public static final Identifier textureHalo = Identifier.parse(ResourcesLib.MISC_HALO);
 
 	private static final String TAG_VARIANT = "variant";
 	private static final String TAG_FLYING = "flying";
@@ -110,7 +110,7 @@ public class FlugelTiaraItem extends BaubleItem implements CustomCreativeTabCont
 			if (shouldPlayerHaveFlight(player)) {
 				player.getAbilities().mayfly = true;
 				if (player.getAbilities().flying) {
-					if (!player.level().isClientSide) {
+					if (!player.level().isClientSide()) {
 						if (!player.isCreative() && !player.isSpectator()) {
 							ManaItemHandler.instance().requestManaExact(tiara, player, getCost(tiara, left), true);
 						}
@@ -191,7 +191,7 @@ public class FlugelTiaraItem extends BaubleItem implements CustomCreativeTabCont
 	}
 
 	private static String playerStr(Player player) {
-		return player.getGameProfile().getName() + ":" + player.level().isClientSide;
+		return player.getGameProfile().getName() + ":" + player.level().isClientSide();
 	}
 
 	private static boolean shouldPlayerHaveFlight(Player player) {

@@ -16,6 +16,7 @@ import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
@@ -89,9 +90,9 @@ public class SojournersSashItem extends BaubleItem {
 		boolean hasBoost = attrib.hasModifier(STEP_BOOST_ID);
 
 		if (tryConsumeMana(player)) {
-			if (player.level().isClientSide) {
+			if (player.level().isClientSide()) {
 				SojournersSashItem beltItem = (SojournersSashItem) belt.getItem();
-				if ((player.onGround() || player.getAbilities().flying) && player.zza > 0F && !player.isInWaterOrBubble()) {
+				if ((player.onGround() || player.getAbilities().flying) && player.zza > 0F && !player.isInWater()) {
 					float speed = beltItem.getSpeed(belt);
 					player.moveRelative(player.getAbilities().flying ? speed : speed, new Vec3(0, 0, 1));
 					beltItem.onMovedTick(belt, player);
@@ -113,7 +114,7 @@ public class SojournersSashItem extends BaubleItem {
 					}
 				}
 			}
-		} else if (!player.level().isClientSide && hasBoost) {
+		} else if (!player.level().isClientSide() && hasBoost) {
 			attrib.removeModifier(STEP_BOOST_ID);
 		}
 	}
@@ -146,7 +147,7 @@ public class SojournersSashItem extends BaubleItem {
 	}
 
 	public static class Renderer implements AccessoryRenderer {
-		private static HumanoidModel<LivingEntity> model = null;
+		private static HumanoidModel<HumanoidRenderState> model = null;
 
 		@Override
 		public void doRender(HumanoidModel<?> bipedModel, ItemStack stack, LivingEntity living, PoseStack ms, MultiBufferSource buffers, int light, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
@@ -161,7 +162,7 @@ public class SojournersSashItem extends BaubleItem {
 
 			Identifier texture = ((SojournersSashItem) stack.getItem()).getRenderTexture();
 			VertexConsumer buffer = buffers.getBuffer(model.renderType(texture));
-			model.body.render(ms, buffer, light, OverlayTexture.NO_OVERLAY, 1, 1, 1, 1);
+			model.body.render(ms, buffer, light, OverlayTexture.NO_OVERLAY);
 		}
 	}
 

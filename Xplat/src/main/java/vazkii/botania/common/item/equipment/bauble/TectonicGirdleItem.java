@@ -18,6 +18,7 @@ import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
 import net.minecraft.resources.Identifier;
 import net.minecraft.core.Holder;
 import net.minecraft.world.entity.LivingEntity;
@@ -57,7 +58,7 @@ public class TectonicGirdleItem extends BaubleItem {
 	}
 
 	public static class Renderer implements AccessoryRenderer {
-		private static HumanoidModel<LivingEntity> model = null;
+		private static HumanoidModel<HumanoidRenderState> model = null;
 
 		@Override
 		public void doRender(HumanoidModel<?> bipedModel, ItemStack stack, LivingEntity living, PoseStack ms, MultiBufferSource buffers, int light, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {

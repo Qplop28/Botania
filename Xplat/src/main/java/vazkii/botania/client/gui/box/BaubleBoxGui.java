@@ -21,7 +21,7 @@ import vazkii.botania.client.lib.ResourcesLib;
 
 public class BaubleBoxGui extends AbstractContainerScreen<BaubleBoxContainer> {
 
-	private static final Identifier texture = new Identifier(ResourcesLib.GUI_BAUBLE_BOX);
+	private static final Identifier texture = Identifier.parse(ResourcesLib.GUI_BAUBLE_BOX);
 	private int mouseX;
 	private int mouseY;
 

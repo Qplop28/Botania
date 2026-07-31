@@ -28,6 +28,7 @@ import net.minecraft.world.item.component.TooltipDisplay;
 
 import vazkii.botania.api.item.CosmeticAttachable;
 import vazkii.botania.api.item.PhantomInkable;
+import vazkii.botania.api.BotaniaAPI;
 import vazkii.botania.common.handler.EquipmentHandler;
 import vazkii.botania.common.helper.ItemNBTHelper;
 import vazkii.botania.common.helper.PlayerHelper;
@@ -68,7 +69,19 @@ public abstract class BaubleItem extends Item implements CosmeticAttachable, Pha
 		if (cmp == null) {
 			return ItemStack.EMPTY;
 		}
-		return ItemStack.CODEC.parse(NbtOps.INSTANCE, cmp).result().orElse(ItemStack.EMPTY);
+		var decoded = ItemNBTHelper.decodeStoredStack(cmp).result();
+		if (decoded.isEmpty()) {
+			BotaniaAPI.LOGGER.error("Could not decode stored bauble cosmetic: {}", cmp);
+			return ItemStack.EMPTY;
+		}
+		ItemStack cosmetic = decoded.get();
+		if (cmp.contains("Count") || cmp.contains("tag")) {
+			ItemStack.CODEC.encodeStart(NbtOps.INSTANCE, cosmetic).result()
+					.filter(CompoundTag.class::isInstance).map(CompoundTag.class::cast)
+					.ifPresentOrElse(current -> ItemNBTHelper.setCompound(stack, TAG_COSMETIC_ITEM, current),
+							() -> BotaniaAPI.LOGGER.error("Could not rewrite migrated bauble cosmetic: {}", cosmetic));
+		}
+		return cosmetic;
 	}
 
 	@Override
@@ -87,17 +100,24 @@ public abstract class BaubleItem extends Item implements CosmeticAttachable, Pha
 		String tagBaubleUuidMostLegacy = "baubleUUIDMost";
 		String tagBaubleUuidLeastLegacy = "baubleUUIDLeast";
 		String encoded = ItemNBTHelper.getString(stack, TAG_BAUBLE_UUID, "");
+		boolean write = false;
 		if (encoded.isEmpty() && ItemNBTHelper.verifyExistance(stack, tagBaubleUuidMostLegacy)
 				&& ItemNBTHelper.verifyExistance(stack, tagBaubleUuidLeastLegacy)) {
 			encoded = new UUID(ItemNBTHelper.getLong(stack, tagBaubleUuidMostLegacy, 0),
 					ItemNBTHelper.getLong(stack, tagBaubleUuidLeastLegacy, 0)).toString();
+			write = true;
 		}
 		try {
 			UUID.fromString(encoded);
 		} catch (IllegalArgumentException ignored) {
 			encoded = UUID.randomUUID().toString();
+			write = true;
 		}
-		ItemNBTHelper.setString(stack, TAG_BAUBLE_UUID, encoded);
+		if (write) {
+			ItemNBTHelper.setString(stack, TAG_BAUBLE_UUID, encoded);
+			ItemNBTHelper.removeEntry(stack, tagBaubleUuidMostLegacy);
+			ItemNBTHelper.removeEntry(stack, tagBaubleUuidLeastLegacy);
+		}
 		return prefix("bauble/" + encoded);
 	}
 

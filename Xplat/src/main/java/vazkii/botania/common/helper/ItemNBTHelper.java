@@ -10,8 +10,10 @@ package vazkii.botania.common.helper;
 
 import com.google.gson.JsonObject;
 import com.mojang.serialization.Dynamic;
+import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 
+import net.minecraft.SharedConstants;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtOps;
@@ -19,6 +21,8 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
+import net.minecraft.util.datafix.fixes.References;
+import net.minecraft.util.datafix.DataFixers;
 
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
@@ -30,6 +34,8 @@ public final class ItemNBTHelper {
 
 	private static final int[] EMPTY_INT_ARRAY = new int[0];
 	private static final long[] EMPTY_LONG_ARRAY = new long[0];
+	/** Minecraft 1.20.1, the version that wrote Botania's pre-component stack payloads. */
+	private static final int LEGACY_ITEM_STACK_DATA_VERSION = 3465;
 
 	// SETTERS ///////////////////////////////////////////////////////////////////
 
@@ -180,6 +186,27 @@ public final class ItemNBTHelper {
 		CustomData.update(DataComponents.CUSTOM_DATA, stack, writer);
 	}
 
+	/**
+	 * Decodes either a current component-format stack or a Botania 1.20.1 stack.
+	 * Legacy payloads are passed through Mojang's ITEM_STACK data fixes so nested
+	 * NBT is translated into its proper data components rather than renamed.
+	 */
+	public static DataResult<ItemStack> decodeStoredStack(CompoundTag stored) {
+		if (stored.contains("components") || stored.contains("count")) {
+			return ItemStack.CODEC.parse(NbtOps.INSTANCE, stored);
+		}
+		if (!stored.contains("Count") && !stored.contains("tag")) {
+			return ItemStack.CODEC.parse(NbtOps.INSTANCE, stored);
+		}
+
+		Dynamic<Tag> legacy = new Dynamic<>(NbtOps.INSTANCE, stored.copy());
+		Dynamic<Tag> fixed = DataFixers.getDataFixer().update(References.ITEM_STACK, legacy,
+				LEGACY_ITEM_STACK_DATA_VERSION, SharedConstants.getCurrentVersion().dataVersion().version());
+		return fixed.getValue() instanceof CompoundTag corrected
+				? ItemStack.CODEC.parse(NbtOps.INSTANCE, corrected)
+				: DataResult.error(() -> "ITEM_STACK data fixer did not return a compound: " + fixed.getValue());
+	}
+
 	// OTHER ///////////////////////////////////////////////////////////////////
 
 	/**
@@ -227,20 +254,10 @@ public final class ItemNBTHelper {
 	}
 
 	/**
-	 * Serializes the given stack such that {@link net.minecraft.world.item.crafting.ShapedRecipe#itemStackFromJson}
-	 * would be able to read the result back
+	 * Serializes a stack in the current item-stack JSON codec format.
 	 */
 	public static JsonObject serializeStack(ItemStack stack) {
-		CompoundTag nbt = (CompoundTag) ItemStack.CODEC.encodeStart(NbtOps.INSTANCE, stack).getOrThrow();
-		byte c = nbt.getByte("Count");
-		if (c != 1) {
-			nbt.putByte("count", c);
-		}
-		nbt.remove("Count");
-		renameTag(nbt, "id", "item");
-		renameTag(nbt, "tag", "nbt");
-		Dynamic<Tag> dyn = new Dynamic<>(NbtOps.INSTANCE, nbt);
-		return dyn.convert(JsonOps.INSTANCE).getValue().getAsJsonObject();
+		return ItemStack.CODEC.encodeStart(JsonOps.INSTANCE, stack).getOrThrow().getAsJsonObject();
 	}
 
 	public static void renameTag(CompoundTag nbt, String oldName, String newName) {

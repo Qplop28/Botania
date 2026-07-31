@@ -46,7 +46,7 @@ public class SnowflakePendantItem extends BaubleItem {
 
 	@Override
 	public void onWornTick(ItemStack stack, LivingEntity entity) {
-		if (!entity.level().isClientSide && !entity.isShiftKeyDown()) {
+		if (!entity.level().isClientSide() && !entity.isShiftKeyDown()) {
 			ServerLevel level = (ServerLevel) entity.level();
 
 			boolean lastOnGround = entity.onGround();
@@ -88,9 +88,10 @@ public class SnowflakePendantItem extends BaubleItem {
 					}
 				}
 			}
-		} else if (entity.level().isClientSide && !entity.isShiftKeyDown()) {
-			if (entity.level().random.nextFloat() >= 0.25F) {
-				entity.level().addParticle(new BlockParticleOption(ParticleTypes.FALLING_DUST, Blocks.SNOW_BLOCK.defaultBlockState()), entity.getX() + entity.level().random.nextFloat() * 0.6 - 0.3, entity.getY() + 1.1, entity.getZ() + entity.level().random.nextFloat() * 0.6 - 0.3, 0, -0.15, 0);
+		} else if (entity.level().isClientSide() && !entity.isShiftKeyDown()) {
+			var random = entity.getRandom();
+			if (random.nextFloat() >= 0.25F) {
+				entity.level().addParticle(new BlockParticleOption(ParticleTypes.FALLING_DUST, Blocks.SNOW_BLOCK.defaultBlockState()), entity.getX() + random.nextFloat() * 0.6 - 0.3, entity.getY() + 1.1, entity.getZ() + random.nextFloat() * 0.6 - 0.3, 0, -0.15, 0);
 			}
 		}
 	}

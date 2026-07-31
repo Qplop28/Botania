@@ -70,7 +70,7 @@ public class SpectatorItem extends BaubleItem {
 			return;
 		}
 
-		if (living.level().isClientSide) {
+		if (living.level().isClientSide()) {
 			this.showScanResults(stack, player);
 		} else if (living.tickCount % SCAN_INTERVAL_TICKS == 0) {
 			this.scanForItems(stack, player);
@@ -224,8 +224,8 @@ public class SpectatorItem extends BaubleItem {
 	}
 
 	private boolean equalStacks(ItemStack testStack, ItemStack referenceStack1, ItemStack referenceStack2) {
-		return !testStack.isEmpty() && (ItemStack.isSameItemSameTags(testStack, referenceStack1)
-				|| ItemStack.isSameItemSameTags(testStack, referenceStack2));
+		return !testStack.isEmpty() && (ItemStack.isSameItemSameComponents(testStack, referenceStack1)
+				|| ItemStack.isSameItemSameComponents(testStack, referenceStack2));
 	}
 
 	private boolean scanInventory(Container inv, ItemStack mainHandStack, ItemStack offHandStack) {

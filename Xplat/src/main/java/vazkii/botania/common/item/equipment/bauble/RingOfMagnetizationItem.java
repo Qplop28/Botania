@@ -83,7 +83,7 @@ public class RingOfMagnetizationItem extends BaubleItem {
 						}
 
 						MathHelper.setEntityMotionFromVector(item, new Vec3(x, y, z), 0.45F);
-						if (living.level().isClientSide) {
+						if (living.level().isClientSide()) {
 							boolean red = living.level().random.nextBoolean();
 							float r = red ? 1F : 0F;
 							float b = red ? 0F : 1F;

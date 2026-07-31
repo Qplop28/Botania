@@ -95,7 +95,7 @@ public class ManaseerMonocleItem extends BaubleItem implements CosmeticBauble {
 			if (entity instanceof ItemFrame frame && !frame.getItem().isEmpty()) {
 				ItemStack frameItem = frame.getItem();
 				List<ItemStack> contentItems = FilterHelper.getFilterStacks(frameItem);
-				if (contentItems.isEmpty() || contentItems.size() == 1 && ItemStack.isSameItemSameTags(frameItem, contentItems.get(0))) {
+				if (contentItems.isEmpty() || contentItems.size() == 1 && ItemStack.isSameItemSameComponents(frameItem, contentItems.get(0))) {
 					return;
 				}
 

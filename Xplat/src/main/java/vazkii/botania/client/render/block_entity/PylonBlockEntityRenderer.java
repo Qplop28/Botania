@@ -12,7 +12,8 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.resources.Identifier;
@@ -34,9 +35,9 @@ import java.util.Random;
 
 public class PylonBlockEntityRenderer implements BlockEntityRenderer<PylonBlockEntity> {
 
-	public static final Identifier MANA_TEXTURE = new Identifier(ResourcesLib.MODEL_PYLON_MANA);
-	public static final Identifier NATURA_TEXTURE = new Identifier(ResourcesLib.MODEL_PYLON_NATURA);
-	public static final Identifier GAIA_TEXTURE = new Identifier(ResourcesLib.MODEL_PYLON_GAIA);
+	public static final Identifier MANA_TEXTURE = Identifier.parse(ResourcesLib.MODEL_PYLON_MANA);
+	public static final Identifier NATURA_TEXTURE = Identifier.parse(ResourcesLib.MODEL_PYLON_NATURA);
+	public static final Identifier GAIA_TEXTURE = Identifier.parse(ResourcesLib.MODEL_PYLON_GAIA);
 
 	private final ManaPylonModel manaModel;
 	private final NaturaPylonModel naturaModel;
@@ -93,7 +94,7 @@ public class PylonBlockEntityRenderer implements BlockEntityRenderer<PylonBlockE
 			ms.mulPose(VecHelper.rotateY(worldTime * 1.5F));
 		}
 
-		RenderType layer = RenderType.entityTranslucent(texture);
+		RenderType layer = RenderTypes.entityTranslucent(texture);
 
 		VertexConsumer buffer = buffers.getBuffer(layer);
 		model.renderRing(ms, buffer, light, overlay);

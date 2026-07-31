@@ -13,7 +13,8 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.Direction;
@@ -39,7 +40,7 @@ public class AvatarBlockEntityRenderer implements BlockEntityRenderer<AvatarBloc
 			180F, 0F, 90F, 270F
 	};
 
-	private static final Identifier texture = new Identifier(ResourcesLib.MODEL_AVATAR);
+	private static final Identifier texture = Identifier.parse(ResourcesLib.MODEL_AVATAR);
 	private final AvatarModel model;
 
 	public AvatarBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
@@ -71,7 +72,7 @@ public class AvatarBlockEntityRenderer implements BlockEntityRenderer<AvatarBloc
 
 				AvatarWieldable wieldable = XplatAbstractions.INSTANCE.findAvatarWieldable(stack);
 				if (wieldable != null) {
-					buffer = buffers.getBuffer(RenderType.entityTranslucent(wieldable.getOverlayResource(avatar)));
+					buffer = buffers.getBuffer(RenderTypes.entityTranslucent(wieldable.getOverlayResource(avatar)));
 					s = 1.01F;
 
 					ms.pushPose();

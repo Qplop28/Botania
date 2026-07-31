@@ -16,7 +16,8 @@ import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.CubeListBuilder;
 import net.minecraft.client.model.geom.builders.MeshDefinition;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.resources.Identifier;
@@ -33,7 +34,7 @@ import vazkii.botania.common.block.block_entity.corporea.CorporeaIndexBlockEntit
 import vazkii.botania.common.helper.VecHelper;
 
 public class CorporeaIndexBlockEntityRenderer implements BlockEntityRenderer<CorporeaIndexBlockEntity> {
-	private static final RenderType LAYER = RenderType.entityCutoutNoCull(new Identifier(ResourcesLib.MODEL_CORPOREA_INDEX));
+	private static final RenderType LAYER = RenderTypes.entityCutoutNoCull(Identifier.parse(ResourcesLib.MODEL_CORPOREA_INDEX));
 	private static final float ANGLE = (float) Math.sin(Math.toRadians(45));
 	private final ModelPart ring;
 	private final ModelPart cube;

@@ -59,7 +59,7 @@ public class AnimatedTorchBlockEntityRenderer implements BlockEntityRenderer<Ani
 		state.translateZ = 0.5F + (float) Math.sin(time * 0.05F) * 0.025F;
 		state.rotation = (float) blockEntity.rotation;
 		if (blockEntity.rotating) {
-			state.rotation += blockEntity.anglePerTick * partialTicks;
+			state.rotation += (float) (blockEntity.anglePerTick * partialTicks);
 		}
 
 		itemModelResolver.updateForTopItem(state.item, new ItemStack(Blocks.REDSTONE_TORCH),

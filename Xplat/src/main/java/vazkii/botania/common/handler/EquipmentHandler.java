@@ -12,7 +12,6 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 
 import net.minecraft.core.Holder;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.util.profiling.Profiler;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
@@ -92,12 +91,12 @@ public abstract class EquipmentHandler {
 
 				if (!ItemStack.matches(old, current)) {
 					if (old.getItem() instanceof BaubleItem bauble) {
-						player.getAttributes().removeAttributeModifiers(wrapAttributeModifiers(bauble.getEquippedAttributeModifiers(old)));
+						player.getAttributes().removeAttributeModifiers(bauble.getEquippedAttributeModifiers(old));
 						bauble.onUnequipped(old, player);
 					}
 					if (canEquip(current, player)) {
 						BaubleItem bauble = (BaubleItem) current.getItem();
-						player.getAttributes().addTransientAttributeModifiers(wrapAttributeModifiers(bauble.getEquippedAttributeModifiers(current)));
+						player.getAttributes().addTransientAttributeModifiers(bauble.getEquippedAttributeModifiers(current));
 						bauble.onEquipped(current, player);
 					}
 					oldStacks[i] = current.copy(); // shift-clicking mutates the stack we stored,
@@ -146,21 +145,6 @@ public abstract class EquipmentHandler {
 
 		@Override
 		public void onInit(Item item) {}
-
-		private static Multimap<Holder<Attribute>, AttributeModifier> wrapAttributeModifiers(
-				Multimap<Attribute, AttributeModifier> modifiers
-		) {
-			Multimap<Holder<Attribute>, AttributeModifier> wrapped = HashMultimap.create();
-
-			modifiers.forEach((attribute, modifier) ->
-					wrapped.put(
-							BuiltInRegistries.ATTRIBUTE.wrapAsHolder(attribute),
-							modifier
-					)
-			);
-
-			return wrapped;
-		}
 
 		private static boolean canEquip(ItemStack stack, LivingEntity living) {
 			return stack.getItem() instanceof BaubleItem bauble && bauble.canEquip(stack, living);

@@ -33,17 +33,15 @@ import vazkii.botania.common.handler.EquipmentHandler;
 import vazkii.botania.common.proxy.Proxy;
 import vazkii.botania.xplat.XplatAbstractions;
 
-import java.util.UUID;
+import static vazkii.botania.common.lib.ResourceLocationHelper.prefix;
 
 public class SojournersSashItem extends BaubleItem {
 
-	private static final UUID STEP_BOOST_UUID = UUID.fromString("8511cd62-2650-4078-8d69-9ebe80b21eb5");
+	private static final Identifier STEP_BOOST_ID = prefix("travel_belt_step_boost");
 	private static final AttributeModifier STEP_BOOST = new AttributeModifier(
-			STEP_BOOST_UUID,
-			"botania:travel_belt",
-			0.65, AttributeModifier.Operation.ADDITION);
+			STEP_BOOST_ID, 0.65, AttributeModifier.Operation.ADD_VALUE);
 
-	private static final Identifier texture = new Identifier(ResourcesLib.MODEL_TRAVEL_BELT);
+	private static final Identifier texture = Identifier.parse(ResourcesLib.MODEL_TRAVEL_BELT);
 
 	private static final int COST = 1;
 	private static final int COST_INTERVAL = 10;
@@ -88,7 +86,7 @@ public class SojournersSashItem extends BaubleItem {
 
 		var stepHeight = XplatAbstractions.INSTANCE.getStepHeightAttribute();
 		AttributeInstance attrib = player.getAttribute(stepHeight);
-		boolean hasBoost = attrib.hasModifier(STEP_BOOST);
+		boolean hasBoost = attrib.hasModifier(STEP_BOOST_ID);
 
 		if (tryConsumeMana(player)) {
 			if (player.level().isClientSide) {
@@ -107,7 +105,7 @@ public class SojournersSashItem extends BaubleItem {
 			} else {
 				if (player.isShiftKeyDown()) {
 					if (hasBoost) {
-						attrib.removeModifier(STEP_BOOST);
+						attrib.removeModifier(STEP_BOOST_ID);
 					}
 				} else {
 					if (!hasBoost) {
@@ -116,7 +114,7 @@ public class SojournersSashItem extends BaubleItem {
 				}
 			}
 		} else if (!player.level().isClientSide && hasBoost) {
-			attrib.removeModifier(STEP_BOOST);
+			attrib.removeModifier(STEP_BOOST_ID);
 		}
 	}
 

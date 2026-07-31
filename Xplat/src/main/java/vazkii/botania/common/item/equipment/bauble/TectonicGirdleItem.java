@@ -19,6 +19,7 @@ import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.Identifier;
+import net.minecraft.core.Holder;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -35,7 +36,7 @@ import vazkii.botania.common.proxy.Proxy;
 
 public class TectonicGirdleItem extends BaubleItem {
 
-	private static final Identifier texture = new Identifier(ResourcesLib.MODEL_KNOCKBACK_BELT);
+	private static final Identifier texture = Identifier.parse(ResourcesLib.MODEL_KNOCKBACK_BELT);
 
 	public TectonicGirdleItem(Properties props) {
 		super(props);
@@ -43,9 +44,10 @@ public class TectonicGirdleItem extends BaubleItem {
 	}
 
 	@Override
-	public Multimap<Attribute, AttributeModifier> getEquippedAttributeModifiers(ItemStack stack) {
-		Multimap<Attribute, AttributeModifier> attributes = HashMultimap.create();
-		attributes.put(Attributes.KNOCKBACK_RESISTANCE, new AttributeModifier(getBaubleUUID(stack), "Knockback Belt", 1, AttributeModifier.Operation.ADDITION));
+	public Multimap<Holder<Attribute>, AttributeModifier> getEquippedAttributeModifiers(ItemStack stack) {
+		Multimap<Holder<Attribute>, AttributeModifier> attributes = HashMultimap.create();
+		attributes.put(Attributes.KNOCKBACK_RESISTANCE,
+				new AttributeModifier(getBaubleModifierId(stack), 1, AttributeModifier.Operation.ADD_VALUE));
 		return attributes;
 	}
 

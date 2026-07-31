@@ -51,6 +51,7 @@ import vazkii.botania.common.item.CustomCreativeTabContents;
 import vazkii.botania.common.item.StoneOfTemperanceItem;
 import vazkii.botania.common.proxy.Proxy;
 
+import java.util.function.Consumer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -95,9 +96,10 @@ public class FlugelTiaraItem extends BaubleItem implements CustomCreativeTabCont
 	}
 
 	@Override
-	public void appendHoverText(ItemStack stack, Level world, List<Component> tooltip, TooltipFlag flags) {
-		super.appendHoverText(stack, world, tooltip, flags);
-		tooltip.add(Component.translatable("botania.wings" + getVariant(stack)));
+	public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display,
+			Consumer<Component> tooltip, TooltipFlag flags) {
+		super.appendHoverText(stack, context, display, tooltip, flags);
+		tooltip.accept(Component.translatable("botania.wings" + getVariant(stack)));
 	}
 
 	public static void updatePlayerFlyStatus(Player player) {

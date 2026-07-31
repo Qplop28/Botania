@@ -11,11 +11,13 @@ package vazkii.botania.common.item.equipment.bauble;
 import com.google.common.base.Predicates;
 import com.mojang.blaze3d.vertex.PoseStack;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.model.HumanoidModel;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.model.player.PlayerModel;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.block.model.BlockDisplayContext;
+import net.minecraft.client.renderer.entity.state.AvatarRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.ThrowableProjectile;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -25,7 +27,10 @@ import net.minecraft.world.phys.Vec3;
 import vazkii.botania.api.internal.ManaBurst;
 import vazkii.botania.api.mana.TinyPlanetExcempt;
 import vazkii.botania.client.render.AccessoryRenderRegistry;
-import vazkii.botania.client.render.AccessoryRenderer;
+import vazkii.botania.client.render.accessory.AccessoryExtractionContext;
+import vazkii.botania.client.render.accessory.AccessoryRenderData;
+import vazkii.botania.client.render.accessory.BlockAccessoryRenderData;
+import vazkii.botania.client.render.accessory.DeferredAccessoryRenderer;
 import vazkii.botania.common.block.BotaniaBlocks;
 import vazkii.botania.common.proxy.Proxy;
 
@@ -35,7 +40,7 @@ public class TinyPlanetItem extends BaubleItem {
 
 	public TinyPlanetItem(Properties props) {
 		super(props);
-		Proxy.INSTANCE.runOnClient(() -> () -> AccessoryRenderRegistry.register(this, new Renderer()));
+		Proxy.INSTANCE.runOnClient(() -> () -> AccessoryRenderRegistry.registerDeferred(this, new Renderer()));
 	}
 
 	@Override
@@ -47,13 +52,29 @@ public class TinyPlanetItem extends BaubleItem {
 		applyEffect(living.level(), x, y, z);
 	}
 
-	public static class Renderer implements AccessoryRenderer {
+	public static class Renderer implements DeferredAccessoryRenderer {
 		@Override
-		public void doRender(HumanoidModel<?> bipedModel, ItemStack stack, LivingEntity living, PoseStack ms, MultiBufferSource buffers, int light, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
-			bipedModel.head.translateAndRotate(ms);
-			ms.translate(-0.25, -0.4, 0);
-			ms.scale(0.5F, -0.5F, -0.5F);
-			Minecraft.getInstance().getBlockRenderer().renderSingleBlock(BotaniaBlocks.tinyPlanet.defaultBlockState(), ms, buffers, light, OverlayTexture.NO_OVERLAY);
+		public AccessoryRenderData createData() {
+			return new BlockAccessoryRenderData();
+		}
+
+		@Override
+		public void extract(AccessoryRenderData data, ItemStack stack, Player player, float partialTicks,
+				AccessoryExtractionContext context) {
+			BlockAccessoryRenderData blockData = (BlockAccessoryRenderData) data;
+			context.blockModels().update(blockData.blockState, BotaniaBlocks.tinyPlanet.defaultBlockState(),
+					BlockDisplayContext.create());
+		}
+
+		@Override
+		public void submit(AccessoryRenderData data, ItemStack stack, PlayerModel model, AvatarRenderState state,
+				PoseStack poseStack, SubmitNodeCollector collector, int lightCoords) {
+			BlockAccessoryRenderData blockData = (BlockAccessoryRenderData) data;
+			model.head.translateAndRotate(poseStack);
+			poseStack.translate(-0.25, -0.4, 0);
+			poseStack.scale(0.5F, -0.5F, -0.5F);
+			blockData.blockState.submit(poseStack, collector, lightCoords, OverlayTexture.NO_OVERLAY,
+					state.outlineColor);
 		}
 	}
 

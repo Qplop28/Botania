@@ -162,7 +162,13 @@ public class TaintedBloodPendantItem extends BaubleItem implements BrewContainer
 	@Override
 	public Brew getBrew(ItemStack stack) {
 		String key = ItemNBTHelper.getString(stack, TAG_BREW_KEY, "");
-		return BotaniaAPI.instance().getBrewRegistry().get(Identifier.tryParse(key));
+		Identifier id = Identifier.tryParse(key);
+		var registry = BotaniaAPI.instance().getBrewRegistry();
+		if (id == null || registry == null) {
+			return BotaniaBrews.fallbackBrew;
+		}
+		Brew brew = registry.getValue(id);
+		return brew == null ? BotaniaBrews.fallbackBrew : brew;
 	}
 
 	public static void setBrew(ItemStack stack, Brew brew) {
@@ -175,7 +181,7 @@ public class TaintedBloodPendantItem extends BaubleItem implements BrewContainer
 
 	@Override
 	public ItemStack getItemForBrew(Brew brew, ItemStack stack) {
-		if (!brew.canInfuseBloodPendant() || brew.getPotionEffects(stack).size() != 1 || brew.getPotionEffects(stack).get(0).getEffect().isInstantenous()) {
+		if (!brew.canInfuseBloodPendant() || brew.getPotionEffects(stack).size() != 1 || brew.getPotionEffects(stack).get(0).getEffect().value().isInstantenous()) {
 			return ItemStack.EMPTY;
 		}
 

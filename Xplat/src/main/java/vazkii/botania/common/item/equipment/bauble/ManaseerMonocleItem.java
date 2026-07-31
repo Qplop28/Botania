@@ -104,7 +104,7 @@ public class ManaseerMonocleItem extends BaubleItem implements CosmeticBauble {
 				int maxWidth = mc.getWindow().getGuiScaledWidth() - x - 30;
 
 				MutableComponent itemName = Component.empty().append(frameItem.getHoverName())
-						.withStyle(frameItem.getRarity().color);
+						.withStyle(frameItem.getRarity().color());
 				if (frameItem.hasCustomHoverName()) {
 					itemName.withStyle(ChatFormatting.ITALIC);
 				}

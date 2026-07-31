@@ -55,7 +55,7 @@ public class ItemBackedInventory extends SimpleContainer {
 					migrated.set(i, decoded.get());
 				}
 				for (int i = 0; i < expectedSize; i++) {
-					super.setItem(i, migrated.get(i));
+					getItems().set(i, migrated.get(i));
 				}
 				stack.set(DataComponents.CONTAINER, ItemContainerContents.fromItems(migrated));
 				ItemNBTHelper.removeEntry(stack, TAG_ITEMS);

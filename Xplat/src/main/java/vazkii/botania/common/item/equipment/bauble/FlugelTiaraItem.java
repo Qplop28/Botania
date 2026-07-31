@@ -17,6 +17,7 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
@@ -185,13 +186,13 @@ public class FlugelTiaraItem extends BaubleItem implements CustomCreativeTabCont
 	}
 
 	public static void playerLoggedOut(ServerPlayer player) {
-		String username = player.getGameProfile().getName();
+		String username = player.getGameProfile().name();
 		playersWithFlight.remove(username + ":false");
 		playersWithFlight.remove(username + ":true");
 	}
 
 	private static String playerStr(Player player) {
-		return player.getGameProfile().getName() + ":" + player.level().isClientSide();
+		return player.getGameProfile().name() + ":" + player.level().isClientSide();
 	}
 
 	private static boolean shouldPlayerHaveFlight(Player player) {
@@ -215,7 +216,7 @@ public class FlugelTiaraItem extends BaubleItem implements CustomCreativeTabCont
 		int variant = getVariant(stack);
 		if (variant != WING_TYPES && StringObfuscator.matchesHash(stack.getHoverName().getString(), SUPER_AWESOME_HASH)) {
 			ItemNBTHelper.setInt(stack, TAG_VARIANT, WING_TYPES);
-			stack.resetHoverName();
+			stack.remove(DataComponents.CUSTOM_NAME);
 		}
 	}
 

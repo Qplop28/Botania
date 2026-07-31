@@ -60,7 +60,7 @@ public class CirrusAmuletItem extends BaubleItem {
 						timesJumped = 1;
 						jumpDown = true;
 					}
-					if (playerSp.input.jumping) {
+					if (playerSp.input.keyPresses.jump()) {
 						if (!jumpDown && timesJumped < ((CirrusAmuletItem) stack.getItem()).getMaxAllowedJumps()) {
 							playerSp.jumpFromGround();
 							ClientXplatAbstractions.INSTANCE.sendToServer(JumpPacket.INSTANCE);

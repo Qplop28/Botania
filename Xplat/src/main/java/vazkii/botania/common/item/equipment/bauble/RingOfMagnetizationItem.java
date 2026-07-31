@@ -84,7 +84,7 @@ public class RingOfMagnetizationItem extends BaubleItem {
 
 						MathHelper.setEntityMotionFromVector(item, new Vec3(x, y, z), 0.45F);
 						if (living.level().isClientSide()) {
-							boolean red = living.level().random.nextBoolean();
+							boolean red = living.getRandom().nextBoolean();
 							float r = red ? 1F : 0F;
 							float b = red ? 0F : 1F;
 							SparkleParticleData data = SparkleParticleData.sparkle(1F, r, 0F, b, 3);

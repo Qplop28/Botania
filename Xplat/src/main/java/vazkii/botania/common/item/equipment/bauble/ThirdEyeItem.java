@@ -9,12 +9,12 @@
 package vazkii.botania.common.item.equipment.bauble;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.model.HumanoidModel;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.model.player.PlayerModel;
 import net.minecraft.client.renderer.Sheets;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.block.BlockModelRenderState;
+import net.minecraft.client.renderer.entity.state.AvatarRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -28,7 +28,10 @@ import vazkii.botania.api.mana.ManaItemHandler;
 import vazkii.botania.client.core.handler.ClientTickHandler;
 import vazkii.botania.client.core.handler.MiscellaneousModels;
 import vazkii.botania.client.render.AccessoryRenderRegistry;
-import vazkii.botania.client.render.AccessoryRenderer;
+import vazkii.botania.client.render.accessory.AccessoryExtractionContext;
+import vazkii.botania.client.render.accessory.AccessoryRenderData;
+import vazkii.botania.client.render.accessory.BlockAccessoryRenderData;
+import vazkii.botania.client.render.accessory.DeferredAccessoryRenderer;
 import vazkii.botania.common.entity.MagicMissileEntity;
 import vazkii.botania.common.proxy.Proxy;
 
@@ -40,7 +43,7 @@ public class ThirdEyeItem extends BaubleItem {
 
 	public ThirdEyeItem(Properties props) {
 		super(props);
-		Proxy.INSTANCE.runOnClient(() -> () -> AccessoryRenderRegistry.register(this, new Renderer()));
+		Proxy.INSTANCE.runOnClient(() -> () -> AccessoryRenderRegistry.registerDeferred(this, new Renderer()));
 	}
 
 	@Override
@@ -61,50 +64,61 @@ public class ThirdEyeItem extends BaubleItem {
 		}
 	}
 
-	public static class Renderer implements AccessoryRenderer {
+	public static class Renderer implements DeferredAccessoryRenderer {
 
 		public static final int NUM_LAYERS = 3;
 
 		@Override
-		public void doRender(HumanoidModel<?> bipedModel, ItemStack stack, LivingEntity living, PoseStack ms, MultiBufferSource buffers, int light, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
-			boolean armor = !living.getItemBySlot(EquipmentSlot.CHEST).isEmpty();
+		public AccessoryRenderData createData() {
+			return new BlockAccessoryRenderData();
+		}
 
+		@Override
+		public void extract(AccessoryRenderData data, ItemStack stack, Player player, float partialTicks,
+				AccessoryExtractionContext context) {
+			BlockAccessoryRenderData blockData = (BlockAccessoryRenderData) data;
+			blockData.chestArmor = !player.getItemBySlot(EquipmentSlot.CHEST).isEmpty();
+			blockData.animationTime = ClientTickHandler.total() * 0.12;
+			blockData.partsA = BlockAccessoryRenderData.collect(MiscellaneousModels.INSTANCE.thirdEyeLayer(0));
+			blockData.partsB = BlockAccessoryRenderData.collect(MiscellaneousModels.INSTANCE.thirdEyeLayer(1));
+			blockData.partsC = BlockAccessoryRenderData.collect(MiscellaneousModels.INSTANCE.thirdEyeLayer(2));
+		}
+
+		@Override
+		public void submit(AccessoryRenderData data, ItemStack stack, PlayerModel model, AvatarRenderState state,
+				PoseStack poseStack, SubmitNodeCollector collector, int lightCoords) {
+			BlockAccessoryRenderData blockData = (BlockAccessoryRenderData) data;
 			for (int i = 0; i < NUM_LAYERS; i++) {
-				ms.pushPose();
-				bipedModel.body.translateAndRotate(ms);
+				poseStack.pushPose();
+				try {
+					model.body.translateAndRotate(poseStack);
+					switch (i) {
+						case 0 -> {}
+						case 1 -> {
+							double dist = 0.05;
+							poseStack.translate(Math.sin(blockData.animationTime) * dist,
+									Math.cos(blockData.animationTime * 0.5) * dist, 0);
+							poseStack.scale(0.75F, 0.75F, 1F);
+							poseStack.translate(0, 0.1, -0.025);
+						}
+						case 2 -> poseStack.translate(0, 0, -0.05);
+						default -> throw new IllegalStateException("Unexpected third-eye layer: " + i);
+					}
 
-				switch (i) {
-					case 0:
-						break;
-					case 1:
-						double time = ClientTickHandler.total() * 0.12;
-						double dist = 0.05;
-						ms.translate(Math.sin(time) * dist, Math.cos(time * 0.5) * dist, 0);
-
-						ms.scale(0.75F, 0.75F, 1F);
-						ms.translate(0, 0.1, -0.025);
-						break;
-					case 2:
-						ms.translate(0, 0, -0.05);
-						break;
+					poseStack.translate(-0.3, 0.6, blockData.chestArmor ? 0.10 : 0.15);
+					poseStack.scale(0.6F, -0.6F, -0.6F);
+					var parts = switch (i) {
+						case 0 -> blockData.partsA;
+						case 1 -> blockData.partsB;
+						case 2 -> blockData.partsC;
+						default -> throw new IllegalStateException("Unexpected third-eye layer: " + i);
+					};
+					collector.submitBlockModel(poseStack, Sheets.cutoutBlockSheet(), parts,
+							BlockModelRenderState.EMPTY_TINTS, lightCoords, OverlayTexture.NO_OVERLAY,
+							state.outlineColor);
+				} finally {
+					poseStack.popPose();
 				}
-
-				ms.translate(-0.3, 0.6, armor ? 0.10 : 0.15);
-				ms.scale(0.6F, -0.6F, -0.6F);
-				VertexConsumer buffer = buffers.getBuffer(Sheets.cutoutBlockSheet());
-				Minecraft.getInstance().getBlockRenderer().getModelRenderer()
-						.renderModel(
-								ms.last(),
-								buffer,
-								null,
-								MiscellaneousModels.INSTANCE.thirdEyeLayer(i),
-								1,
-								1,
-								1,
-								light,
-								OverlayTexture.NO_OVERLAY
-						);
-				ms.popPose();
 			}
 		}
 	}

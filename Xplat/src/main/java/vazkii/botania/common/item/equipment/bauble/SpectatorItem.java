@@ -9,15 +9,15 @@
 package vazkii.botania.common.item.equipment.bauble;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.model.HumanoidModel;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.model.player.PlayerModel;
 import net.minecraft.client.renderer.Sheets;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.block.BlockModelRenderState;
+import net.minecraft.client.renderer.entity.state.AvatarRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.LongArrayTag;
@@ -42,7 +42,10 @@ import vazkii.botania.api.BotaniaAPI;
 import vazkii.botania.client.core.handler.MiscellaneousModels;
 import vazkii.botania.client.fx.WispParticleData;
 import vazkii.botania.client.render.AccessoryRenderRegistry;
-import vazkii.botania.client.render.AccessoryRenderer;
+import vazkii.botania.client.render.accessory.AccessoryExtractionContext;
+import vazkii.botania.client.render.accessory.AccessoryRenderData;
+import vazkii.botania.client.render.accessory.BlockAccessoryRenderData;
+import vazkii.botania.client.render.accessory.DeferredAccessoryRenderer;
 import vazkii.botania.common.helper.ItemNBTHelper;
 import vazkii.botania.common.proxy.Proxy;
 import vazkii.botania.mixin.AbstractHorseAccessor;
@@ -61,7 +64,7 @@ public class SpectatorItem extends BaubleItem {
 
 	public SpectatorItem(Properties props) {
 		super(props);
-		Proxy.INSTANCE.runOnClient(() -> () -> AccessoryRenderRegistry.register(this, new Renderer()));
+		Proxy.INSTANCE.runOnClient(() -> () -> AccessoryRenderRegistry.registerDeferred(this, new Renderer()));
 	}
 
 	@Override
@@ -83,27 +86,30 @@ public class SpectatorItem extends BaubleItem {
 		ItemNBTHelper.removeEntry(stack, TAG_ENTITY_POSITIONS);
 	}
 
-	public static class Renderer implements AccessoryRenderer {
+	public static class Renderer implements DeferredAccessoryRenderer {
 		@Override
-		public void doRender(HumanoidModel<?> bipedModel, ItemStack stack, LivingEntity living, PoseStack ms, MultiBufferSource buffers, int light, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
-			boolean armor = !living.getItemBySlot(EquipmentSlot.HEAD).isEmpty();
-			bipedModel.head.translateAndRotate(ms);
-			ms.translate(-0.35, -0.2, armor ? 0.05 : 0.1);
-			ms.scale(0.75F, -0.75F, -0.75F);
+		public AccessoryRenderData createData() {
+			return new BlockAccessoryRenderData();
+		}
 
-			VertexConsumer buffer = buffers.getBuffer(Sheets.cutoutBlockSheet());
-			Minecraft.getInstance().getBlockRenderer().getModelRenderer()
-					.renderModel(
-							ms.last(),
-							buffer,
-							null,
-							MiscellaneousModels.INSTANCE.itemFinderGem(),
-							1,
-							1,
-							1,
-							light,
-							OverlayTexture.NO_OVERLAY
-					);
+		@Override
+		public void extract(AccessoryRenderData data, ItemStack stack, Player player, float partialTicks,
+				AccessoryExtractionContext context) {
+			BlockAccessoryRenderData blockData = (BlockAccessoryRenderData) data;
+			blockData.chestArmor = !player.getItemBySlot(EquipmentSlot.HEAD).isEmpty();
+			blockData.partsA = BlockAccessoryRenderData.collect(MiscellaneousModels.INSTANCE.itemFinderGem());
+		}
+
+		@Override
+		public void submit(AccessoryRenderData data, ItemStack stack, PlayerModel model, AvatarRenderState state,
+				PoseStack poseStack, SubmitNodeCollector collector, int lightCoords) {
+			BlockAccessoryRenderData blockData = (BlockAccessoryRenderData) data;
+			model.head.translateAndRotate(poseStack);
+			poseStack.translate(-0.35, -0.2, blockData.chestArmor ? 0.05 : 0.1);
+			poseStack.scale(0.75F, -0.75F, -0.75F);
+			collector.submitBlockModel(poseStack, Sheets.cutoutBlockSheet(), blockData.partsA,
+					BlockModelRenderState.EMPTY_TINTS, lightCoords, OverlayTexture.NO_OVERLAY,
+					state.outlineColor);
 		}
 	}
 

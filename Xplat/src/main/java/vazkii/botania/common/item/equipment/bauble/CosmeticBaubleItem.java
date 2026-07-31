@@ -11,27 +11,27 @@ package vazkii.botania.common.item.equipment.bauble;
 import com.mojang.blaze3d.vertex.PoseStack;
 
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.model.HumanoidModel;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.model.player.PlayerModel;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.entity.state.AvatarRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.TooltipDisplay;
-import net.minecraft.world.level.Level;
 
 import vazkii.botania.api.item.CosmeticBauble;
 import vazkii.botania.client.render.AccessoryRenderRegistry;
-import vazkii.botania.client.render.AccessoryRenderer;
+import vazkii.botania.client.render.accessory.AccessoryExtractionContext;
+import vazkii.botania.client.render.accessory.AccessoryRenderData;
+import vazkii.botania.client.render.accessory.DeferredAccessoryRenderer;
 import vazkii.botania.common.helper.VecHelper;
 import vazkii.botania.common.proxy.Proxy;
 
 import java.util.function.Consumer;
-import java.util.List;
 
 public class CosmeticBaubleItem extends BaubleItem implements CosmeticBauble {
 
@@ -62,7 +62,7 @@ public class CosmeticBaubleItem extends BaubleItem implements CosmeticBauble {
 	public CosmeticBaubleItem(Variant variant, Properties props) {
 		super(props);
 		this.variant = variant;
-		Proxy.INSTANCE.runOnClient(() -> () -> AccessoryRenderRegistry.register(this, new Renderer()));
+		Proxy.INSTANCE.runOnClient(() -> () -> AccessoryRenderRegistry.registerDeferred(this, new Renderer()));
 	}
 
 	@Override
@@ -76,212 +76,220 @@ public class CosmeticBaubleItem extends BaubleItem implements CosmeticBauble {
 		super.appendHoverText(stack, context, display, tooltip, flags);
 	}
 
-	public static class Renderer implements AccessoryRenderer {
+	public static class Renderer implements DeferredAccessoryRenderer {
 		@Override
-		public void doRender(HumanoidModel<?> bipedModel, ItemStack stack, LivingEntity living, PoseStack ms, MultiBufferSource buffers, int light, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
+		public void extract(AccessoryRenderData data, ItemStack stack, Player player, float partialTicks,
+				AccessoryExtractionContext context) {
+			data.itemState.clear();
+			context.itemModels().updateForLiving(data.itemState, stack, ItemDisplayContext.NONE, player);
+		}
+
+		@Override
+		public void submit(AccessoryRenderData data, ItemStack stack, PlayerModel model, AvatarRenderState state,
+				PoseStack poseStack, SubmitNodeCollector collector, int lightCoords) {
 			Variant variant = ((CosmeticBaubleItem) stack.getItem()).variant;
 			if (variant.isHead) {
-				bipedModel.head.translateAndRotate(ms);
+				model.head.translateAndRotate(poseStack);
 				switch (variant) {
 					case RED_GLASSES, ENGINEER_GOGGLES, ANAGLYPH_GLASSES -> {
-						ms.translate(0, -0.225, -0.3);
-						ms.scale(0.7F, -0.7F, -0.7F);
-						renderItem(stack, ms, buffers, light);
+						poseStack.translate(0, -0.225, -0.3);
+						poseStack.scale(0.7F, -0.7F, -0.7F);
+						submitItem(data, state, poseStack, collector, lightCoords);
 					}
 					case EYEPATCH -> {
-						ms.translate(0.125, -0.225, -0.3);
-						ms.mulPose(VecHelper.rotateY(180F));
-						ms.scale(0.3F, -0.3F, -0.3F);
-						renderItem(stack, ms, buffers, light);
+						poseStack.translate(0.125, -0.225, -0.3);
+						poseStack.mulPose(VecHelper.rotateY(180F));
+						poseStack.scale(0.3F, -0.3F, -0.3F);
+						submitItem(data, state, poseStack, collector, lightCoords);
 					}
 					case WICKED_EYEPATCH -> {
-						ms.translate(-0.125, -0.225, -0.3);
-						ms.scale(0.3F, -0.3F, -0.3F);
-						renderItem(stack, ms, buffers, light);
+						poseStack.translate(-0.125, -0.225, -0.3);
+						poseStack.scale(0.3F, -0.3F, -0.3F);
+						submitItem(data, state, poseStack, collector, lightCoords);
 					}
 					case RED_RIBBONS -> {
-						ms.translate(0, -0.65, 0.2);
-						ms.mulPose(VecHelper.rotateY(180F));
-						ms.scale(0.5F, -0.5F, -0.5F);
-						renderItem(stack, ms, buffers, light);
+						poseStack.translate(0, -0.65, 0.2);
+						poseStack.mulPose(VecHelper.rotateY(180F));
+						poseStack.scale(0.5F, -0.5F, -0.5F);
+						submitItem(data, state, poseStack, collector, lightCoords);
 					}
 					case PINK_FLOWER_BUD -> {
-						ms.translate(0.275, -0.6, 0);
-						ms.mulPose(VecHelper.rotateY(-90F));
-						ms.scale(0.5F, -0.5F, -0.5F);
-						renderItem(stack, ms, buffers, light);
+						poseStack.translate(0.275, -0.6, 0);
+						poseStack.mulPose(VecHelper.rotateY(-90F));
+						poseStack.scale(0.5F, -0.5F, -0.5F);
+						submitItem(data, state, poseStack, collector, lightCoords);
 					}
 					case POLKA_DOTTED_BOWS -> {
-						ms.pushPose();
-						ms.translate(0.275, -0.4, 0);
-						ms.mulPose(VecHelper.rotateY(-90F));
-						ms.scale(0.5F, -0.5F, -0.5F);
-						renderItem(stack, ms, buffers, light);
-						ms.popPose();
-						ms.translate(-0.275, -0.4, 0);
-						ms.mulPose(VecHelper.rotateY(90F));
-						ms.scale(0.5F, -0.5F, -0.5F);
-						renderItem(stack, ms, buffers, light);
+						poseStack.pushPose();
+						poseStack.translate(0.275, -0.4, 0);
+						poseStack.mulPose(VecHelper.rotateY(-90F));
+						poseStack.scale(0.5F, -0.5F, -0.5F);
+						submitItem(data, state, poseStack, collector, lightCoords);
+						poseStack.popPose();
+						poseStack.translate(-0.275, -0.4, 0);
+						poseStack.mulPose(VecHelper.rotateY(90F));
+						poseStack.scale(0.5F, -0.5F, -0.5F);
+						submitItem(data, state, poseStack, collector, lightCoords);
 					}
 					case BLUE_BUTTERFLY -> {
-						ms.pushPose();
-						ms.translate(0.275, -0.4, 0);
-						ms.mulPose(VecHelper.rotateY(45F));
-						ms.scale(0.5F, -0.5F, -0.5F);
-						renderItem(stack, ms, buffers, light);
-						ms.popPose();
-						ms.translate(0.275, -0.4, 0);
-						ms.mulPose(VecHelper.rotateY(-45F));
-						ms.scale(0.5F, -0.5F, -0.5F);
-						renderItem(stack, ms, buffers, light);
+						poseStack.pushPose();
+						poseStack.translate(0.275, -0.4, 0);
+						poseStack.mulPose(VecHelper.rotateY(45F));
+						poseStack.scale(0.5F, -0.5F, -0.5F);
+						submitItem(data, state, poseStack, collector, lightCoords);
+						poseStack.popPose();
+						poseStack.translate(0.275, -0.4, 0);
+						poseStack.mulPose(VecHelper.rotateY(-45F));
+						poseStack.scale(0.5F, -0.5F, -0.5F);
+						submitItem(data, state, poseStack, collector, lightCoords);
 					}
 					case CAT_EARS -> {
-						ms.translate(0F, -0.5F, -0.175F);
-						ms.scale(0.5F, -0.5F, -0.5F);
-						renderItem(stack, ms, buffers, light);
+						poseStack.translate(0F, -0.5F, -0.175F);
+						poseStack.scale(0.5F, -0.5F, -0.5F);
+						submitItem(data, state, poseStack, collector, lightCoords);
 					}
 					case GOOGLY_EYES -> {
-						ms.translate(0, -0.225, -0.3);
-						ms.scale(0.9F, -0.9F, -0.9F);
-						renderItem(stack, ms, buffers, light);
+						poseStack.translate(0, -0.225, -0.3);
+						poseStack.scale(0.9F, -0.9F, -0.9F);
+						submitItem(data, state, poseStack, collector, lightCoords);
 					}
 					case CLOCK_EYE -> {
-						ms.translate(0.1, -0.225, -0.3F);
-						ms.scale(0.4F, -0.4F, -0.4F);
-						renderItem(stack, ms, buffers, light);
+						poseStack.translate(0.1, -0.225, -0.3F);
+						poseStack.scale(0.4F, -0.4F, -0.4F);
+						submitItem(data, state, poseStack, collector, lightCoords);
 					}
 					case UNICORN_HORN -> {
-						ms.translate(0, -0.7, -0.3);
-						ms.mulPose(VecHelper.rotateY(-90F));
-						ms.scale(0.6F, -0.6F, -0.6F);
-						renderItem(stack, ms, buffers, light);
+						poseStack.translate(0, -0.7, -0.3);
+						poseStack.mulPose(VecHelper.rotateY(-90F));
+						poseStack.scale(0.6F, -0.6F, -0.6F);
+						submitItem(data, state, poseStack, collector, lightCoords);
 					}
 					case DEVIL_HORNS -> {
-						ms.translate(0F, -0.4F, -0.175F);
-						ms.scale(0.5F, -0.5F, -0.5F);
-						renderItem(stack, ms, buffers, light);
+						poseStack.translate(0F, -0.4F, -0.175F);
+						poseStack.scale(0.5F, -0.5F, -0.5F);
+						submitItem(data, state, poseStack, collector, lightCoords);
 					}
 					case HYPER_PLUS -> {
-						ms.translate(-0.15F, -0.45F, -0.3F);
-						ms.scale(0.2F, -0.2F, -0.2F);
-						renderItem(stack, ms, buffers, light);
-						ms.translate(1.45F, 0F, 0F);
-						renderItem(stack, ms, buffers, light);
+						poseStack.translate(-0.15F, -0.45F, -0.3F);
+						poseStack.scale(0.2F, -0.2F, -0.2F);
+						submitItem(data, state, poseStack, collector, lightCoords);
+						poseStack.translate(1.45F, 0F, 0F);
+						submitItem(data, state, poseStack, collector, lightCoords);
 					}
 					case ANCIENT_MASK -> {
-						ms.translate(0, -0.3, -0.3);
-						ms.scale(0.7F, -0.7F, -0.7F);
-						renderItem(stack, ms, buffers, light);
+						poseStack.translate(0, -0.3, -0.3);
+						poseStack.scale(0.7F, -0.7F, -0.7F);
+						submitItem(data, state, poseStack, collector, lightCoords);
 					}
 					case EERIE_MASK -> {
-						ms.translate(0, -0.25, -0.3);
-						ms.scale(0.75F, -0.75F, -0.75F);
-						renderItem(stack, ms, buffers, light);
+						poseStack.translate(0, -0.25, -0.3);
+						poseStack.scale(0.75F, -0.75F, -0.75F);
+						submitItem(data, state, poseStack, collector, lightCoords);
 					}
 					case ALIEN_ANTENNA -> {
-						ms.translate(0, -0.65, 0.2);
-						ms.scale(0.5F, -0.5F, -0.5F);
-						renderItem(stack, ms, buffers, light);
+						poseStack.translate(0, -0.65, 0.2);
+						poseStack.scale(0.5F, -0.5F, -0.5F);
+						submitItem(data, state, poseStack, collector, lightCoords);
 					}
 					case ORANGE_SHADES -> {
-						ms.translate(0, -0.3, -0.3);
-						ms.scale(0.7F, -0.7F, -0.7F);
-						renderItem(stack, ms, buffers, light);
+						poseStack.translate(0, -0.3, -0.3);
+						poseStack.scale(0.7F, -0.7F, -0.7F);
+						submitItem(data, state, poseStack, collector, lightCoords);
 					}
 					case GROUCHO_GLASSES -> {
-						ms.translate(0, -0.1, -0.3);
-						ms.scale(0.75F, -0.75F, -0.75F);
-						renderItem(stack, ms, buffers, light);
+						poseStack.translate(0, -0.1, -0.3);
+						poseStack.scale(0.75F, -0.75F, -0.75F);
+						submitItem(data, state, poseStack, collector, lightCoords);
 					}
 					case THICK_EYEBROWS -> {
-						ms.pushPose();
-						ms.translate(-0.1, -0.3, -0.3);
-						ms.scale(0.3F, -0.3F, -0.3F);
-						renderItem(stack, ms, buffers, light);
-						ms.popPose();
-						ms.translate(0.1, -0.3, -0.3);
-						ms.mulPose(VecHelper.rotateY(180F));
-						ms.scale(0.3F, -0.3F, -0.3F);
-						renderItem(stack, ms, buffers, light);
+						poseStack.pushPose();
+						poseStack.translate(-0.1, -0.3, -0.3);
+						poseStack.scale(0.3F, -0.3F, -0.3F);
+						submitItem(data, state, poseStack, collector, lightCoords);
+						poseStack.popPose();
+						poseStack.translate(0.1, -0.3, -0.3);
+						poseStack.mulPose(VecHelper.rotateY(180F));
+						poseStack.scale(0.3F, -0.3F, -0.3F);
+						submitItem(data, state, poseStack, collector, lightCoords);
 					}
 					case TINY_POTATO_MASK -> {
-						ms.translate(0, -0.3, -0.3);
-						ms.scale(0.6F, -0.6F, -0.6F);
-						renderItem(stack, ms, buffers, light);
+						poseStack.translate(0, -0.3, -0.3);
+						poseStack.scale(0.6F, -0.6F, -0.6F);
+						submitItem(data, state, poseStack, collector, lightCoords);
 					}
 					case QUESTGIVER_MARK -> {
-						ms.translate(0, -0.8, -0.2);
-						ms.scale(0.5F, -0.5F, -0.5F);
-						renderItem(stack, ms, buffers, light);
+						poseStack.translate(0, -0.8, -0.2);
+						poseStack.scale(0.5F, -0.5F, -0.5F);
+						submitItem(data, state, poseStack, collector, lightCoords);
 					}
 					case THINKING_HAND -> {
-						ms.translate(-0.1, 0, -0.3);
-						ms.mulPose(VecHelper.rotateZ(-15F));
-						ms.scale(0.5F, -0.5F, -0.5F);
-						renderItem(stack, ms, buffers, light);
+						poseStack.translate(-0.1, 0, -0.3);
+						poseStack.mulPose(VecHelper.rotateZ(-15F));
+						poseStack.scale(0.5F, -0.5F, -0.5F);
+						submitItem(data, state, poseStack, collector, lightCoords);
 					}
 					default -> {}
 				}
-			} else { // body cosmetics
-				bipedModel.body.translateAndRotate(ms);
+			} else {
+				model.body.translateAndRotate(poseStack);
 				switch (variant) {
 					case BLACK_BOWTIE -> {
-						ms.translate(0, 0.1, -0.13);
-						ms.scale(0.6F, -0.6F, -0.6F);
-						renderItem(stack, ms, buffers, light);
+						poseStack.translate(0, 0.1, -0.13);
+						poseStack.scale(0.6F, -0.6F, -0.6F);
+						submitItem(data, state, poseStack, collector, lightCoords);
 					}
 					case BLACK_TIE, PUFFY_SCARF -> {
-						ms.translate(0, 0.25, -0.15);
-						ms.scale(0.5F, -0.5F, -0.5F);
-						renderItem(stack, ms, buffers, light);
+						poseStack.translate(0, 0.25, -0.15);
+						poseStack.scale(0.5F, -0.5F, -0.5F);
+						submitItem(data, state, poseStack, collector, lightCoords);
 					}
 					case WITCH_PIN -> {
-						ms.translate(-0.1, 0.15, -0.15);
-						ms.scale(0.2F, -0.2F, -0.2F);
-						renderItem(stack, ms, buffers, light);
+						poseStack.translate(-0.1, 0.15, -0.15);
+						poseStack.scale(0.2F, -0.2F, -0.2F);
+						submitItem(data, state, poseStack, collector, lightCoords);
 					}
 					case DEVIL_TAIL -> {
-						ms.translate(0, 0.55, 0.2);
-						ms.mulPose(VecHelper.rotateY(-90F));
-						ms.scale(0.6F, -0.6F, -0.6F);
-						renderItem(stack, ms, buffers, light);
+						poseStack.translate(0, 0.55, 0.2);
+						poseStack.mulPose(VecHelper.rotateY(-90F));
+						poseStack.scale(0.6F, -0.6F, -0.6F);
+						submitItem(data, state, poseStack, collector, lightCoords);
 					}
-					case KAMUI_EYE -> { // DON'T LOSE YOUR WAAAAAAAAY
-						ms.pushPose();
-						ms.translate(0.4, 0.1, -0.2);
-						ms.scale(0.5F, -0.5F, -0.5F);
-						renderItem(stack, ms, buffers, light);
-						ms.popPose();
-						ms.translate(-0.4, 0.1, -0.2);
-						ms.mulPose(VecHelper.rotateY(180F));
-						ms.scale(0.5F, -0.5F, -0.5F);
-						renderItem(stack, ms, buffers, light);
+					case KAMUI_EYE -> {
+						poseStack.pushPose();
+						poseStack.translate(0.4, 0.1, -0.2);
+						poseStack.scale(0.5F, -0.5F, -0.5F);
+						submitItem(data, state, poseStack, collector, lightCoords);
+						poseStack.popPose();
+						poseStack.translate(-0.4, 0.1, -0.2);
+						poseStack.mulPose(VecHelper.rotateY(180F));
+						poseStack.scale(0.5F, -0.5F, -0.5F);
+						submitItem(data, state, poseStack, collector, lightCoords);
 					}
 					case FOUR_LEAF_CLOVER -> {
-						ms.translate(0.1, 0.1, -0.13);
-						ms.scale(0.3F, -0.3F, -0.3F);
-						renderItem(stack, ms, buffers, light);
+						poseStack.translate(0.1, 0.1, -0.13);
+						poseStack.scale(0.3F, -0.3F, -0.3F);
+						submitItem(data, state, poseStack, collector, lightCoords);
 					}
 					case BOTANIST_EMBLEM -> {
-						ms.translate(0F, 0.375, -0.13);
-						ms.scale(0.3F, -0.3F, -0.3F);
-						renderItem(stack, ms, buffers, light);
+						poseStack.translate(0F, 0.375, -0.13);
+						poseStack.scale(0.3F, -0.3F, -0.3F);
+						submitItem(data, state, poseStack, collector, lightCoords);
 					}
 					case LUSITANIC_SHIELD -> {
-						ms.translate(0F, 0.35, 0.13);
-						ms.mulPose(VecHelper.rotateZ(8F));
-						ms.mulPose(VecHelper.rotateY(180F));
-						ms.scale(0.6F, -0.6F, -0.6F);
-						renderItem(stack, ms, buffers, light);
+						poseStack.translate(0F, 0.35, 0.13);
+						poseStack.mulPose(VecHelper.rotateZ(8F));
+						poseStack.mulPose(VecHelper.rotateY(180F));
+						poseStack.scale(0.6F, -0.6F, -0.6F);
+						submitItem(data, state, poseStack, collector, lightCoords);
 					}
 					default -> {}
 				}
 			}
 		}
 
-		private static void renderItem(ItemStack stack, PoseStack ms, MultiBufferSource buffers, int light) {
-			Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.NONE,
-					light, OverlayTexture.NO_OVERLAY, ms, buffers, Minecraft.getInstance().level, 0);
+		private static void submitItem(AccessoryRenderData data, AvatarRenderState state, PoseStack poseStack,
+				SubmitNodeCollector collector, int lightCoords) {
+			data.itemState.submit(poseStack, collector, lightCoords, OverlayTexture.NO_OVERLAY, state.outlineColor);
 		}
 	}
 

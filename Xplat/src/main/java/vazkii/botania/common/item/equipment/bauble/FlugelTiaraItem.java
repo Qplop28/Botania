@@ -8,7 +8,6 @@
  */
 package vazkii.botania.common.item.equipment.bauble;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 
@@ -17,6 +16,7 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -29,10 +29,10 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.util.ARGB;
 
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
-import org.lwjgl.opengl.GL11;
 
 import vazkii.botania.api.mana.ManaItemHandler;
 import vazkii.botania.client.core.handler.ClientTickHandler;
@@ -303,17 +303,17 @@ public class FlugelTiaraItem extends BaubleItem implements CustomCreativeTabCont
 	}
 
 	public static class ClientLogic {
-		public static void submitHalo(PoseStack poseStack, SubmitNodeCollector collector, float partialTicks) {
+		public static void submitHalo(PoseStack poseStack, SubmitNodeCollector collector, float animationTime) {
 			poseStack.translate(0.2, -0.65, 0);
 			poseStack.mulPose(VecHelper.rotateZ(30));
-			poseStack.mulPose(VecHelper.rotateY(ClientTickHandler.ticksInGame));
+			poseStack.mulPose(VecHelper.rotateY(animationTime));
 			poseStack.scale(0.75F, -0.75F, -0.75F);
 			collector.submitCustomGeometry(poseStack, RenderHelper.HALO, (pose, buffer) -> {
 				Matrix4f matrix = pose.pose();
-				buffer.vertex(matrix, -1F, 0, -1F).color(1F, 1F, 1F, 1F).uv(0, 0).endVertex();
-				buffer.vertex(matrix, 1F, 0, -1F).color(1F, 1F, 1F, 1F).uv(1, 0).endVertex();
-				buffer.vertex(matrix, 1F, 0, 1F).color(1F, 1F, 1F, 1F).uv(1, 1).endVertex();
-				buffer.vertex(matrix, -1F, 0, 1F).color(1F, 1F, 1F, 1F).uv(0, 1).endVertex();
+				buffer.addVertex(matrix, -1F, 0, -1F).setColor(0xFFFFFFFF).setUv(0, 0);
+				buffer.addVertex(matrix, 1F, 0, -1F).setColor(0xFFFFFFFF).setUv(1, 0);
+				buffer.addVertex(matrix, 1F, 0, 1F).setColor(0xFFFFFFFF).setUv(1, 1);
+				buffer.addVertex(matrix, -1F, 0, 1F).setColor(0xFFFFFFFF).setUv(0, 1);
 			});
 		}
 
@@ -334,10 +334,10 @@ public class FlugelTiaraItem extends BaubleItem implements CustomCreativeTabCont
 			ms.scale(0.75F, -0.75F, -0.75F);
 			VertexConsumer buffer = buffers.getBuffer(RenderHelper.HALO);
 			Matrix4f mat = ms.last().pose();
-			buffer.vertex(mat, -1F, 0, -1F).color(1.0F, 1.0F, 1.0F, 1.0F).uv(0, 0).endVertex();
-			buffer.vertex(mat, 1F, 0, -1F).color(1.0F, 1.0F, 1.0F, 1.0F).uv(1, 0).endVertex();
-			buffer.vertex(mat, 1F, 0, 1F).color(1.0F, 1.0F, 1.0F, 1.0F).uv(1, 1).endVertex();
-			buffer.vertex(mat, -1F, 0, 1F).color(1.0F, 1.0F, 1.0F, 1.0F).uv(0, 1).endVertex();
+			buffer.addVertex(mat, -1F, 0, -1F).setColor(0xFFFFFFFF).setUv(0, 0);
+			buffer.addVertex(mat, 1F, 0, -1F).setColor(0xFFFFFFFF).setUv(1, 0);
+			buffer.addVertex(mat, 1F, 0, 1F).setColor(0xFFFFFFFF).setUv(1, 1);
+			buffer.addVertex(mat, -1F, 0, 1F).setColor(0xFFFFFFFF).setUv(0, 1);
 		}
 
 		private static int estimateAdditionalNumRowsRendered(Player player) {
@@ -373,24 +373,18 @@ public class FlugelTiaraItem extends BaubleItem implements CustomCreativeTabCont
 				float trans = 1F;
 				if (i == segs - 1) {
 					trans = (float) last / (float) segTime;
-					RenderSystem.enableBlend();
-					RenderSystem.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 				}
-
-				RenderSystem.setShaderColor(1F, 1F, 1F, trans);
-				RenderHelper.drawTexturedModalRect(gui, textureHud, xo + 8 * i, y, u, v, 9, 9);
+				gui.blit(RenderPipelines.GUI_TEXTURED, textureHud, xo + 8 * i, y, u, v,
+						9, 9, 9, 9, 256, 256, ARGB.white(trans));
 			}
 
 			if (player.getAbilities().flying) {
 				int width = ItemNBTHelper.getInt(stack, TAG_DASH_COOLDOWN, 0);
-				RenderSystem.setShaderColor(1F, 1F, 1F, 1F);
 				if (width > 0) {
 					gui.fill(xo, y - 2, xo + 80, y - 1, 0x88000000);
 				}
 				gui.fill(xo, y - 2, xo + width, y - 1, 0xFFFFFFFF);
 			}
-
-			RenderSystem.setShaderColor(1F, 1F, 1F, 1F);
 		}
 	}
 

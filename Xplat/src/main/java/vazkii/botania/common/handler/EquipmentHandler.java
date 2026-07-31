@@ -112,7 +112,18 @@ public abstract class EquipmentHandler {
 
 		@Override
 		protected Container getAllWornItems(LivingEntity living) {
-			return new SimpleContainer(0);
+			if (!(living instanceof Player player)) {
+				return new SimpleContainer(9);
+			}
+			SimpleContainer worn = new SimpleContainer(9);
+			int next = 0;
+			for (int i = 0; i < 9; i++) {
+				ItemStack stack = player.getInventory().getItem(i);
+				if (!stack.isEmpty() && canEquip(stack, living)) {
+					worn.setItem(next++, stack.copy());
+				}
+			}
+			return worn;
 		}
 
 		@Override

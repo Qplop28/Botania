@@ -23,8 +23,8 @@ import vazkii.botania.common.handler.BotaniaSounds;
 
 public class CloakOfBalanceItem extends CloakOfVirtueItem {
 
-	private static final Identifier texture = new Identifier(ResourcesLib.MODEL_BALANCE_CLOAK);
-	private static final Identifier textureGlow = new Identifier(ResourcesLib.MODEL_BALANCE_CLOAK_GLOW);
+	private static final Identifier texture = Identifier.parse(ResourcesLib.MODEL_BALANCE_CLOAK);
+	private static final Identifier textureGlow = Identifier.parse(ResourcesLib.MODEL_BALANCE_CLOAK_GLOW);
 
 	public CloakOfBalanceItem(Properties props) {
 		super(props);

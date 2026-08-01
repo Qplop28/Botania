@@ -65,10 +65,12 @@
     "VibrationSystemListenerMixin",
     "WitherEntityAccessor"
   ],
- "client": [
+  "client": [
     "BlockModelGeneratorsAccessor",
     "client.AbstractContainerScreenAccessor",
     "client.AbstractRecipeBookScreenAccessor",
+    "client.AvatarRendererMixin",
+    "client.AvatarRenderStateMixin",
     "client.ClientLevelDataMixin",
     "client.ItemInHandRendererMixin",
     "client.LevelRendererAccessor",

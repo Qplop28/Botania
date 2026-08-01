@@ -23,7 +23,7 @@ import vazkii.botania.client.lib.ResourcesLib;
 
 public class FlowerPouchGui extends AbstractContainerScreen<FlowerPouchContainer> {
 
-	private static final Identifier texture = new Identifier(ResourcesLib.GUI_FLOWER_BAG);
+	private static final Identifier texture = Identifier.parse(ResourcesLib.GUI_FLOWER_BAG);
 
 	public FlowerPouchGui(FlowerPouchContainer container, Inventory playerInv, Component title) {
 		super(container, playerInv, title);

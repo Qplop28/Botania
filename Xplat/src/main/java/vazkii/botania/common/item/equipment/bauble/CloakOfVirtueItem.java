@@ -9,15 +9,16 @@
 package vazkii.botania.common.item.equipment.bauble;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.model.HumanoidModel;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.model.geom.EntityModelSet;
+import net.minecraft.client.model.player.PlayerModel;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.entity.state.AvatarRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.DamageTypeTags;
+import net.minecraft.util.Unit;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
@@ -32,7 +33,10 @@ import vazkii.botania.client.lib.ResourcesLib;
 import vazkii.botania.client.model.BotaniaModelLayers;
 import vazkii.botania.client.model.CloakModel;
 import vazkii.botania.client.render.AccessoryRenderRegistry;
-import vazkii.botania.client.render.AccessoryRenderer;
+import vazkii.botania.client.render.accessory.AccessoryExtractionContext;
+import vazkii.botania.client.render.accessory.AccessoryRenderData;
+import vazkii.botania.client.render.accessory.DeferredAccessoryRenderer;
+import vazkii.botania.client.render.accessory.ModelAccessoryRenderData;
 import vazkii.botania.common.handler.BotaniaSounds;
 import vazkii.botania.common.handler.EquipmentHandler;
 import vazkii.botania.common.helper.ItemNBTHelper;
@@ -40,15 +44,15 @@ import vazkii.botania.common.proxy.Proxy;
 
 public class CloakOfVirtueItem extends BaubleItem {
 
-	private static final Identifier texture = new Identifier(ResourcesLib.MODEL_HOLY_CLOAK);
-	private static final Identifier textureGlow = new Identifier(ResourcesLib.MODEL_HOLY_CLOAK_GLOW);
+	private static final Identifier texture = Identifier.parse(ResourcesLib.MODEL_HOLY_CLOAK);
+	private static final Identifier textureGlow = Identifier.parse(ResourcesLib.MODEL_HOLY_CLOAK_GLOW);
 
 	private static final String TAG_COOLDOWN = "cooldown";
 	private static final String TAG_IN_EFFECT = "inEffect";
 
 	public CloakOfVirtueItem(Properties props) {
 		super(props);
-		Proxy.INSTANCE.runOnClient(() -> () -> AccessoryRenderRegistry.register(this, new Renderer()));
+		Proxy.INSTANCE.runOnClient(() -> () -> AccessoryRenderRegistry.registerDeferred(this, new Renderer()));
 	}
 
 	public float onPlayerDamage(Player player, DamageSource src, float amount) {
@@ -80,25 +84,44 @@ public class CloakOfVirtueItem extends BaubleItem {
 		}
 	}
 
-	public static class Renderer implements AccessoryRenderer {
-		private static CloakModel model = null;
+	public static class Renderer implements DeferredAccessoryRenderer {
+		private CloakModel model;
+		private EntityModelSet modelSet;
 
 		@Override
-		public void doRender(HumanoidModel<?> bipedModel, ItemStack stack, LivingEntity living, PoseStack ms, MultiBufferSource buffers, int light, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
-			CloakOfVirtueItem item = ((CloakOfVirtueItem) stack.getItem());
-			AccessoryRenderHelper.rotateIfSneaking(ms, living);
-			boolean armor = !living.getItemBySlot(EquipmentSlot.CHEST).isEmpty();
-			ms.translate(0F, armor ? -0.07F : -0.01F, 0F);
+		public AccessoryRenderData createData() {
+			return new ModelAccessoryRenderData();
+		}
 
-			if (model == null) {
-				model = new CloakModel(Minecraft.getInstance().getEntityModels().bakeLayer(BotaniaModelLayers.CLOAK));
+		@Override
+		public void extract(AccessoryRenderData data, ItemStack stack, Player player, float partialTicks,
+				AccessoryExtractionContext context) {
+			ModelAccessoryRenderData modelData = (ModelAccessoryRenderData) data;
+			modelData.crouching = player.isCrouching();
+			modelData.chestArmor = !player.getItemBySlot(EquipmentSlot.CHEST).isEmpty();
+			ensureModel(context);
+		}
+
+		@Override
+		public void submit(AccessoryRenderData data, ItemStack stack, PlayerModel playerModel, AvatarRenderState state,
+				PoseStack poseStack, SubmitNodeCollector collector, int lightCoords) {
+			ModelAccessoryRenderData modelData = (ModelAccessoryRenderData) data;
+			CloakOfVirtueItem item = (CloakOfVirtueItem) stack.getItem();
+
+			AccessoryRenderHelper.rotateIfSneaking(poseStack, modelData.crouching);
+			poseStack.translate(0F, modelData.chestArmor ? -0.07F : -0.01F, 0F);
+
+			collector.submitModel(model, Unit.INSTANCE, poseStack, item.getCloakTexture(),
+					lightCoords, OverlayTexture.NO_OVERLAY, state.outlineColor, null);
+			collector.submitModel(model, Unit.INSTANCE, poseStack, item.getCloakGlowTexture(),
+					0xF000F0, OverlayTexture.NO_OVERLAY, state.outlineColor, null);
+		}
+
+		private void ensureModel(AccessoryExtractionContext context) {
+			if (model == null || modelSet != context.entityModels()) {
+				modelSet = context.entityModels();
+				model = new CloakModel(modelSet.bakeLayer(BotaniaModelLayers.CLOAK));
 			}
-
-			VertexConsumer buffer = buffers.getBuffer(model.renderType(item.getCloakTexture()));
-			model.renderToBuffer(ms, buffer, light, OverlayTexture.NO_OVERLAY);
-
-			buffer = buffers.getBuffer(model.renderType(item.getCloakGlowTexture()));
-			model.renderToBuffer(ms, buffer, 0xF000F0, OverlayTexture.NO_OVERLAY);
 		}
 	}
 

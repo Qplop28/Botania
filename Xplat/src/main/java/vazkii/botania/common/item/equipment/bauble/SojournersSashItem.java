@@ -9,12 +9,14 @@
 package vazkii.botania.common.item.equipment.bauble;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.HumanoidModel;
+import net.minecraft.client.model.geom.EntityModelSet;
 import net.minecraft.client.model.geom.ModelLayers;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.model.player.PlayerModel;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.entity.state.AvatarRenderState;
+import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.LivingEntity;
@@ -28,22 +30,23 @@ import vazkii.botania.api.mana.ManaItemHandler;
 import vazkii.botania.client.core.helper.AccessoryRenderHelper;
 import vazkii.botania.client.lib.ResourcesLib;
 import vazkii.botania.client.render.AccessoryRenderRegistry;
-import vazkii.botania.client.render.AccessoryRenderer;
+import vazkii.botania.client.render.accessory.AccessoryExtractionContext;
+import vazkii.botania.client.render.accessory.AccessoryRenderData;
+import vazkii.botania.client.render.accessory.DeferredAccessoryRenderer;
+import vazkii.botania.client.render.accessory.ModelAccessoryRenderData;
 import vazkii.botania.common.handler.EquipmentHandler;
 import vazkii.botania.common.proxy.Proxy;
 import vazkii.botania.xplat.XplatAbstractions;
 
-import java.util.UUID;
+import static vazkii.botania.common.lib.ResourceLocationHelper.prefix;
 
 public class SojournersSashItem extends BaubleItem {
 
-	private static final UUID STEP_BOOST_UUID = UUID.fromString("8511cd62-2650-4078-8d69-9ebe80b21eb5");
+	private static final Identifier STEP_BOOST_ID = prefix("travel_belt_step_boost");
 	private static final AttributeModifier STEP_BOOST = new AttributeModifier(
-			STEP_BOOST_UUID,
-			"botania:travel_belt",
-			0.65, AttributeModifier.Operation.ADDITION);
+			STEP_BOOST_ID, 0.65, AttributeModifier.Operation.ADD_VALUE);
 
-	private static final Identifier texture = new Identifier(ResourcesLib.MODEL_TRAVEL_BELT);
+	private static final Identifier texture = Identifier.parse(ResourcesLib.MODEL_TRAVEL_BELT);
 
 	private static final int COST = 1;
 	private static final int COST_INTERVAL = 10;
@@ -80,7 +83,7 @@ public class SojournersSashItem extends BaubleItem {
 		this.speed = speed;
 		this.jump = jump;
 		this.fallBuffer = fallBuffer;
-		Proxy.INSTANCE.runOnClient(() -> () -> AccessoryRenderRegistry.register(this, new Renderer()));
+		Proxy.INSTANCE.runOnClient(() -> () -> AccessoryRenderRegistry.registerDeferred(this, new Renderer()));
 	}
 
 	public static void tickBelt(Player player) {
@@ -88,12 +91,12 @@ public class SojournersSashItem extends BaubleItem {
 
 		var stepHeight = XplatAbstractions.INSTANCE.getStepHeightAttribute();
 		AttributeInstance attrib = player.getAttribute(stepHeight);
-		boolean hasBoost = attrib.hasModifier(STEP_BOOST);
+		boolean hasBoost = attrib.hasModifier(STEP_BOOST_ID);
 
 		if (tryConsumeMana(player)) {
-			if (player.level().isClientSide) {
+			if (player.level().isClientSide()) {
 				SojournersSashItem beltItem = (SojournersSashItem) belt.getItem();
-				if ((player.onGround() || player.getAbilities().flying) && player.zza > 0F && !player.isInWaterOrBubble()) {
+				if ((player.onGround() || player.getAbilities().flying) && player.zza > 0F && !player.isInWater()) {
 					float speed = beltItem.getSpeed(belt);
 					player.moveRelative(player.getAbilities().flying ? speed : speed, new Vec3(0, 0, 1));
 					beltItem.onMovedTick(belt, player);
@@ -107,7 +110,7 @@ public class SojournersSashItem extends BaubleItem {
 			} else {
 				if (player.isShiftKeyDown()) {
 					if (hasBoost) {
-						attrib.removeModifier(STEP_BOOST);
+						attrib.removeModifier(STEP_BOOST_ID);
 					}
 				} else {
 					if (!hasBoost) {
@@ -115,8 +118,8 @@ public class SojournersSashItem extends BaubleItem {
 					}
 				}
 			}
-		} else if (!player.level().isClientSide && hasBoost) {
-			attrib.removeModifier(STEP_BOOST);
+		} else if (!player.level().isClientSide() && hasBoost) {
+			attrib.removeModifier(STEP_BOOST_ID);
 		}
 	}
 
@@ -147,23 +150,43 @@ public class SojournersSashItem extends BaubleItem {
 		return texture;
 	}
 
-	public static class Renderer implements AccessoryRenderer {
-		private static HumanoidModel<LivingEntity> model = null;
+	public static class Renderer implements DeferredAccessoryRenderer {
+		private HumanoidModel<HumanoidRenderState> model;
+		private EntityModelSet modelSet;
 
 		@Override
-		public void doRender(HumanoidModel<?> bipedModel, ItemStack stack, LivingEntity living, PoseStack ms, MultiBufferSource buffers, int light, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
-			AccessoryRenderHelper.rotateIfSneaking(ms, living);
+		public AccessoryRenderData createData() {
+			return new ModelAccessoryRenderData();
+		}
 
-			float s = 1.15F;
-			ms.scale(s, s, s);
-			if (model == null) {
-				model = new HumanoidModel<>(Minecraft.getInstance()
-						.getEntityModels().bakeLayer(ModelLayers.PLAYER));
+		@Override
+		public void extract(AccessoryRenderData data, ItemStack stack, Player player, float partialTicks,
+				AccessoryExtractionContext context) {
+			ModelAccessoryRenderData modelData = (ModelAccessoryRenderData) data;
+			modelData.crouching = player.isCrouching();
+			ensureModel(context);
+		}
+
+		@Override
+		public void submit(AccessoryRenderData data, ItemStack stack, PlayerModel playerModel, AvatarRenderState state,
+				PoseStack poseStack, SubmitNodeCollector collector, int lightCoords) {
+			ModelAccessoryRenderData modelData = (ModelAccessoryRenderData) data;
+			AccessoryRenderHelper.rotateIfSneaking(poseStack, modelData.crouching);
+
+			float scale = 1.15F;
+			poseStack.scale(scale, scale, scale);
+
+			Identifier beltTexture = ((SojournersSashItem) stack.getItem()).getRenderTexture();
+			collector.submitModelPart(model.body, poseStack, model.renderType(beltTexture),
+					lightCoords, OverlayTexture.NO_OVERLAY, null, false, false,
+					0xFFFFFFFF, null, state.outlineColor);
+		}
+
+		private void ensureModel(AccessoryExtractionContext context) {
+			if (model == null || modelSet != context.entityModels()) {
+				modelSet = context.entityModels();
+				model = new HumanoidModel<>(modelSet.bakeLayer(ModelLayers.PLAYER));
 			}
-
-			Identifier texture = ((SojournersSashItem) stack.getItem()).getRenderTexture();
-			VertexConsumer buffer = buffers.getBuffer(model.renderType(texture));
-			model.body.render(ms, buffer, light, OverlayTexture.NO_OVERLAY, 1, 1, 1, 1);
 		}
 	}
 

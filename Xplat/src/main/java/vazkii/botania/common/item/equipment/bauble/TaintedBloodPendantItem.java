@@ -9,13 +9,13 @@
 package vazkii.botania.common.item.equipment.bauble;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.model.HumanoidModel;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.model.player.PlayerModel;
 import net.minecraft.client.renderer.Sheets;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.block.BlockModelRenderState;
+import net.minecraft.client.renderer.entity.state.AvatarRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
@@ -30,7 +30,7 @@ import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.level.Level;
+import net.minecraft.world.item.component.TooltipDisplay;
 
 import vazkii.botania.api.BotaniaAPI;
 import vazkii.botania.api.brew.Brew;
@@ -39,14 +39,18 @@ import vazkii.botania.api.brew.BrewItem;
 import vazkii.botania.api.mana.ManaItemHandler;
 import vazkii.botania.client.core.handler.MiscellaneousModels;
 import vazkii.botania.client.render.AccessoryRenderRegistry;
-import vazkii.botania.client.render.AccessoryRenderer;
 import vazkii.botania.client.render.ColorHandler;
+import vazkii.botania.client.render.accessory.AccessoryExtractionContext;
+import vazkii.botania.client.render.accessory.AccessoryRenderData;
+import vazkii.botania.client.render.accessory.BlockAccessoryRenderData;
+import vazkii.botania.client.render.accessory.DeferredAccessoryRenderer;
 import vazkii.botania.common.brew.BotaniaBrews;
 import vazkii.botania.common.helper.ItemNBTHelper;
 import vazkii.botania.common.item.CustomCreativeTabContents;
 import vazkii.botania.common.proxy.Proxy;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 public class TaintedBloodPendantItem extends BaubleItem implements BrewContainer, BrewItem, CustomCreativeTabContents {
 
@@ -54,7 +58,7 @@ public class TaintedBloodPendantItem extends BaubleItem implements BrewContainer
 
 	public TaintedBloodPendantItem(Properties props) {
 		super(props);
-		Proxy.INSTANCE.runOnClient(() -> () -> AccessoryRenderRegistry.register(this, new Renderer()));
+		Proxy.INSTANCE.runOnClient(() -> () -> AccessoryRenderRegistry.registerDeferred(this, new Renderer()));
 	}
 
 	@Override
@@ -69,31 +73,32 @@ public class TaintedBloodPendantItem extends BaubleItem implements BrewContainer
 	}
 
 	@Override
-	public void appendHoverText(ItemStack stack, Level world, List<Component> tooltip, TooltipFlag adv) {
-		super.appendHoverText(stack, world, tooltip, adv);
+	public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display,
+			Consumer<Component> tooltip, TooltipFlag adv) {
+		super.appendHoverText(stack, context, display, tooltip, adv);
 
 		Brew brew = getBrew(stack);
 		if (brew == BotaniaBrews.fallbackBrew) {
-			tooltip.add(Component.translatable("botaniamisc.notInfused").withStyle(ChatFormatting.LIGHT_PURPLE));
+			tooltip.accept(Component.translatable("botaniamisc.notInfused").withStyle(ChatFormatting.LIGHT_PURPLE));
 			return;
 		}
 
-		tooltip.add(Component.translatable("botaniamisc.brewOf", I18n.get(brew.getTranslationKey(stack))).withStyle(ChatFormatting.LIGHT_PURPLE));
+		tooltip.accept(Component.translatable("botaniamisc.brewOf", I18n.get(brew.getTranslationKey(stack))).withStyle(ChatFormatting.LIGHT_PURPLE));
 		for (MobEffectInstance effect : brew.getPotionEffects(stack)) {
-			ChatFormatting format = effect.getEffect().getCategory().getTooltipFormatting();
+			ChatFormatting format = effect.getEffect().value().getCategory().getTooltipFormatting();
 			MutableComponent cmp = Component.translatable(effect.getDescriptionId());
 			if (effect.getAmplifier() > 0) {
 				cmp.append(" ");
 				cmp.append(Component.translatable("botania.roman" + (effect.getAmplifier() + 1)));
 			}
-			tooltip.add(cmp.withStyle(format));
+			tooltip.accept(cmp.withStyle(format));
 		}
 	}
 
 	@Override
 	public void onWornTick(ItemStack stack, LivingEntity living) {
 		Brew brew = ((BrewItem) stack.getItem()).getBrew(stack);
-		if (brew != BotaniaBrews.fallbackBrew && living instanceof Player player && !living.level().isClientSide) {
+		if (brew != BotaniaBrews.fallbackBrew && living instanceof Player player && !living.level().isClientSide()) {
 			MobEffectInstance effect = brew.getPotionEffects(stack).get(0);
 			float cost = (float) brew.getManaCost(stack) / effect.getDuration() / (1 + effect.getAmplifier()) * 2.5F;
 			boolean doRand = cost < 1;
@@ -112,54 +117,49 @@ public class TaintedBloodPendantItem extends BaubleItem implements BrewContainer
 		}
 	}
 
-	public static class Renderer implements AccessoryRenderer {
+	public static class Renderer implements DeferredAccessoryRenderer {
 		@Override
-		public void doRender(HumanoidModel<?> bipedModel, ItemStack stack, LivingEntity living, PoseStack ms, MultiBufferSource buffers, int light, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
-			boolean armor = !living.getItemBySlot(EquipmentSlot.CHEST).isEmpty();
-			bipedModel.body.translateAndRotate(ms);
-			ms.translate(-0.25, 0.4, armor ? 0.05 : 0.12);
-			ms.scale(0.5F, -0.5F, -0.5F);
+		public AccessoryRenderData createData() {
+			return new BlockAccessoryRenderData();
+		}
 
-						VertexConsumer buffer =
-					buffers.getBuffer(Sheets.cutoutBlockSheet());
+		@Override
+		public void extract(AccessoryRenderData data, ItemStack stack, Player player, float partialTicks,
+				AccessoryExtractionContext context) {
+			BlockAccessoryRenderData blockData = (BlockAccessoryRenderData) data;
+			blockData.chestArmor = !player.getItemBySlot(EquipmentSlot.CHEST).isEmpty();
+			blockData.partsA = BlockAccessoryRenderData.collect(MiscellaneousModels.INSTANCE.bloodPendantChain());
+			blockData.partsB = BlockAccessoryRenderData.collect(MiscellaneousModels.INSTANCE.bloodPendantGem());
+			blockData.tintColor = 0xFF000000 | ColorHandler.getBrewColor(stack);
+		}
 
-			Minecraft.getInstance().getBlockRenderer().getModelRenderer()
-					.renderModel(
-							ms.last(),
-							buffer,
-							null,
-							MiscellaneousModels.INSTANCE.bloodPendantChain(),
-							1,
-							1,
-							1,
-							light,
-							OverlayTexture.NO_OVERLAY
-					);
+		@Override
+		public void submit(AccessoryRenderData data, ItemStack stack, PlayerModel model, AvatarRenderState state,
+				PoseStack poseStack, SubmitNodeCollector collector, int lightCoords) {
+			BlockAccessoryRenderData blockData = (BlockAccessoryRenderData) data;
+			model.body.translateAndRotate(poseStack);
+			poseStack.translate(-0.25, 0.4, blockData.chestArmor ? 0.05 : 0.12);
+			poseStack.scale(0.5F, -0.5F, -0.5F);
 
-			int color = ColorHandler.getBrewColor(stack);
-			float r = (color >> 16 & 0xFF) / 255F;
-			float g = (color >> 8 & 0xFF) / 255F;
-			float b = (color & 0xFF) / 255F;
-
-			Minecraft.getInstance().getBlockRenderer().getModelRenderer()
-					.renderModel(
-							ms.last(),
-							buffer,
-							null,
-							MiscellaneousModels.INSTANCE.bloodPendantGem(),
-							r,
-							g,
-							b,
-							0xF000F0,
-							OverlayTexture.NO_OVERLAY
-					);
+			collector.submitBlockModel(poseStack, Sheets.cutoutBlockSheet(), blockData.partsA,
+					BlockModelRenderState.EMPTY_TINTS, lightCoords, OverlayTexture.NO_OVERLAY,
+					state.outlineColor);
+			collector.submitBlockModel(poseStack, Sheets.cutoutBlockSheet(), blockData.partsB,
+					new int[] { blockData.tintColor }, 0xF000F0, OverlayTexture.NO_OVERLAY,
+					state.outlineColor);
 		}
 	}
 
 	@Override
 	public Brew getBrew(ItemStack stack) {
 		String key = ItemNBTHelper.getString(stack, TAG_BREW_KEY, "");
-		return BotaniaAPI.instance().getBrewRegistry().get(Identifier.tryParse(key));
+		Identifier id = Identifier.tryParse(key);
+		var registry = BotaniaAPI.instance().getBrewRegistry();
+		if (id == null || registry == null) {
+			return BotaniaBrews.fallbackBrew;
+		}
+		Brew brew = registry.getValue(id);
+		return brew == null ? BotaniaBrews.fallbackBrew : brew;
 	}
 
 	public static void setBrew(ItemStack stack, Brew brew) {
@@ -172,7 +172,7 @@ public class TaintedBloodPendantItem extends BaubleItem implements BrewContainer
 
 	@Override
 	public ItemStack getItemForBrew(Brew brew, ItemStack stack) {
-		if (!brew.canInfuseBloodPendant() || brew.getPotionEffects(stack).size() != 1 || brew.getPotionEffects(stack).get(0).getEffect().isInstantenous()) {
+		if (!brew.canInfuseBloodPendant() || brew.getPotionEffects(stack).size() != 1 || brew.getPotionEffects(stack).get(0).getEffect().value().isInstantenous()) {
 			return ItemStack.EMPTY;
 		}
 

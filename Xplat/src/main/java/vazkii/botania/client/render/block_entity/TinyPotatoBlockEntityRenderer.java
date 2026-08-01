@@ -4,6 +4,8 @@
  */
 package vazkii.botania.client.render.block_entity;
 
+import vazkii.botania.client.core.handler.ClientTickHandler;
+
 import com.mojang.blaze3d.vertex.PoseStack;
 
 import net.minecraft.client.Minecraft;
@@ -332,7 +334,8 @@ public class TinyPotatoBlockEntityRenderer
 		} else if (state.showJibrilHalo) {
 			poseStack.scale(1.5F, 1.5F, 1.5F);
 			poseStack.translate(0F, 0.8F, 0F);
-			FlugelTiaraItem.ClientLogic.submitHalo(poseStack, collector, state.partialTicks);
+			FlugelTiaraItem.ClientLogic.submitHalo(poseStack, collector,
+					ClientTickHandler.ticksInGame + state.partialTicks);
 		} else if (state.showKingDaddyExtras) {
 			poseStack.scale(0.5F, 0.5F, 0.5F);
 			poseStack.mulPose(VecHelper.rotateZ(180F));

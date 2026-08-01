@@ -26,6 +26,7 @@ import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.fabricmc.fabric.mixin.transfer.BucketItemAccessor;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
@@ -591,13 +592,13 @@ import static vazkii.botania.integration.speedrunigt.BotaniaSpeedrunCategories.B
 	}
 
 	@Override
-	public Attribute getReachDistanceAttribute() {
-		return Attributes.BLOCK_INTERACTION_RANGE.value();
+	public Holder<Attribute> getReachDistanceAttribute() {
+		return Attributes.BLOCK_INTERACTION_RANGE;
 	}
 
 	@Override
-	public Attribute getStepHeightAttribute() {
-		return Attributes.STEP_HEIGHT.value();
+	public Holder<Attribute> getStepHeightAttribute() {
+		return Attributes.STEP_HEIGHT;
 	}
 	private final TagKey<Block> oreTag = TagKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath("c", "ores"));
 

@@ -11,10 +11,12 @@ package vazkii.botania.common.item.equipment.bauble;
 import com.mojang.blaze3d.vertex.PoseStack;
 
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.model.HumanoidModel;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.model.player.PlayerModel;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.entity.state.AvatarRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -25,6 +27,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.decoration.ItemFrame;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.ComparatorBlock;
@@ -40,35 +43,46 @@ import vazkii.botania.api.item.CosmeticBauble;
 import vazkii.botania.client.core.helper.RenderHelper;
 import vazkii.botania.client.integration.shared.LocaleHelper;
 import vazkii.botania.client.render.AccessoryRenderRegistry;
-import vazkii.botania.client.render.AccessoryRenderer;
+import vazkii.botania.client.render.accessory.AccessoryExtractionContext;
+import vazkii.botania.client.render.accessory.AccessoryRenderData;
+import vazkii.botania.client.render.accessory.DeferredAccessoryRenderer;
 import vazkii.botania.common.handler.EquipmentHandler;
 import vazkii.botania.common.helper.FilterHelper;
 import vazkii.botania.common.lib.BotaniaTags;
 import vazkii.botania.common.proxy.Proxy;
 
+import java.util.function.Consumer;
 import java.util.List;
 
 public class ManaseerMonocleItem extends BaubleItem implements CosmeticBauble {
 
 	public ManaseerMonocleItem(Properties props) {
 		super(props);
-		Proxy.INSTANCE.runOnClient(() -> () -> AccessoryRenderRegistry.register(this, new Renderer()));
+		Proxy.INSTANCE.runOnClient(() -> () -> AccessoryRenderRegistry.registerDeferred(this, new Renderer()));
 	}
 
 	@Override
-	public void appendHoverText(ItemStack stack, Level world, List<Component> tooltip, TooltipFlag flags) {
-		tooltip.add(Component.translatable("botaniamisc.cosmeticBauble").withStyle(ChatFormatting.ITALIC, ChatFormatting.GRAY));
-		super.appendHoverText(stack, world, tooltip, flags);
+	public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display,
+			Consumer<Component> tooltip, TooltipFlag flags) {
+		tooltip.accept(Component.translatable("botaniamisc.cosmeticBauble").withStyle(ChatFormatting.ITALIC, ChatFormatting.GRAY));
+		super.appendHoverText(stack, context, display, tooltip, flags);
 	}
 
-	public static class Renderer implements AccessoryRenderer {
+	public static class Renderer implements DeferredAccessoryRenderer {
 		@Override
-		public void doRender(HumanoidModel<?> bipedModel, ItemStack stack, LivingEntity living, PoseStack ms, MultiBufferSource buffers, int light, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
-			bipedModel.head.translateAndRotate(ms);
-			ms.translate(0.15, -0.2, -0.25);
-			ms.scale(0.3F, -0.3F, -0.3F);
-			Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.NONE,
-					light, OverlayTexture.NO_OVERLAY, ms, buffers, living.level(), living.getId());
+		public void extract(AccessoryRenderData data, ItemStack stack, Player player, float partialTicks,
+				AccessoryExtractionContext context) {
+			data.itemState.clear();
+			context.itemModels().updateForLiving(data.itemState, stack, ItemDisplayContext.NONE, player);
+		}
+
+		@Override
+		public void submit(AccessoryRenderData data, ItemStack stack, PlayerModel model, AvatarRenderState state,
+				PoseStack poseStack, SubmitNodeCollector collector, int lightCoords) {
+			model.head.translateAndRotate(poseStack);
+			poseStack.translate(0.15, -0.2, -0.25);
+			poseStack.scale(0.3F, -0.3F, -0.3F);
+			data.itemState.submit(poseStack, collector, lightCoords, OverlayTexture.NO_OVERLAY, state.outlineColor);
 		}
 	}
 
@@ -93,7 +107,7 @@ public class ManaseerMonocleItem extends BaubleItem implements CosmeticBauble {
 			if (entity instanceof ItemFrame frame && !frame.getItem().isEmpty()) {
 				ItemStack frameItem = frame.getItem();
 				List<ItemStack> contentItems = FilterHelper.getFilterStacks(frameItem);
-				if (contentItems.isEmpty() || contentItems.size() == 1 && ItemStack.isSameItemSameTags(frameItem, contentItems.get(0))) {
+				if (contentItems.isEmpty() || contentItems.size() == 1 && ItemStack.isSameItemSameComponents(frameItem, contentItems.get(0))) {
 					return;
 				}
 
@@ -102,8 +116,8 @@ public class ManaseerMonocleItem extends BaubleItem implements CosmeticBauble {
 				int maxWidth = mc.getWindow().getGuiScaledWidth() - x - 30;
 
 				MutableComponent itemName = Component.empty().append(frameItem.getHoverName())
-						.withStyle(frameItem.getRarity().color);
-				if (frameItem.hasCustomHoverName()) {
+						.withStyle(frameItem.getRarity().color());
+				if (frameItem.has(DataComponents.CUSTOM_NAME)) {
 					itemName.withStyle(ChatFormatting.ITALIC);
 				}
 				MutableComponent text = Component.translatable("botaniamisc.monocle.frame.contains", itemName);
@@ -117,11 +131,11 @@ public class ManaseerMonocleItem extends BaubleItem implements CosmeticBauble {
 						(contentItems.size() - 1) / MAX_CONTENTS_COLUMNS + 1) * 18;
 				RenderHelper.renderHUDBox(gui, x - 4, y - 4,
 						x + Math.max(textWidth, contentsWidth) + 24, y + textYOffset + contentsHeight + 20);
-				gui.renderItem(frameItem, x, y);
+				gui.item(frameItem, x, y);
 
 				int textRow = 0;
 				for (var line : lines) {
-					gui.drawString(mc.font, line, x + 20, y + TEXT_ROW_HEIGHT * textRow + 4, 0xFFFFFF);
+					gui.text(mc.font, line, x + 20, y + TEXT_ROW_HEIGHT * textRow + 4, 0xFFFFFF);
 					textRow++;
 				}
 
@@ -135,15 +149,15 @@ public class ManaseerMonocleItem extends BaubleItem implements CosmeticBauble {
 						}
 					}
 
-					gui.renderItem(contentItem, x + 18 * column, y + 18 * row + textYOffset);
-					gui.renderItemDecorations(mc.font, contentItem, x + 18 * column, y + 18 * row + textYOffset);
+					gui.item(contentItem, x + 18 * column, y + 18 * row + textYOffset);
+					gui.itemDecorations(mc.font, contentItem, x + 18 * column, y + 18 * row + textYOffset);
 				}
 
 				if (row > MAX_CONTENTS_ROWS) {
 					MutableComponent remainingItemsHint = Component.translatable(
 							"botaniamisc.monocle.frame.additional_stacks",
 							contentItems.size() - MAX_CONTENTS_COLUMNS * MAX_CONTENTS_ROWS);
-					gui.drawString(mc.font, remainingItemsHint, x + 24, y + 18 * row + 6 + textYOffset, 0xFFFFFF);
+					gui.text(mc.font, remainingItemsHint, x + 24, y + 18 * row + 6 + textYOffset, 0xFFFFFF);
 				}
 			}
 		}
@@ -177,8 +191,8 @@ public class ManaseerMonocleItem extends BaubleItem implements CosmeticBauble {
 
 			int textWidth = mc.font.width(text.getVisualOrderText());
 			RenderHelper.renderHUDBox(gui, x - 4, y - 4, x + textWidth + 24, y + 20);
-			gui.renderItem(dispStack, x, y);
-			gui.drawString(mc.font, text, x + 20, y + 4, 0xFFFFFF);
+			gui.item(dispStack, x, y);
+			gui.text(mc.font, text, x + 20, y + 4, 0xFFFFFF);
 		}
 
 	}

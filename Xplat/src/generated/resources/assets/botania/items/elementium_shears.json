@@ -1,0 +1,15 @@
+{
+  "model": {
+    "type": "minecraft:condition",
+    "property": "botania:boolean",
+    "kind": "reddit",
+    "on_true": {
+      "type": "minecraft:model",
+      "model": "botania:item/dammitreddit"
+    },
+    "on_false": {
+      "type": "minecraft:model",
+      "model": "botania:item/elementium_shears"
+    }
+  }
+}

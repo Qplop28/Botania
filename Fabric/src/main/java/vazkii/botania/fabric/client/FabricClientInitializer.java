@@ -17,6 +17,8 @@ import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenKeyboardEvents;
 import net.minecraft.client.color.item.ItemTintSources;
 import net.minecraft.client.renderer.item.ItemModels;
+import net.minecraft.client.renderer.item.properties.conditional.ConditionalItemModelProperties;
+import net.minecraft.client.renderer.item.properties.numeric.RangeSelectItemModelProperties;
 import net.minecraft.client.renderer.special.SpecialModelRenderers;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.particle.ParticleProvider;
@@ -32,6 +34,7 @@ import net.minecraft.world.entity.LivingEntity;
 import vazkii.botania.api.BotaniaAPI;
 import vazkii.botania.api.BotaniaAPIClient;
 import vazkii.botania.api.BotaniaFabricClientCapabilities;
+import vazkii.botania.client.BotaniaItemProperties;
 import vazkii.botania.client.core.handler.ClientTickHandler;
 import vazkii.botania.client.core.handler.CorporeaInputHandler;
 import vazkii.botania.client.core.handler.KonamiHandler;
@@ -76,6 +79,10 @@ public class FabricClientInitializer implements ClientModInitializer {
 		ColorHandler.initItemTints();
 		ItemTintSources.ID_MAPPER.put(Identifier.fromNamespaceAndPath(LibMisc.MOD_ID, "dynamic_item_color"), BotaniaItemTintSource.MAP_CODEC);
 		ItemModels.ID_MAPPER.put(ClientXplatAbstractions.MANA_GUN_MODEL_LOADER_ID, ManaBlasterItemModel.Unbaked.MAP_CODEC);
+		ConditionalItemModelProperties.ID_MAPPER.put(Identifier.fromNamespaceAndPath(LibMisc.MOD_ID, "boolean"),
+				BotaniaItemProperties.Conditional.MAP_CODEC);
+		RangeSelectItemModelProperties.ID_MAPPER.put(Identifier.fromNamespaceAndPath(LibMisc.MOD_ID, "swigs_taken"),
+				BotaniaItemProperties.SwigsTaken.MAP_CODEC);
 		SpecialModelRenderers.ID_MAPPER.put(Identifier.fromNamespaceAndPath(LibMisc.MOD_ID, "block_entity"),
 				BotaniaBlockEntityItemRenderer.Unbaked.MAP_CODEC);
 

@@ -1,16 +1,73 @@
 {
   "model": {
-    "type": "minecraft:model",
-    "model": "botania:item/brew_vial",
-    "tints": [
+    "type": "minecraft:range_dispatch",
+    "property": "botania:swigs_taken",
+    "entries": [
       {
-        "type": "botania:dynamic_item_color",
-        "tint_index": 0
+        "threshold": 0.3333333333333333,
+        "model": {
+          "type": "minecraft:model",
+          "model": "botania:item/brew_vial_1",
+          "tints": [
+            {
+              "type": "botania:dynamic_item_color",
+              "tint_index": 0
+            },
+            {
+              "type": "botania:dynamic_item_color",
+              "tint_index": 1
+            }
+          ]
+        }
       },
       {
-        "type": "botania:dynamic_item_color",
-        "tint_index": 1
+        "threshold": 0.6666666666666666,
+        "model": {
+          "type": "minecraft:model",
+          "model": "botania:item/brew_vial_2",
+          "tints": [
+            {
+              "type": "botania:dynamic_item_color",
+              "tint_index": 0
+            },
+            {
+              "type": "botania:dynamic_item_color",
+              "tint_index": 1
+            }
+          ]
+        }
+      },
+      {
+        "threshold": 1.0,
+        "model": {
+          "type": "minecraft:model",
+          "model": "botania:item/brew_vial_3",
+          "tints": [
+            {
+              "type": "botania:dynamic_item_color",
+              "tint_index": 0
+            },
+            {
+              "type": "botania:dynamic_item_color",
+              "tint_index": 1
+            }
+          ]
+        }
       }
-    ]
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "botania:item/brew_vial",
+      "tints": [
+        {
+          "type": "botania:dynamic_item_color",
+          "tint_index": 0
+        },
+        {
+          "type": "botania:dynamic_item_color",
+          "tint_index": 1
+        }
+      ]
+    }
   }
 }

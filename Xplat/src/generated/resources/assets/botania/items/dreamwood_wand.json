@@ -1,20 +1,43 @@
 {
   "model": {
-    "type": "minecraft:model",
-    "model": "botania:item/dreamwood_wand",
-    "tints": [
-      {
-        "type": "botania:dynamic_item_color",
-        "tint_index": 0
-      },
-      {
-        "type": "botania:dynamic_item_color",
-        "tint_index": 1
-      },
-      {
-        "type": "botania:dynamic_item_color",
-        "tint_index": 2
-      }
-    ]
+    "type": "minecraft:condition",
+    "property": "botania:boolean",
+    "kind": "bindmode",
+    "on_true": {
+      "type": "minecraft:model",
+      "model": "botania:item/dreamwood_wand_bind",
+      "tints": [
+        {
+          "type": "botania:dynamic_item_color",
+          "tint_index": 0
+        },
+        {
+          "type": "botania:dynamic_item_color",
+          "tint_index": 1
+        },
+        {
+          "type": "botania:dynamic_item_color",
+          "tint_index": 2
+        }
+      ]
+    },
+    "on_false": {
+      "type": "minecraft:model",
+      "model": "botania:item/dreamwood_wand",
+      "tints": [
+        {
+          "type": "botania:dynamic_item_color",
+          "tint_index": 0
+        },
+        {
+          "type": "botania:dynamic_item_color",
+          "tint_index": 1
+        },
+        {
+          "type": "botania:dynamic_item_color",
+          "tint_index": 2
+        }
+      ]
+    }
   }
 }

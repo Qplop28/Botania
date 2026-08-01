@@ -1,127 +1,157 @@
 package vazkii.botania.client;
 
-import net.minecraft.client.renderer.item.ClampedItemPropertyFunction;
-import net.minecraft.resources.Identifier;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.renderer.item.properties.conditional.ConditionalItemModelProperty;
+import net.minecraft.client.renderer.item.properties.numeric.RangeSelectItemModelProperty;
+import net.minecraft.util.StringRepresentable;
+import net.minecraft.world.entity.ItemOwner;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.level.ItemLike;
-import net.minecraft.world.level.block.Block;
+import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.world.item.ItemStack;
+
+import org.jetbrains.annotations.Nullable;
 
 import vazkii.botania.client.core.proxy.ClientProxy;
-import vazkii.botania.common.block.BotaniaBlocks;
-import vazkii.botania.common.block.mana.ManaPoolBlock;
 import vazkii.botania.common.helper.ItemNBTHelper;
-import vazkii.botania.common.item.*;
+import vazkii.botania.common.item.BaubleBoxItem;
+import vazkii.botania.common.item.BlackHoleTalismanItem;
+import vazkii.botania.common.item.BotaniaItems;
+import vazkii.botania.common.item.BottledManaItem;
+import vazkii.botania.common.item.LexicaBotaniaItem;
+import vazkii.botania.common.item.LifeAggregatorItem;
+import vazkii.botania.common.item.ManufactoryHaloItem;
+import vazkii.botania.common.item.SlimeInABottleItem;
+import vazkii.botania.common.item.StoneOfTemperanceItem;
+import vazkii.botania.common.item.WandOfTheForestItem;
 import vazkii.botania.common.item.brew.BaseBrewItem;
 import vazkii.botania.common.item.equipment.bauble.RingOfMagnetizationItem;
-import vazkii.botania.common.item.equipment.tool.bow.LivingwoodBowItem;
 import vazkii.botania.common.item.equipment.tool.terrasteel.TerraShattererItem;
 import vazkii.botania.common.item.equipment.tool.terrasteel.TerraTruncatorItem;
 import vazkii.botania.common.item.relic.FruitOfGrisaiaItem;
 import vazkii.botania.common.item.rod.SkiesRodItem;
-import vazkii.botania.network.TriConsumer;
 
 import java.util.Locale;
 
-import static vazkii.botania.common.lib.ResourceLocationHelper.prefix;
-
 public final class BotaniaItemProperties {
-	public static void init(TriConsumer<ItemLike, Identifier, ClampedItemPropertyFunction> consumer) {
-		consumer.accept(BotaniaItems.baubleBox, prefix("open"),
-				(stack, world, entity, seed) -> ItemNBTHelper.getBoolean(stack, BaubleBoxItem.TAG_OPEN, false) ? 1 : 0);
-		consumer.accept(BotaniaItems.blackHoleTalisman, prefix("active"),
-				(stack, world, entity, seed) -> ItemNBTHelper.getBoolean(stack, BlackHoleTalismanItem.TAG_ACTIVE, false) ? 1 : 0);
-		consumer.accept(BotaniaItems.manaBottle, prefix("swigs_taken"),
-				(stack, world, entity, seed) -> {
-					int swigsLeft = BottledManaItem.getSwigsLeft(stack) - 1;
-					int totalSwigs = BottledManaItem.SWIGS - 1;
-					return swigsLeft == totalSwigs ? 0.0F : Math.nextUp((totalSwigs - swigsLeft) / (float) totalSwigs);
-				});
+	public record Conditional(Kind kind) implements ConditionalItemModelProperty {
+		public static final MapCodec<Conditional> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+				Kind.CODEC.fieldOf("kind").forGetter(Conditional::kind)
+		).apply(instance, Conditional::new));
 
-		Identifier vuvuzelaId = prefix("vuvuzela");
-		ClampedItemPropertyFunction isVuvuzela = (stack, world, entity, seed) -> stack.getHoverName().getString().toLowerCase(Locale.ROOT).contains("vuvuzela") ? 1 : 0;
-		consumer.accept(BotaniaItems.grassHorn, vuvuzelaId, isVuvuzela);
-		consumer.accept(BotaniaItems.leavesHorn, vuvuzelaId, isVuvuzela);
-		consumer.accept(BotaniaItems.snowHorn, vuvuzelaId, isVuvuzela);
+		@Override
+		public boolean get(ItemStack stack, @Nullable ClientLevel level, @Nullable LivingEntity entity,
+				int seed, ItemDisplayContext displayContext) {
+			return switch (kind) {
+				case OPEN -> ItemNBTHelper.getBoolean(stack, BaubleBoxItem.TAG_OPEN, false);
+				case ACTIVE -> isActive(stack, entity);
+				case VUVUZELA -> normalizedName(stack).contains("vuvuzela");
+				case ELVEN -> LexicaBotaniaItem.isElven(stack);
+				case TOTALBISCUIT -> normalizedName(stack).contains("totalbiscuit");
+				case FULL -> isFull(stack);
+				case BINDMODE -> WandOfTheForestItem.getBindMode(stack);
+				case HOLIDAY -> ClientProxy.jingleTheBells;
+				case REDDIT -> stack.getHoverName().getString().equalsIgnoreCase("dammit reddit");
+				case ELUCIDATOR -> normalizedName(stack).trim().equals("the elucidator");
+				case TIPPED -> TerraShattererItem.isTipped(stack);
+				case BOOT -> FruitOfGrisaiaItem.isBoot(stack);
+			};
+		}
 
-		consumer.accept(BotaniaItems.lexicon, prefix("elven"), (stack, world, living, seed) -> LexicaBotaniaItem.isElven(stack) ? 1 : 0);
-		consumer.accept(BotaniaItems.manaCookie, prefix("totalbiscuit"),
-				(stack, world, entity, seed) -> stack.getHoverName().getString().toLowerCase(Locale.ROOT).contains("totalbiscuit") ? 1F : 0F);
-		consumer.accept(BotaniaItems.slimeBottle, prefix("active"),
-				(stack, world, entity, seed) -> stack.hasTag() && stack.getTag().getBoolean(SlimeInABottleItem.TAG_ACTIVE) ? 1.0F : 0.0F);
-		consumer.accept(BotaniaItems.spawnerMover, prefix("full"),
-				(stack, world, entity, seed) -> LifeAggregatorItem.hasData(stack) ? 1 : 0);
-		consumer.accept(BotaniaItems.temperanceStone, prefix("active"),
-				(stack, world, entity, seed) -> ItemNBTHelper.getBoolean(stack, StoneOfTemperanceItem.TAG_ACTIVE, false) ? 1 : 0);
-		consumer.accept(BotaniaItems.twigWand, prefix("bindmode"),
-				(stack, world, entity, seed) -> WandOfTheForestItem.getBindMode(stack) ? 1 : 0);
-		consumer.accept(BotaniaItems.dreamwoodWand, prefix("bindmode"),
-				(stack, world, entity, seed) -> WandOfTheForestItem.getBindMode(stack) ? 1 : 0);
-		consumer.accept(BotaniaItems.autocraftingHalo, prefix("active"),
-				(stack, world, entity, seed) -> ItemNBTHelper.getBoolean(stack, ManufactoryHaloItem.TAG_ACTIVE, true) ? 1 : 0);
+		@Override
+		public MapCodec<? extends ConditionalItemModelProperty> type() {
+			return MAP_CODEC;
+		}
+	}
 
-		Identifier poolFullId = prefix("full");
-		ClampedItemPropertyFunction poolFull = (stack, world, entity, seed) -> {
-			Block block = ((BlockItem) stack.getItem()).getBlock();
-			boolean renderFull = ((ManaPoolBlock) block).variant == ManaPoolBlock.Variant.CREATIVE || stack.hasTag() && stack.getTag().getBoolean("RenderFull");
-			return renderFull ? 1F : 0F;
-		};
-		consumer.accept(BotaniaBlocks.manaPool, poolFullId, poolFull);
-		consumer.accept(BotaniaBlocks.dilutedPool, poolFullId, poolFull);
-		consumer.accept(BotaniaBlocks.creativePool, poolFullId, poolFull);
-		consumer.accept(BotaniaBlocks.fabulousPool, poolFullId, poolFull);
+	public record SwigsTaken() implements RangeSelectItemModelProperty {
+		public static final MapCodec<SwigsTaken> MAP_CODEC = MapCodec.unit(new SwigsTaken());
 
-		ClampedItemPropertyFunction brewGetter = (stack, world, entity, seed) -> {
-			BaseBrewItem item = ((BaseBrewItem) stack.getItem());
-			int swigsLeft = item.getSwigsLeft(stack) - 1;
-			int totalSwigs = item.getSwigs() - 1;
-			return swigsLeft == totalSwigs ? 0.0F : Math.nextUp((totalSwigs - swigsLeft) / (float) totalSwigs);
-		};
-		consumer.accept(BotaniaItems.brewVial, prefix("swigs_taken"), brewGetter);
-		consumer.accept(BotaniaItems.brewFlask, prefix("swigs_taken"), brewGetter);
-
-		Identifier holidayId = prefix("holiday");
-		ClampedItemPropertyFunction holidayGetter = (stack, worldIn, entityIn, seed) -> ClientProxy.jingleTheBells ? 1 : 0;
-		consumer.accept(BotaniaItems.manaweaveHelm, holidayId, holidayGetter);
-		consumer.accept(BotaniaItems.manaweaveChest, holidayId, holidayGetter);
-		consumer.accept(BotaniaItems.manaweaveBoots, holidayId, holidayGetter);
-		consumer.accept(BotaniaItems.manaweaveLegs, holidayId, holidayGetter);
-
-		ClampedItemPropertyFunction ringOnGetter = (stack, worldIn, entityIn, seed) -> RingOfMagnetizationItem.getCooldown(stack) <= 0 ? 1 : 0;
-		consumer.accept(BotaniaItems.magnetRing, prefix("active"), ringOnGetter);
-		consumer.accept(BotaniaItems.magnetRingGreater, prefix("active"), ringOnGetter);
-
-		consumer.accept(BotaniaItems.elementiumShears, prefix("reddit"),
-				(stack, world, entity, seed) -> stack.getHoverName().getString().equalsIgnoreCase("dammit reddit") ? 1F : 0F);
-		consumer.accept(BotaniaItems.manasteelSword, prefix("elucidator"),
-				(stack, world, entity, seed) -> "the elucidator".equals(stack.getHoverName().getString().toLowerCase(Locale.ROOT).trim()) ? 1 : 0);
-		consumer.accept(BotaniaItems.terraAxe, prefix("active"),
-				(stack, world, entity, seed) -> entity instanceof Player player && !TerraTruncatorItem.shouldBreak(player) ? 0 : 1);
-		consumer.accept(BotaniaItems.terraPick, prefix("tipped"),
-				(stack, world, entity, seed) -> TerraShattererItem.isTipped(stack) ? 1 : 0);
-		consumer.accept(BotaniaItems.terraPick, prefix("active"),
-				(stack, world, entity, seed) -> TerraShattererItem.isEnabled(stack) ? 1 : 0);
-		consumer.accept(BotaniaItems.infiniteFruit, prefix("boot"),
-				(stack, worldIn, entity, seed) -> FruitOfGrisaiaItem.isBoot(stack) ? 1F : 0F);
-		consumer.accept(BotaniaItems.tornadoRod, prefix("active"),
-				(stack, world, living, seed) -> SkiesRodItem.isFlying(stack) ? 1 : 0);
-
-		// [VanillaCopy] ItemProperties.BOW's minecraft:pulling property
-		ClampedItemPropertyFunction pulling = (stack, worldIn, entity, seed) -> entity != null && entity.isUsingItem() && entity.getUseItem() == stack ? 1.0F : 0.0F;
-		ClampedItemPropertyFunction pull = (stack, worldIn, entity, seed) -> {
-			if (entity == null) {
-				return 0.0F;
+		@Override
+		public float get(ItemStack stack, @Nullable ClientLevel level, @Nullable ItemOwner owner, int seed) {
+			int swigsLeft;
+			int totalSwigs;
+			if (stack.is(BotaniaItems.manaBottle)) {
+				swigsLeft = BottledManaItem.getSwigsLeft(stack) - 1;
+				totalSwigs = BottledManaItem.SWIGS - 1;
+			} else if (stack.getItem() instanceof BaseBrewItem item) {
+				swigsLeft = item.getSwigsLeft(stack) - 1;
+				totalSwigs = item.getSwigs() - 1;
 			} else {
-				LivingwoodBowItem item = ((LivingwoodBowItem) stack.getItem());
-				return entity.getUseItem() != stack
-						? 0.0F
-						: (stack.getUseDuration() - entity.getUseItemRemainingTicks()) * item.chargeVelocityMultiplier() / 20.0F;
+				return 0;
 			}
-		};
-		consumer.accept(BotaniaItems.livingwoodBow, new Identifier("pulling"), pulling);
-		consumer.accept(BotaniaItems.livingwoodBow, new Identifier("pull"), pull);
-		consumer.accept(BotaniaItems.crystalBow, new Identifier("pulling"), pulling);
-		consumer.accept(BotaniaItems.crystalBow, new Identifier("pull"), pull);
+			return swigsLeft == totalSwigs
+					? 0
+					: Math.nextUp((totalSwigs - swigsLeft) / (float) totalSwigs);
+		}
+
+		@Override
+		public MapCodec<? extends RangeSelectItemModelProperty> type() {
+			return MAP_CODEC;
+		}
+	}
+
+	public enum Kind implements StringRepresentable {
+		OPEN("open"),
+		ACTIVE("active"),
+		VUVUZELA("vuvuzela"),
+		ELVEN("elven"),
+		TOTALBISCUIT("totalbiscuit"),
+		FULL("full"),
+		BINDMODE("bindmode"),
+		HOLIDAY("holiday"),
+		REDDIT("reddit"),
+		ELUCIDATOR("elucidator"),
+		TIPPED("tipped"),
+		BOOT("boot");
+
+		private static final Codec<Kind> CODEC = StringRepresentable.fromEnum(Kind::values);
+		private final String serializedName;
+
+		Kind(String serializedName) {
+			this.serializedName = serializedName;
+		}
+
+		@Override
+		public String getSerializedName() {
+			return serializedName;
+		}
+	}
+
+	private static boolean isActive(ItemStack stack, @Nullable LivingEntity entity) {
+		if (stack.is(BotaniaItems.blackHoleTalisman)) {
+			return ItemNBTHelper.getBoolean(stack, BlackHoleTalismanItem.TAG_ACTIVE, false);
+		} else if (stack.is(BotaniaItems.slimeBottle)) {
+			return ItemNBTHelper.getBoolean(stack, SlimeInABottleItem.TAG_ACTIVE, false);
+		} else if (stack.is(BotaniaItems.temperanceStone)) {
+			return ItemNBTHelper.getBoolean(stack, StoneOfTemperanceItem.TAG_ACTIVE, false);
+		} else if (stack.is(BotaniaItems.autocraftingHalo)) {
+			return ItemNBTHelper.getBoolean(stack, ManufactoryHaloItem.TAG_ACTIVE, true);
+		} else if (stack.is(BotaniaItems.magnetRing) || stack.is(BotaniaItems.magnetRingGreater)) {
+			return RingOfMagnetizationItem.getCooldown(stack) <= 0;
+		} else if (stack.is(BotaniaItems.terraAxe)) {
+			return !(entity instanceof Player player) || TerraTruncatorItem.shouldBreak(player);
+		} else if (stack.is(BotaniaItems.terraPick)) {
+			return TerraShattererItem.isEnabled(stack);
+		} else if (stack.is(BotaniaItems.tornadoRod)) {
+			return SkiesRodItem.isFlying(stack);
+		}
+		return false;
+	}
+
+	private static boolean isFull(ItemStack stack) {
+		if (stack.is(BotaniaItems.spawnerMover)) {
+			return LifeAggregatorItem.hasData(stack);
+		}
+		return ItemNBTHelper.getBoolean(stack, "RenderFull", false);
+	}
+
+	private static String normalizedName(ItemStack stack) {
+		return stack.getHoverName().getString().toLowerCase(Locale.ROOT);
 	}
 
 	private BotaniaItemProperties() {}

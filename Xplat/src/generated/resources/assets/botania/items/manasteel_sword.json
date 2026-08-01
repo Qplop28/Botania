@@ -1,0 +1,15 @@
+{
+  "model": {
+    "type": "minecraft:condition",
+    "property": "botania:boolean",
+    "kind": "elucidator",
+    "on_true": {
+      "type": "minecraft:model",
+      "model": "botania:item/elucidator"
+    },
+    "on_false": {
+      "type": "minecraft:model",
+      "model": "botania:item/manasteel_sword"
+    }
+  }
+}

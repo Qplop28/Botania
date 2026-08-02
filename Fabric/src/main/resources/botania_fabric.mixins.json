@@ -26,14 +26,12 @@
     "ServerPlayerGameModeFabricMixin"
   ],
   "client": [
-    "client.AbstractTextureFabricMixin",
     "client.BossHealthOverlayFabricMixin",
     "client.ClientPacketListenerMixin",
     "client.DebugScreenOverlayFabricMixin",
     "client.GuiGraphicsFabricMixin",
     "client.KeyboardHandlerFabricMixin",
-    "client.MinecraftFabricMixin",
-    "client.ParticleEngineFabricMixin"
+    "client.MinecraftFabricMixin"
   ],
   "injectors": {
     "defaultRequire": 1

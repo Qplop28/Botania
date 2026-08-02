@@ -8,14 +8,10 @@
  */
 package vazkii.botania.client.fx;
 
-import net.minecraft.client.particle.ParticleProvider;
-import net.minecraft.client.particle.SpriteSet;
-import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.resources.Identifier;
 
 import java.util.function.BiConsumer;
-import java.util.function.Function;
 
 import static vazkii.botania.common.lib.ResourceLocationHelper.prefix;
 
@@ -28,14 +24,14 @@ public class BotaniaParticles {
 		r.accept(SPARKLE, prefix("sparkle"));
 	}
 
+	/** @deprecated Client registrations belong in {@link BotaniaParticleProviders}. */
+	@Deprecated(forRemoval = false)
 	public static class FactoryHandler {
-		public interface Consumer {
-			<T extends ParticleOptions> void register(ParticleType<T> type, Function<SpriteSet, ParticleProvider<T>> constructor);
+		public interface Consumer extends BotaniaParticleProviders.Consumer {
 		}
 
 		public static void registerFactories(Consumer consumer) {
-			consumer.register(BotaniaParticles.WISP, WispParticleType.Factory::new);
-			consumer.register(BotaniaParticles.SPARKLE, SparkleParticleType.Factory::new);
+			BotaniaParticleProviders.registerFactories(consumer);
 		}
 	}
 }

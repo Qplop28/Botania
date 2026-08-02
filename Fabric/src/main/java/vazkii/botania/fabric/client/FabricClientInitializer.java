@@ -1,6 +1,7 @@
 package vazkii.botania.fabric.client;
 
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
@@ -40,6 +41,7 @@ import vazkii.botania.client.core.handler.CorporeaInputHandler;
 import vazkii.botania.client.core.handler.KonamiHandler;
 import vazkii.botania.client.core.handler.MiscellaneousModels;
 import vazkii.botania.client.core.proxy.ClientProxy;
+import vazkii.botania.client.fx.BotaniaParticleRenderTypes;
 import vazkii.botania.client.fx.BotaniaParticles;
 import vazkii.botania.client.gui.HUDHandler;
 import vazkii.botania.client.gui.ManaBarTooltipComponent;
@@ -124,6 +126,8 @@ public class FabricClientInitializer implements ClientModInitializer {
 				ParticleProviderRegistry.getInstance().register(type, constructor::apply);
 			}
 		});
+		ClientLifecycleEvents.CLIENT_STARTED.register(client ->
+				BotaniaParticleRenderTypes.init(client.getTextureManager()));
 
 		// Events
 		ClientTickEvents.END_CLIENT_TICK.register(ClientTickHandler::clientTickEnd);

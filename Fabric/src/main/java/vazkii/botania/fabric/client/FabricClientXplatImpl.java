@@ -6,7 +6,6 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
-import net.minecraft.client.renderer.texture.AbstractTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -52,15 +51,6 @@ public class FabricClientXplatImpl implements ClientXplatAbstractions {
 	@Override
 	public BlockStateModel wrapPlatformModel(BlockStateModel original) {
 		return new FabricPlatformModel(original);
-	}
-	@Override
-	public void setFilterSave(AbstractTexture texture, boolean filter, boolean mipmap) {
-		((ExtendedTexture) texture).setFilterSave(filter, mipmap);
-	}
-
-	@Override
-	public void restoreLastFilter(AbstractTexture texture) {
-		((ExtendedTexture) texture).restoreLastFilter();
 	}
 
 	@Override

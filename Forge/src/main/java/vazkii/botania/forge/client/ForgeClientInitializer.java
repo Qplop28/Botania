@@ -8,7 +8,6 @@ import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent
 import net.minecraft.client.particle.ParticleProvider;
 import net.minecraft.client.particle.SpriteSet;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
-import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleType;
@@ -35,8 +34,8 @@ import vazkii.botania.api.block.WandHUD;
 import vazkii.botania.api.mana.ManaBarTooltip;
 import vazkii.botania.client.BotaniaItemProperties;
 import vazkii.botania.client.core.handler.*;
-import vazkii.botania.client.core.helper.CoreShaders;
 import vazkii.botania.client.core.proxy.ClientProxy;
+import vazkii.botania.client.fx.BotaniaParticleRenderTypes;
 import vazkii.botania.client.fx.BotaniaParticles;
 import vazkii.botania.client.gui.HUDHandler;
 import vazkii.botania.client.gui.ManaBarTooltipComponent;
@@ -59,8 +58,6 @@ import vazkii.botania.xplat.ClientXplatAbstractions;
 import vazkii.botania.xplat.XplatAbstractions;
 import vazkii.patchouli.api.BookDrawScreenEvent;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.List;
@@ -88,6 +85,7 @@ public class ForgeClientInitializer {
 		BlockRenderLayers.init(ItemBlockRenderTypes::setRenderLayer);
 		// GUIs
 		evt.enqueueWork(() -> {
+			BotaniaParticleRenderTypes.init(Minecraft.getInstance().getTextureManager());
 			MenuScreens.register(BotaniaItems.FLOWER_BAG_CONTAINER, FlowerPouchGui::new);
 			MenuScreens.register(BotaniaItems.BAUBLE_BOX_CONTAINER, BaubleBoxGui::new);
 		});
@@ -258,20 +256,6 @@ public class ForgeClientInitializer {
 	@SubscribeEvent
 	public static void registerItemColors(RegisterColorHandlersEvent.Item evt) {
 		ColorHandler.submitItems(evt::register);
-	}
-
-	@SubscribeEvent
-	public static void registerShaders(RegisterShadersEvent evt) {
-		CoreShaders.init((id, vertexFormat, onLoaded) -> {
-			try {
-				evt.registerShader(
-						new ShaderInstance(evt.getResourceProvider(), id, vertexFormat),
-						onLoaded
-				);
-			} catch (IOException e) {
-				throw new UncheckedIOException(e);
-			}
-		});
 	}
 
 	@SubscribeEvent

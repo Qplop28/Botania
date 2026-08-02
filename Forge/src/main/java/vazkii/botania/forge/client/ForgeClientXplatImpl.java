@@ -7,7 +7,6 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.texture.AbstractTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.BlockPos;
@@ -59,16 +58,6 @@ public class ForgeClientXplatImpl implements ClientXplatAbstractions {
 	@SuppressWarnings("unchecked")
 	public <T> T wrapPlatformModel(T original) {
 		return (T) new ForgePlatformModel((BakedModel) original);
-	}
-
-	@Override
-	public void setFilterSave(AbstractTexture texture, boolean filter, boolean mipmap) {
-		texture.setBlurMipmap(filter, mipmap);
-	}
-
-	@Override
-	public void restoreLastFilter(AbstractTexture texture) {
-		texture.restoreLastBlurMipmap();
 	}
 
 	@Override

@@ -14,26 +14,35 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleType;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.FriendlyByteBuf;
 
 import org.jetbrains.annotations.NotNull;
 
 public class SparkleParticleData implements ParticleOptions {
 	public static final MapCodec<SparkleParticleData> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		Codec.FLOAT.fieldOf("size").forGetter(d -> d.size),
-		Codec.FLOAT.fieldOf("r").forGetter(d -> d.r),
-		Codec.FLOAT.fieldOf("g").forGetter(d -> d.g),
-		Codec.FLOAT.fieldOf("b").forGetter(d -> d.b),
-		Codec.INT.fieldOf("m").forGetter(d -> d.m),
-		Codec.BOOL.fieldOf("noClip").forGetter(d -> d.noClip),
-		Codec.BOOL.fieldOf("fake").forGetter(d -> d.fake),
-		Codec.BOOL.fieldOf("corrupt").forGetter(d -> d.corrupt)
+			Codec.FLOAT.fieldOf("size").forGetter(d -> d.size),
+			Codec.FLOAT.fieldOf("r").forGetter(d -> d.r),
+			Codec.FLOAT.fieldOf("g").forGetter(d -> d.g),
+			Codec.FLOAT.fieldOf("b").forGetter(d -> d.b),
+			Codec.INT.fieldOf("m").forGetter(d -> d.m),
+			Codec.BOOL.fieldOf("noClip").forGetter(d -> d.noClip),
+			Codec.BOOL.fieldOf("fake").forGetter(d -> d.fake),
+			Codec.BOOL.fieldOf("corrupt").forGetter(d -> d.corrupt)
 	).apply(instance, SparkleParticleData::new));
 
-	public static final StreamCodec<FriendlyByteBuf, SparkleParticleData> STREAM_CODEC =
-			StreamCodec.ofMember(SparkleParticleData::writeToNetwork, SparkleParticleData::fromNetwork);
-			
+	public static final StreamCodec<RegistryFriendlyByteBuf, SparkleParticleData> STREAM_CODEC = StreamCodec.composite(
+			ByteBufCodecs.FLOAT, d -> d.size,
+			ByteBufCodecs.FLOAT, d -> d.r,
+			ByteBufCodecs.FLOAT, d -> d.g,
+			ByteBufCodecs.FLOAT, d -> d.b,
+			ByteBufCodecs.INT, d -> d.m,
+			ByteBufCodecs.BOOL, d -> d.noClip,
+			ByteBufCodecs.BOOL, d -> d.fake,
+			ByteBufCodecs.BOOL, d -> d.corrupt,
+			SparkleParticleData::new);
+
 	public final float size;
 	public final float r, g, b;
 	public final int m;
@@ -72,30 +81,5 @@ public class SparkleParticleData implements ParticleOptions {
 	@Override
 	public ParticleType<SparkleParticleData> getType() {
 		return BotaniaParticles.SPARKLE;
-	}
-
-	@Override
-	private void writeToNetwork(FriendlyByteBuf buf) {
-			buf.writeFloat(size);
-			buf.writeFloat(r);
-			buf.writeFloat(g);
-			buf.writeFloat(b);
-			buf.writeInt(m);
-			buf.writeBoolean(noClip);
-			buf.writeBoolean(fake);
-			buf.writeBoolean(corrupt);
-	}
-
-	private static SparkleParticleData fromNetwork(FriendlyByteBuf buf) {
-	return new SparkleParticleData(
-			buf.readFloat(),
-			buf.readFloat(),
-			buf.readFloat(),
-			buf.readFloat(),
-			buf.readInt(),
-			buf.readBoolean(),
-			buf.readBoolean(),
-			buf.readBoolean()
-		);
 	}
 }

@@ -8,41 +8,23 @@
  */
 package vazkii.botania.client.fx;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.Tesselator;
-import com.mojang.blaze3d.vertex.VertexFormat;
-
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.particle.ParticleRenderType;
+import net.minecraft.client.particle.SingleQuadParticle;
 import net.minecraft.client.particle.SpriteSet;
-import net.minecraft.client.particle.TextureSheetParticle;
-import net.minecraft.client.renderer.texture.AbstractTexture;
-import net.minecraft.client.renderer.texture.TextureAtlas;
-import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.phys.Vec3;
 
-import org.jetbrains.annotations.NotNull;
-import org.lwjgl.opengl.GL11;
-
-import vazkii.botania.client.core.helper.CoreShaders;
-import vazkii.botania.xplat.ClientXplatAbstractions;
-
-public class FXSparkle extends TextureSheetParticle {
+public final class FXSparkle extends SingleQuadParticle {
 	private final boolean corrupt;
 	public final boolean fake;
-	public final int particle = 16;
 	private final boolean slowdown = true;
 	private final SpriteSet sprite;
 
 	public FXSparkle(ClientLevel world, double x, double y, double z, float size,
 			float red, float green, float blue, int m,
 			boolean fake, boolean noClip, boolean corrupt, SpriteSet sprite) {
-		super(world, x, y, z, 0.0D, 0.0D, 0.0D);
+		super(world, x, y, z, 0.0D, 0.0D, 0.0D, sprite.first());
 		rCol = red;
 		gCol = green;
 		bCol = blue;
@@ -102,10 +84,9 @@ public class FXSparkle extends TextureSheetParticle {
 		}
 	}
 
-	@NotNull
 	@Override
-	public ParticleRenderType getRenderType() {
-		return corrupt ? CORRUPT_RENDER : NORMAL_RENDER;
+	protected Layer getLayer() {
+		return BotaniaParticleRenderTypes.sparkle(corrupt);
 	}
 
 	public void setGravity(float value) {
@@ -115,7 +96,7 @@ public class FXSparkle extends TextureSheetParticle {
 	// [VanillaCopy] Entity.moveTowardClosestSpace with tweaks
 	private void wiggleAround(double x, double y, double z) {
 		BlockPos blockpos = BlockPos.containing(x, y, z);
-		Vec3 Vector3d = new Vec3(x - (double) blockpos.getX(), y - (double) blockpos.getY(), z - (double) blockpos.getZ());
+		Vec3 offset = new Vec3(x - (double) blockpos.getX(), y - (double) blockpos.getY(), z - (double) blockpos.getZ());
 		BlockPos.MutableBlockPos blockpos$mutable = new BlockPos.MutableBlockPos();
 		Direction direction = Direction.UP;
 		double d0 = Double.MAX_VALUE;
@@ -123,7 +104,7 @@ public class FXSparkle extends TextureSheetParticle {
 		for (Direction direction1 : new Direction[] { Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST, Direction.UP }) {
 			blockpos$mutable.set(blockpos).move(direction1);
 			if (!this.level.getBlockState(blockpos$mutable).isCollisionShapeFullBlock(this.level, blockpos$mutable)) {
-				double d1 = Vector3d.get(direction1.getAxis());
+				double d1 = offset.get(direction1.getAxis());
 				double d2 = direction1.getAxisDirection() == Direction.AxisDirection.POSITIVE ? 1.0D - d1 : d1;
 				if (d2 < d0) {
 					d0 = d2;
@@ -152,60 +133,4 @@ public class FXSparkle extends TextureSheetParticle {
 			zd = (double) (f1 * f);
 		}
 	}
-
-	private static void beginRenderCommon(BufferBuilder buffer, TextureManager textureManager) {
-		Minecraft.getInstance().gameRenderer.lightTexture().turnOnLightLayer();
-		RenderSystem.enableDepthTest();
-		RenderSystem.depthMask(false);
-		RenderSystem.enableBlend();
-		RenderSystem.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE);
-		RenderSystem.setShaderTexture(0, TextureAtlas.LOCATION_PARTICLES);
-		AbstractTexture tex = textureManager.getTexture(TextureAtlas.LOCATION_PARTICLES);
-		ClientXplatAbstractions.INSTANCE.setFilterSave(tex, true, false);
-		buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.PARTICLE);
-	}
-
-	private static void endRenderCommon() {
-		AbstractTexture tex = Minecraft.getInstance().getTextureManager().getTexture(TextureAtlas.LOCATION_PARTICLES);
-		ClientXplatAbstractions.INSTANCE.restoreLastFilter(tex);
-		RenderSystem.disableBlend();
-		RenderSystem.depthMask(true);
-	}
-
-	public static final ParticleRenderType NORMAL_RENDER = new ParticleRenderType() {
-		@Override
-		public void begin(BufferBuilder bufferBuilder, TextureManager textureManager) {
-			beginRenderCommon(bufferBuilder, textureManager);
-		}
-
-		@Override
-		public void end(Tesselator tessellator) {
-			tessellator.end();
-			endRenderCommon();
-		}
-
-		@Override
-		public String toString() {
-			return "botania:sparkle";
-		}
-	};
-
-	public static final ParticleRenderType CORRUPT_RENDER = new ParticleRenderType() {
-		@Override
-		public void begin(BufferBuilder bufferBuilder, TextureManager textureManager) {
-			beginRenderCommon(bufferBuilder, textureManager);
-			RenderSystem.setShader(CoreShaders::filmGrainParticle);
-		}
-
-		@Override
-		public void end(Tesselator tessellator) {
-			tessellator.end();
-			endRenderCommon();
-		}
-
-		@Override
-		public String toString() {
-			return "botania:corrupt_sparkle";
-		}
-	};
 }

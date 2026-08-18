@@ -26,7 +26,6 @@ import vazkii.botania.client.fx.BoltParticleOptions;
 import vazkii.botania.client.fx.BoltRenderer;
 import vazkii.botania.common.entity.GaiaGuardianEntity;
 import vazkii.botania.common.item.*;
-import vazkii.botania.common.lib.LibMisc;
 import vazkii.botania.common.proxy.Proxy;
 import vazkii.botania.xplat.BotaniaConfig;
 
@@ -36,7 +35,11 @@ import java.util.Locale;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import static vazkii.botania.common.lib.ResourceLocationHelper.prefix;
+
 public class ClientProxy implements Proxy {
+	private static final KeyMapping.Category KEY_CATEGORY =
+			KeyMapping.Category.register(prefix("botania"));
 
 	public static boolean jingleTheBells = false;
 	public static boolean dootDoot = false;
@@ -44,7 +47,7 @@ public class ClientProxy implements Proxy {
 	public static KeyMapping CORPOREA_REQUEST;
 
 	public static void initKeybindings(Consumer<KeyMapping> consumer) {
-		CORPOREA_REQUEST = new KeyMapping("key.botania_corporea_request", GLFW.GLFW_KEY_C, LibMisc.MOD_NAME);
+		CORPOREA_REQUEST = new KeyMapping("key.botania_corporea_request", GLFW.GLFW_KEY_C, KEY_CATEGORY);
 		consumer.accept(CORPOREA_REQUEST);
 	}
 
@@ -94,8 +97,8 @@ public class ClientProxy implements Proxy {
 	@Override
 	public void addParticleForceNear(Level world, ParticleOptions particleData, double x, double y, double z, double xSpeed, double ySpeed, double zSpeed) {
 		Camera info = Minecraft.getInstance().gameRenderer.getMainCamera();
-		if (info.isInitialized() && info.getPosition().distanceToSqr(x, y, z) <= 1024.0D) {
-			world.addParticle(particleData, true, x, y, z, xSpeed, ySpeed, zSpeed);
+		if (info.isInitialized() && info.position().distanceToSqr(x, y, z) <= 1024.0D) {
+			world.addParticle(particleData, true, false, x, y, z, xSpeed, ySpeed, zSpeed);
 		}
 	}
 

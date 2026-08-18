@@ -52,7 +52,13 @@ public class ArmorModel extends HumanoidModel<HumanoidRenderState> {
 		this.rightLeg.yRot = ((float) Math.PI / 180F) * armorStandState.rightLegPose.y();
 		this.rightLeg.zRot = ((float) Math.PI / 180F) * armorStandState.rightLegPose.z();
 		this.rightLeg.setPos(-1.9F, 11.0F, 0.0F);
-		this.hat.copyFrom(this.head);
+		this.hat.setPos(this.head.x, this.head.y, this.head.z);
+		this.hat.xRot = this.head.xRot;
+		this.hat.yRot = this.head.yRot;
+		this.hat.zRot = this.head.zRot;
+		this.hat.xScale = this.head.xScale;
+		this.hat.yScale = this.head.yScale;
+		this.hat.zScale = this.head.zScale;
 	}
 
 	public void prepareForRender() {
@@ -61,7 +67,13 @@ public class ArmorModel extends HumanoidModel<HumanoidRenderState> {
 
 	// [VanillaCopy] HumanoidArmorLayer
 	private void setPartVisibility(EquipmentSlot slot) {
-		setAllVisible(false);
+		head.visible = false;
+		hat.visible = false;
+		body.visible = false;
+		rightArm.visible = false;
+		leftArm.visible = false;
+		rightLeg.visible = false;
+		leftLeg.visible = false;
 		switch (slot) {
 			case HEAD -> {
 				head.visible = true;

@@ -24,33 +24,51 @@ public final class CoreShaders {
 	private CoreShaders() {}
 
 	private static RenderPipeline register(String name, RenderPipeline.Snippet snippet,
-			String vertexShader, VertexFormat format, VertexFormat.Mode mode) {
+			String vertexShader, String fragmentShader, VertexFormat format, VertexFormat.Mode mode) {
 		Identifier id = prefix(name);
 		var builder = snippet == null ? RenderPipeline.builder() : RenderPipeline.builder(snippet);
 		return RenderPipelines.register(builder
 				.withLocation(id)
 				.withVertexShader(vertexShader)
-				.withFragmentShader(id.toString())
+				.withFragmentShader(fragmentShader)
 				.withVertexFormat(format, mode)
 				.build());
 	}
+
+	private static RenderPipeline register(String name, RenderPipeline.Snippet snippet,
+			String vertexShader, VertexFormat format, VertexFormat.Mode mode) {
+		return register(name, snippet, vertexShader, prefix(name).toString(), format, mode);
+	}
+
+	private static final VertexFormat POSITION_TEX_COLOR_LIGHTMAP = DefaultVertexFormat.POSITION_TEX_COLOR_LIGHTMAP;
+	private static final RenderPipeline POSITION_TEX_COLOR = register("position_tex_color_fallback", null,
+			"core/position_tex_color", "core/position_tex_color", DefaultVertexFormat.POSITION_TEX_COLOR, VertexFormat.Mode.QUADS);
+	private static final RenderPipeline POSITION_TEX_COLOR_LIGHTMAP_PIPELINE = register("position_tex_color_lightmap_fallback", null,
+			"core/position_tex_color_lightmap", "core/position_tex_color_lightmap", POSITION_TEX_COLOR_LIGHTMAP, VertexFormat.Mode.QUADS);
+	private static final RenderPipeline PARTICLE = RenderPipelines.register(
+			RenderPipeline.builder(RenderPipelines.PARTICLE_SNIPPET)
+					.withLocation(prefix("particle_fallback"))
+					.build());
 
 	public static final RenderPipeline STARFIELD = register("starfield", null,
 			"core/rendertype_end_portal", DefaultVertexFormat.POSITION, VertexFormat.Mode.QUADS);
 	public static final RenderPipeline DOPPLEGANGER = register("doppleganger", null,
 			"botania:doppleganger", DefaultVertexFormat.ENTITY, VertexFormat.Mode.QUADS);
 	public static final RenderPipeline MANA_POOL = register("mana_pool", null,
-			"core/position_color_tex_lightmap", DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP, VertexFormat.Mode.QUADS);
+			"core/position_tex_color_lightmap", POSITION_TEX_COLOR_LIGHTMAP, VertexFormat.Mode.QUADS);
 	public static final RenderPipeline TERRA_PLATE_RUNE = register("terra_plate_rune", null,
-			"core/position_color_tex_lightmap", DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP, VertexFormat.Mode.QUADS);
+			"core/position_tex_color_lightmap", POSITION_TEX_COLOR_LIGHTMAP, VertexFormat.Mode.QUADS);
 	public static final RenderPipeline ENCHANTER_RUNE = register("enchanter_rune", null,
-			"core/position_color_tex_lightmap", DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP, VertexFormat.Mode.QUADS);
+			"core/position_tex_color_lightmap", POSITION_TEX_COLOR_LIGHTMAP, VertexFormat.Mode.QUADS);
 	public static final RenderPipeline PYLON = register("pylon", null,
 			"core/rendertype_entity_translucent", DefaultVertexFormat.ENTITY, VertexFormat.Mode.QUADS);
 	public static final RenderPipeline HALO = register("halo", null,
-			"core/position_color_tex", DefaultVertexFormat.POSITION_COLOR_TEX, VertexFormat.Mode.QUADS);
-	public static final RenderPipeline FILM_GRAIN_PARTICLE = register("film_grain_particle", null,
-			"core/particle", DefaultVertexFormat.PARTICLE, VertexFormat.Mode.QUADS);
+			"core/position_tex_color", DefaultVertexFormat.POSITION_TEX_COLOR, VertexFormat.Mode.QUADS);
+	public static final RenderPipeline FILM_GRAIN_PARTICLE = RenderPipelines.register(
+			RenderPipeline.builder(RenderPipelines.PARTICLE_SNIPPET)
+					.withLocation(prefix("film_grain_particle"))
+					.withFragmentShader(prefix("film_grain_particle"))
+					.build());
 	public static final RenderPipeline DOPPLEGANGER_BAR = register("doppleganger_bar", null,
 			"botania:doppleganger_bar", DefaultVertexFormat.POSITION_TEX_COLOR, VertexFormat.Mode.QUADS);
 
@@ -59,15 +77,15 @@ public final class CoreShaders {
 	}
 
 	public static RenderPipeline manaPool() {
-		return BotaniaConfig.client().useShaders() ? MANA_POOL : RenderPipelines.POSITION_COLOR_TEX_LIGHTMAP;
+		return BotaniaConfig.client().useShaders() ? MANA_POOL : POSITION_TEX_COLOR_LIGHTMAP_PIPELINE;
 	}
 
 	public static RenderPipeline terraPlate() {
-		return BotaniaConfig.client().useShaders() ? TERRA_PLATE_RUNE : RenderPipelines.POSITION_COLOR_TEX_LIGHTMAP;
+		return BotaniaConfig.client().useShaders() ? TERRA_PLATE_RUNE : POSITION_TEX_COLOR_LIGHTMAP_PIPELINE;
 	}
 
 	public static RenderPipeline enchanter() {
-		return BotaniaConfig.client().useShaders() ? ENCHANTER_RUNE : RenderPipelines.POSITION_COLOR_TEX_LIGHTMAP;
+		return BotaniaConfig.client().useShaders() ? ENCHANTER_RUNE : POSITION_TEX_COLOR_LIGHTMAP_PIPELINE;
 	}
 
 	public static RenderPipeline pylon() {
@@ -75,11 +93,11 @@ public final class CoreShaders {
 	}
 
 	public static RenderPipeline halo() {
-		return BotaniaConfig.client().useShaders() ? HALO : RenderPipelines.POSITION_COLOR_TEX;
+		return BotaniaConfig.client().useShaders() ? HALO : POSITION_TEX_COLOR;
 	}
 
 	public static RenderPipeline filmGrainParticle() {
-		return BotaniaConfig.client().useShaders() ? FILM_GRAIN_PARTICLE : RenderPipelines.PARTICLE;
+		return BotaniaConfig.client().useShaders() ? FILM_GRAIN_PARTICLE : PARTICLE;
 	}
 
 	public static RenderPipeline dopplegangerBar() {

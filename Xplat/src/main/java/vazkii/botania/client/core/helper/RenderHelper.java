@@ -67,10 +67,10 @@ public final class RenderHelper {
 	private static final RenderPipeline LINE_5_NO_DEPTH_PIPELINE = linePipeline("line_5_no_depth", 5, true);
 	private static final RenderPipeline LINE_8_NO_DEPTH_PIPELINE = linePipeline("line_8_no_depth", 8, true);
 	private static final RenderPipeline SPARK_PIPELINE = pipeline("spark", null,
-			DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP, VertexFormat.Mode.QUADS, BlendFunction.TRANSLUCENT, true,
+			DefaultVertexFormat.POSITION_TEX_COLOR_LIGHTMAP, VertexFormat.Mode.QUADS, BlendFunction.TRANSLUCENT, true,
 			CompareOp.LESS_THAN_OR_EQUAL, true, 1);
 	private static final RenderPipeline ICON_OVERLAY_PIPELINE = pipeline("icon_overlay", null,
-			DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP, VertexFormat.Mode.QUADS, BlendFunction.TRANSLUCENT, true,
+			DefaultVertexFormat.POSITION_TEX_COLOR_LIGHTMAP, VertexFormat.Mode.QUADS, BlendFunction.TRANSLUCENT, true,
 			CompareOp.LESS_THAN_OR_EQUAL, true, 1);
 	private static final RenderPipeline LIGHTNING_PIPELINE = pipeline("lightning", null,
 			DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS, BlendFunction.LIGHTNING, true,
@@ -117,11 +117,11 @@ public final class RenderHelper {
 		var builder = snippet == null
 				? RenderPipeline.builder()
 						.withVertexShader(format == DefaultVertexFormat.ENTITY
-								? "core/rendertype_entity_translucent" : format == DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP
-										? "core/position_color_tex_lightmap" : "core/position_color")
+								? "core/rendertype_entity_translucent" : format == DefaultVertexFormat.POSITION_TEX_COLOR_LIGHTMAP
+										? "core/position_tex_color_lightmap" : "core/position_color")
 						.withFragmentShader(format == DefaultVertexFormat.ENTITY
-								? "core/rendertype_entity_translucent" : format == DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP
-										? "core/position_color_tex_lightmap" : "core/position_color")
+								? "core/rendertype_entity_translucent" : format == DefaultVertexFormat.POSITION_TEX_COLOR_LIGHTMAP
+										? "core/position_tex_color_lightmap" : "core/position_color")
 				: RenderPipeline.builder(snippet);
 		builder = builder.withLocation(Identifier.parse(ResourcesLib.PREFIX_MOD + name))
 				.withVertexFormat(format, mode)

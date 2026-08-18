@@ -96,7 +96,7 @@ public final class MiscellaneousModels {
 		registerIslands();
 		KEYS.forEach((id, key) -> context.addModel(key, SimpleUnbakedExtraModel.blockStateModel(id)));
 		preparedTinyPotatoes.blockModels.forEach((id, key) -> context.addModel(key, SimpleUnbakedExtraModel.blockStateModel(id)));
-		preparedTinyPotatoes.itemModels.forEach((id, key) -> context.addModel(key, SimpleUnbakedExtraModel.itemModel(id)));
+		preparedTinyPotatoes.itemModels.forEach((id, key) -> context.addModel(key, SimpleUnbakedExtraModel.itemAsset(id)));
 		tinyPotatoKeys = preparedTinyPotatoes.blockModels;
 		tinyPotatoItemKeys = preparedTinyPotatoes.itemModels;
 	}
@@ -107,7 +107,7 @@ public final class MiscellaneousModels {
 			Identifier id = KEYS.entrySet().stream().filter(entry -> entry.getValue().equals(key))
 					.map(Map.Entry::getKey).findFirst().orElse(null);
 			BotaniaAPI.LOGGER.error("Missing registered Botania extra model; identifier={}, key={}", id, key);
-			return Minecraft.getInstance().getModelManager().getMissingBlockStateModel();
+			return Minecraft.getInstance().getModelManager().getMissingBlockModel();
 		}
 		return model;
 	}
@@ -118,7 +118,7 @@ public final class MiscellaneousModels {
 			String fallback = ClientProxy.dootDoot ? "halloween" : "default";
 			key = tinyPotatoKeys.get(prefix(ResourcesLib.PREFIX_TINY_POTATO + "/" + fallback));
 		}
-		return key == null ? Minecraft.getInstance().getModelManager().getMissingBlockStateModel() : get(key);
+		return key == null ? Minecraft.getInstance().getModelManager().getMissingBlockModel() : get(key);
 	}
 
 	public ItemModel getTinyPotatoItemModel(Identifier id) {

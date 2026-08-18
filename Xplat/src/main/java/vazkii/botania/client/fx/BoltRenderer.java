@@ -54,7 +54,7 @@ public class BoltRenderer {
 	public static void onWorldRenderLast(Camera camera, float partialTicks, PoseStack ps, RenderBuffers buffers) {
 		ps.pushPose();
 		// here we translate based on the inverse position of the client viewing camera to get back to 0, 0, 0
-		Vec3 camVec = camera.getPosition();
+		Vec3 camVec = camera.position();
 		ps.translate(-camVec.x, -camVec.y, -camVec.z);
 		var bufferSource = buffers.bufferSource();
 		BoltRenderer.INSTANCE.render(partialTicks, ps, bufferSource);
@@ -81,7 +81,7 @@ public class BoltRenderer {
 	}
 
 	public void add(Level level, BoltParticleOptions options, float partialTicks) {
-		if (!level.isClientSide) {
+		if (!level.isClientSide()) {
 			return;
 		}
 		var emitter = new BoltEmitter(options);
@@ -143,9 +143,8 @@ public class BoltRenderer {
 			float lifeScale = timestamp.subtract(createdTimestamp).value() / options.getLifespan();
 			Pair<Integer, Integer> bounds = options.getFadeFunction().getRenderBounds(renderQuads.size(), lifeScale);
 			for (int i = bounds.getLeft(); i < bounds.getRight(); i++) {
-				renderQuads.get(i).getVecs().forEach(v -> buffer.vertex(matrix, (float) v.x, (float) v.y, (float) v.z)
-						.color(options.getColor().x(), options.getColor().y(), options.getColor().z(), options.getColor().w())
-						.endVertex());
+				renderQuads.get(i).getVecs().forEach(v -> buffer.addVertex(matrix, (float) v.x, (float) v.y, (float) v.z)
+						.setColor(options.getColor().x(), options.getColor().y(), options.getColor().z(), options.getColor().w()));
 			}
 		}
 

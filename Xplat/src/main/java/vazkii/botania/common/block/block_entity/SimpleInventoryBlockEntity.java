@@ -25,11 +25,107 @@ import net.minecraft.world.level.block.state.BlockState;
 
 public abstract class SimpleInventoryBlockEntity extends BotaniaBlockEntity implements Clearable {
 
-	private final SimpleContainer itemHandler = createItemHandler();
+	private final SimpleContainer itemHandler = new ChangeTrackedContainer(createItemHandler());
 
 	protected SimpleInventoryBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
 		super(type, pos, state);
-		itemHandler.addListener(i -> setChanged());
+	}
+
+	private final class ChangeTrackedContainer extends SimpleContainer {
+		private final SimpleContainer delegate;
+
+		private ChangeTrackedContainer(SimpleContainer delegate) {
+			super(0);
+			this.delegate = delegate;
+		}
+
+		@Override
+		public ItemStack getItem(int slot) {
+			return delegate.getItem(slot);
+		}
+
+		@Override
+		public java.util.List<ItemStack> removeAllItems() {
+			var removed = delegate.removeAllItems();
+			setChanged();
+			return removed;
+		}
+
+		@Override
+		public ItemStack removeItem(int slot, int amount) {
+			ItemStack removed = delegate.removeItem(slot, amount);
+			if (!removed.isEmpty()) {
+				setChanged();
+			}
+			return removed;
+		}
+
+		@Override
+		public ItemStack removeItemType(net.minecraft.world.item.Item item, int amount) {
+			ItemStack removed = delegate.removeItemType(item, amount);
+			if (!removed.isEmpty()) {
+				setChanged();
+			}
+			return removed;
+		}
+
+		@Override
+		public ItemStack addItem(ItemStack stack) {
+			int oldCount = stack.getCount();
+			ItemStack remainder = delegate.addItem(stack);
+			if (remainder.getCount() != oldCount) {
+				setChanged();
+			}
+			return remainder;
+		}
+
+		@Override
+		public ItemStack removeItemNoUpdate(int slot) {
+			return delegate.removeItemNoUpdate(slot);
+		}
+
+		@Override
+		public void setItem(int slot, ItemStack stack) {
+			delegate.setItem(slot, stack);
+			setChanged();
+		}
+
+		@Override
+		public void setChanged() {
+			delegate.setChanged();
+			SimpleInventoryBlockEntity.this.setChanged();
+		}
+
+		@Override
+		public int getContainerSize() {
+			return delegate.getContainerSize();
+		}
+
+		@Override
+		public boolean isEmpty() {
+			return delegate.isEmpty();
+		}
+
+		@Override
+		public boolean stillValid(net.minecraft.world.entity.player.Player player) {
+			return delegate.stillValid(player);
+		}
+
+		@Override
+		public void clearContent() {
+			delegate.clearContent();
+			setChanged();
+		}
+
+		@Override
+		public int getMaxStackSize() {
+			return delegate.getMaxStackSize();
+		}
+
+		@Override
+		public boolean canPlaceItem(int slot, ItemStack stack) {
+			return delegate.canPlaceItem(slot, stack);
+		}
 	}
 
 	private static void copyToInv(NonNullList<ItemStack> src, Container dest) {

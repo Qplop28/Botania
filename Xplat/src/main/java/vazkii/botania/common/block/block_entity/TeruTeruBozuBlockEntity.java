@@ -23,7 +23,7 @@ public class TeruTeruBozuBlockEntity extends BotaniaBlockEntity {
 	public static void serverTick(Level level, BlockPos worldPosition, BlockState state, TeruTeruBozuBlockEntity self) {
 		boolean isRaining = level.isRaining();
 		if (isRaining && level.getRandom().nextInt(9600) == 0) {
-			resetRainTime(level);
+			setRaining(level, false);
 		}
 
 		if (self.wasRaining != isRaining) {
@@ -32,10 +32,31 @@ public class TeruTeruBozuBlockEntity extends BotaniaBlockEntity {
 		self.wasRaining = isRaining;
 	}
 
+	public static void setRaining(Level level, boolean raining) {
+		if (level instanceof ServerLevel serverLevel) {
+			serverLevel.getWeatherData().setRaining(raining);
+			resetRainTime(level, raining);
+		}
+	}
+
 	public static void resetRainTime(Level w) {
-		int time = w.getRandom().nextInt(w.isRaining() ? 12000 : 168000) + 12000;
+		resetRainTime(w, w.isRaining());
+	}
+
+	private static void resetRainTime(Level w, boolean raining) {
+		int time = w.getRandom().nextInt(raining ? 12000 : 168000) + 12000;
 		if (w instanceof ServerLevel serverLevel) {
-			serverLevel.setWeatherParameters(time, 0, false, false);
+			var weather = serverLevel.getWeatherData();
+			weather.setRaining(raining);
+			weather.setThundering(false);
+			weather.setThunderTime(0);
+			if (raining) {
+				weather.setClearWeatherTime(0);
+				weather.setRainTime(time);
+			} else {
+				weather.setClearWeatherTime(time);
+				weather.setRainTime(0);
+			}
 		}
 	}
 }

@@ -51,8 +51,8 @@ public final class SkyblockWorldEvents {
 
 	private SkyblockWorldEvents() {}
 
-	private static final TagKey<Block> PEBBLE_SOURCES = TagKey.create(Registries.BLOCK, new Identifier("gardenofglass:pebble_sources"));
-	private static final Identifier PEBBLES_TABLE = new Identifier(BotaniaAPI.GOG_MODID, "pebbles");
+	private static final TagKey<Block> PEBBLE_SOURCES = TagKey.create(Registries.BLOCK, Identifier.parse("gardenofglass:pebble_sources"));
+	private static final Identifier PEBBLES_TABLE = Identifier.fromNamespaceAndPath(BotaniaAPI.GOG_MODID, "pebbles");
 
 	public static void syncGogStatus(ServerPlayer e) {
 		boolean isGog = SkyblockChunkGenerator.isWorldSkyblock(e.level());
@@ -62,12 +62,12 @@ public final class SkyblockWorldEvents {
 	}
 
 	public static void onPlayerJoin(ServerPlayer player) {
-		ServerLevel world = player.serverLevel();
+		ServerLevel world = (ServerLevel) player.level();
 		if (SkyblockChunkGenerator.isWorldSkyblock(world)) {
 			SkyblockSavedData data = SkyblockSavedData.get(world);
 			if (!data.skyblocks.containsValue(Util.NIL_UUID)) {
 				IslandPos islandPos = data.getSpawn();
-				world.setDefaultSpawnPos(islandPos.getCenter(), 0);
+				world.setDefaultSpawnPosition(islandPos.getCenter(), 0);
 				spawnPlayer(player, islandPos);
 				BotaniaAPI.LOGGER.info("Created the spawn GoG island");
 			}
@@ -86,10 +86,11 @@ public final class SkyblockWorldEvents {
 					SoundEvent sound = st.getBreakSound();
 					player.playSound(sound, st.getVolume() * 0.4F, st.getPitch() + (float) (Math.random() * 0.2 - 0.1));
 
-					if (world.isClientSide) {
+					if (world.isClientSide()) {
 						player.swing(hand);
 					} else if (world instanceof ServerLevel level) {
-						var table = level.getServer().getLootData().getLootTable(PEBBLES_TABLE);
+						var table = level.getServer().reloadableRegistries()
+								.getLootTable(net.minecraft.resources.ResourceKey.create(Registries.LOOT_TABLE, PEBBLES_TABLE));
 						var context = new LootParams.Builder(level)
 								.withParameter(LootContextParams.BLOCK_STATE, state)
 								.withParameter(LootContextParams.ORIGIN, Vec3.atCenterOf(hit.getBlockPos()))
@@ -107,7 +108,7 @@ public final class SkyblockWorldEvents {
 				if (rtr.getType() == HitResult.Type.BLOCK) {
 					BlockPos pos = rtr.getBlockPos();
 					if (world.getBlockState(pos).is(Blocks.WATER)) {
-						if (!world.isClientSide) {
+						if (!world.isClientSide()) {
 							equipped.shrink(1);
 
 							if (equipped.isEmpty()) {
@@ -129,7 +130,7 @@ public final class SkyblockWorldEvents {
 		BlockPos pos = islandPos.getCenter();
 
 		if (player instanceof ServerPlayer pmp) {
-			createSkyblock(pmp.serverLevel(), pos);
+			createSkyblock((ServerLevel) pmp.level(), pos);
 			pmp.teleportTo(pos.getX() + 0.5, pos.getY() + 1.6, pos.getZ() + 0.5);
 			pmp.setRespawnPosition(pmp.level().dimension(), pos, 0, true, false);
 			if (BotaniaConfig.common().gogSpawnWithLexicon()) {
@@ -146,7 +147,7 @@ public final class SkyblockWorldEvents {
 
 		BlockPos offset;
 		var infoOptional = structureBlockInfos.stream()
-				.filter(info -> "spawn_point".equals(info.nbt().getString("metadata")))
+				.filter(info -> info.nbt().getString("metadata").filter("spawn_point"::equals).isPresent())
 				.findFirst();
 		if (infoOptional.isPresent()) {
 			offset = infoOptional.get().pos();
@@ -164,7 +165,7 @@ public final class SkyblockWorldEvents {
 				level.random,
 				Block.UPDATE_ALL);
 		for (var info : structureBlockInfos) {
-			if ("light".equals(info.nbt().getString("metadata"))) {
+			if (info.nbt().getString("metadata").filter("light"::equals).isPresent()) {
 				BlockPos lightPos = startPoint.offset(info.pos());
 				if (level.setBlockAndUpdate(lightPos, BotaniaBlocks.manaFlame.defaultBlockState())) {
 					int r = 70 + level.random.nextInt(185);

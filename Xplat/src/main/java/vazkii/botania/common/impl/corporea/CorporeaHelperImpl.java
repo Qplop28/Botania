@@ -15,6 +15,7 @@ import it.unimi.dsi.fastutil.objects.Object2IntMaps;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
@@ -24,6 +25,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -32,7 +34,7 @@ import vazkii.botania.common.block.block_entity.corporea.CorporeaRetainerBlockEn
 import vazkii.botania.xplat.XplatAbstractions;
 
 import java.util.*;
-import java.util.function.Function;
+import java.util.function.BiFunction;
 
 public class CorporeaHelperImpl implements CorporeaHelper {
 	private final WeakHashMap<CorporeaSpark, Set<CorporeaNode>> cachedNetworks = new WeakHashMap<>();
@@ -112,7 +114,9 @@ public class CorporeaHelperImpl implements CorporeaHelper {
 
 	@Override
 	public CorporeaSpark getSparkForBlock(Level world, BlockPos pos) {
-		List<Entity> sparks = world.getEntitiesOfClass(Entity.class, new AABB(pos.above(), pos.offset(1, 2, 1)), Predicates.instanceOf(CorporeaSpark.class));
+		List<Entity> sparks = world.getEntitiesOfClass(Entity.class,
+				new AABB(Vec3.atLowerCornerOf(pos.above()), Vec3.atLowerCornerOf(pos.offset(1, 2, 1))),
+				Predicates.instanceOf(CorporeaSpark.class));
 		return sparks.isEmpty() ? null : (CorporeaSpark) sparks.get(0);
 	}
 
@@ -128,7 +132,8 @@ public class CorporeaHelperImpl implements CorporeaHelper {
 	}
 
 	@Override
-	public <T extends CorporeaRequestMatcher> void registerRequestMatcher(Identifier id, Class<T> clazz, Function<CompoundTag, T> deserializer) {
+	public <T extends CorporeaRequestMatcher> void registerRequestMatcher(Identifier id, Class<T> clazz,
+			BiFunction<CompoundTag, HolderLookup.Provider, T> deserializer) {
 		CorporeaRetainerBlockEntity.addCorporeaRequestMatcher(id, clazz, deserializer);
 	}
 

@@ -9,6 +9,7 @@
 package vazkii.botania.api.corporea;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.LivingEntity;
@@ -21,7 +22,7 @@ import vazkii.botania.api.ServiceUtil;
 
 import java.util.Collections;
 import java.util.Set;
-import java.util.function.Function;
+import java.util.function.BiFunction;
 
 public interface CorporeaHelper {
 	CorporeaHelper INSTANCE = ServiceUtil.findService(CorporeaHelper.class, () -> new CorporeaHelper() {});
@@ -89,5 +90,6 @@ public interface CorporeaHelper {
 		return 0;
 	}
 
-	default <T extends CorporeaRequestMatcher> void registerRequestMatcher(Identifier id, Class<T> clazz, Function<CompoundTag, T> deserializer) {}
+	default <T extends CorporeaRequestMatcher> void registerRequestMatcher(Identifier id, Class<T> clazz,
+			BiFunction<CompoundTag, HolderLookup.Provider, T> deserializer) {}
 }

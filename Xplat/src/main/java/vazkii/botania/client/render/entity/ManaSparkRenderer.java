@@ -8,14 +8,13 @@
  */
 package vazkii.botania.client.render.entity;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.client.resources.model.sprite.SpriteId;
 
 import vazkii.botania.common.entity.ManaSparkEntity;
 
-import java.util.Objects;
 
 import static vazkii.botania.common.lib.ResourceLocationHelper.prefix;
 
@@ -27,11 +26,10 @@ public class ManaSparkRenderer extends BaseSparkRenderer<ManaSparkEntity> {
 
 	public ManaSparkRenderer(EntityRendererProvider.Context ctx) {
 		super(ctx);
-		var atlas = Minecraft.getInstance().getTextureAtlas(TextureAtlas.LOCATION_BLOCKS);
-		this.dispersiveIcon = Objects.requireNonNull(atlas.apply(prefix("item/spark_upgrade_rune_dispersive")));
-		this.dominantIcon = Objects.requireNonNull(atlas.apply(prefix("item/spark_upgrade_rune_dominant")));
-		this.recessiveIcon = Objects.requireNonNull(atlas.apply(prefix("item/spark_upgrade_rune_recessive")));
-		this.isolatedIcon = Objects.requireNonNull(atlas.apply(prefix("item/spark_upgrade_rune_isolated")));
+		this.dispersiveIcon = ctx.getSprites().get(new SpriteId(TextureAtlas.LOCATION_BLOCKS, prefix("item/spark_upgrade_rune_dispersive")));
+		this.dominantIcon = ctx.getSprites().get(new SpriteId(TextureAtlas.LOCATION_BLOCKS, prefix("item/spark_upgrade_rune_dominant")));
+		this.recessiveIcon = ctx.getSprites().get(new SpriteId(TextureAtlas.LOCATION_BLOCKS, prefix("item/spark_upgrade_rune_recessive")));
+		this.isolatedIcon = ctx.getSprites().get(new SpriteId(TextureAtlas.LOCATION_BLOCKS, prefix("item/spark_upgrade_rune_isolated")));
 	}
 
 	@Override

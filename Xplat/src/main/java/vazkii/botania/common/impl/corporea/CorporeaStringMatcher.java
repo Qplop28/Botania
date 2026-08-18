@@ -9,6 +9,7 @@
 package vazkii.botania.common.impl.corporea;
 
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 
@@ -59,13 +60,13 @@ public class CorporeaStringMatcher implements CorporeaRequestMatcher {
 				|| name.endsWith("y") && matchGlob(name.substring(0, name.length() - 1) + "ies");
 	}
 
-	public static CorporeaStringMatcher createFromNBT(CompoundTag tag) {
-		String expression = tag.getString(TAG_REQUEST_CONTENTS);
+	public static CorporeaStringMatcher createFromNBT(CompoundTag tag, HolderLookup.Provider registryLookup) {
+		String expression = tag.getString(TAG_REQUEST_CONTENTS).orElse("");
 		return new CorporeaStringMatcher(expression);
 	}
 
 	@Override
-	public void writeToNBT(CompoundTag tag) {
+	public void writeToNBT(CompoundTag tag, HolderLookup.Provider registryLookup) {
 		tag.putString(TAG_REQUEST_CONTENTS, toString());
 	}
 

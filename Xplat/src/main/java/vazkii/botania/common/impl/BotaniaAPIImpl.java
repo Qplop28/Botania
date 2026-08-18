@@ -176,7 +176,7 @@ import java.util.function.Supplier;
 	@Nullable
 	@Override
 	public Registry<Brew> getBrewRegistry() {
-		return BuiltInRegistries.REGISTRY.get(BotaniaRegistries.BREWS.location());
+		return BuiltInRegistries.REGISTRY.get(BotaniaRegistries.BREWS.identifier());
 	}
 
 	@Override

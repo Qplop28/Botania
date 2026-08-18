@@ -9,6 +9,9 @@
 package vazkii.botania.common.impl.corporea;
 
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.resources.RegistryOps;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 
@@ -32,14 +35,17 @@ public class CorporeaItemStackMatcher implements CorporeaRequestMatcher {
 		return !stack.isEmpty() && !match.isEmpty() && ItemStack.isSameItem(stack, match) && (!checkNBT || ItemNBTHelper.matchTagAndManaFullness(stack, match));
 	}
 
-	public static CorporeaItemStackMatcher createFromNBT(CompoundTag tag) {
-		return new CorporeaItemStackMatcher(ItemStack.of(tag.getCompound(TAG_REQUEST_STACK)), tag.getBoolean(TAG_REQUEST_CHECK_NBT));
+	public static CorporeaItemStackMatcher createFromNBT(CompoundTag tag, HolderLookup.Provider registryLookup) {
+		ItemStack stack = tag.getCompound(TAG_REQUEST_STACK)
+				.flatMap(encoded -> ItemStack.CODEC.parse(RegistryOps.create(NbtOps.INSTANCE, registryLookup), encoded).result())
+				.orElse(ItemStack.EMPTY);
+		return new CorporeaItemStackMatcher(stack, tag.getBoolean(TAG_REQUEST_CHECK_NBT).orElse(false));
 	}
 
 	@Override
-	public void writeToNBT(CompoundTag tag) {
-		CompoundTag cmp = match.save(new CompoundTag());
-		tag.put(TAG_REQUEST_STACK, cmp);
+	public void writeToNBT(CompoundTag tag, HolderLookup.Provider registryLookup) {
+		ItemStack.CODEC.encodeStart(RegistryOps.create(NbtOps.INSTANCE, registryLookup), match)
+				.result().ifPresent(encoded -> tag.put(TAG_REQUEST_STACK, encoded));
 		tag.putBoolean(TAG_REQUEST_CHECK_NBT, checkNBT);
 	}
 

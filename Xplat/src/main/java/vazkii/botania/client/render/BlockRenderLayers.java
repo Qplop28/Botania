@@ -41,7 +41,9 @@ public final class BlockRenderLayers {
 		consumer.accept(BotaniaBlocks.bifrostPerm, ChunkSectionLayer.TRANSLUCENT);
 		consumer.accept(BotaniaBlocks.prism, ChunkSectionLayer.TRANSLUCENT);
 
-		consumer.accept(BotaniaBlocks.starfield, ChunkSectionLayer.CUTOUT_MIPPED);
+		// CUTOUT is mipmapped by the current chunk pipeline; the separate legacy
+		// cutout-mipped section layer no longer exists.
+		consumer.accept(BotaniaBlocks.starfield, ChunkSectionLayer.CUTOUT);
 		if (!skipPlatformBlocks) {
 			// Render type is set dynamically on Forge and undisguised platforms should render as "solid",
 			// but "translucent" is the best compromise on Fabric.

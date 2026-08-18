@@ -12,11 +12,12 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
-import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.npc.VillagerData;
 import net.minecraft.world.entity.npc.villager.Villager;
 import net.minecraft.world.entity.npc.villager.VillagerType;
 import net.minecraft.world.level.Level;
@@ -59,7 +60,7 @@ public class CocoonBlockEntity extends BotaniaBlockEntity {
 	}
 
 	private void hatch() {
-		if (!level.isClientSide) {
+		if (!level.isClientSide()) {
 			timePassed = 0;
 			level.destroyBlock(worldPosition, false);
 
@@ -80,16 +81,19 @@ public class CocoonBlockEntity extends BotaniaBlockEntity {
 			}
 
 			if (Math.random() < shulkerChance) {
-				entity = EntityType.SHULKER.create(level);
+				entity = EntityType.SHULKER.create(level, EntitySpawnReason.EVENT);
 			} else if (Math.random() < villagerChance) {
-				Villager villager = EntityType.VILLAGER.create(level);
+				Villager villager = EntityType.VILLAGER.create(level, EntitySpawnReason.EVENT);
 				if (villager != null) {
-					VillagerType type = VillagerType.byBiome(level.getBiome(worldPosition));
-					villager.setVillagerData(villager.getVillagerData().setType(type));
+					Holder<VillagerType> type = level.registryAccess()
+							.lookupOrThrow(Registries.VILLAGER_TYPE)
+							.getOrThrow(VillagerType.byBiome(level.getBiome(worldPosition)));
+					var data = villager.getVillagerData();
+					villager.setVillagerData(new VillagerData(type, data.profession(), data.level()));
 				}
 				entity = villager;
 			} else if (!validWater.isEmpty()) {
-				placePos = validWater.get(level.random.nextInt(validWater.size()));
+				placePos = validWater.get(level.getRandom().nextInt(validWater.size()));
 				if (Math.random() < rareChance) {
 					entity = random(BotaniaTags.Entities.COCOON_RARE_AQUATIC);
 				} else {
@@ -104,7 +108,7 @@ public class CocoonBlockEntity extends BotaniaBlockEntity {
 			}
 
 			if (entity != null) {
-				if (level.random.nextFloat() < 0.01) {
+				if (level.getRandom().nextFloat() < 0.01) {
 					// gonna make modded minecraft items into a gacha game
 					// and somehow find a way to add jeanne d'arc to it
 					// - Vazkii 2021
@@ -119,7 +123,7 @@ public class CocoonBlockEntity extends BotaniaBlockEntity {
 				if (entity instanceof AgeableMob ageable) {
 					ageable.setAge(-24000);
 				}
-				entity.finalizeSpawn((ServerLevelAccessor) level, level.getCurrentDifficultyAt(getBlockPos()), MobSpawnType.EVENT, null, null);
+				entity.finalizeSpawn((ServerLevelAccessor) level, level.getCurrentDifficultyAt(getBlockPos()), EntitySpawnReason.EVENT, null);
 				entity.setPersistenceRequired();
 				level.addFreshEntity(entity);
 				entity.spawnAnim();
@@ -134,18 +138,18 @@ public class CocoonBlockEntity extends BotaniaBlockEntity {
 
 	@Nullable
 	private Mob random(TagKey<EntityType<?>> tag) {
-		EntityType<?> type = BuiltInRegistries.ENTITY_TYPE.getTag(tag)
-				.flatMap(t -> t.getRandomElement(level.random))
+		EntityType<?> type = level.registryAccess().lookupOrThrow(Registries.ENTITY_TYPE).get(tag)
+				.flatMap(t -> t.getRandomElement(level.getRandom()))
 				.map(Holder::value)
 				.orElse(null);
 		if (type == null) {
 			return null;
 		}
 
-		if (type == EntityType.COW && level.random.nextFloat() < 0.01) {
+		if (type == EntityType.COW && level.getRandom().nextFloat() < 0.01) {
 			type = EntityType.MOOSHROOM;
 		}
-		Entity entity = type.create(level);
+		Entity entity = type.create(level, EntitySpawnReason.EVENT);
 		return entity instanceof Mob mob ? mob : null;
 	}
 
@@ -159,9 +163,9 @@ public class CocoonBlockEntity extends BotaniaBlockEntity {
 
 	@Override
 	public void readPacketNBT(CompoundTag cmp) {
-		timePassed = cmp.getInt(TAG_TIME_PASSED);
-		emeraldsGiven = cmp.getInt(TAG_EMERALDS_GIVEN);
-		chorusFruitGiven = cmp.getInt(TAG_CHORUS_FRUIT_GIVEN);
-		gaiaSpiritGiven = cmp.getBoolean(TAG_GAIA_SPIRIT_GIVEN);
+		timePassed = cmp.getInt(TAG_TIME_PASSED).orElse(0);
+		emeraldsGiven = cmp.getInt(TAG_EMERALDS_GIVEN).orElse(0);
+		chorusFruitGiven = cmp.getInt(TAG_CHORUS_FRUIT_GIVEN).orElse(0);
+		gaiaSpiritGiven = cmp.getBoolean(TAG_GAIA_SPIRIT_GIVEN).orElse(false);
 	}
 }

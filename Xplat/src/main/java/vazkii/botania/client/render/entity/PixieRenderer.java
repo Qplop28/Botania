@@ -28,8 +28,8 @@ public class PixieRenderer extends MobRenderer<PixieEntity, PixieRenderState, Pi
 	public void extractRenderState(PixieEntity entity, PixieRenderState state, float partialTicks) {
 		super.extractRenderState(entity, state, partialTicks);
 		state.evil = entity.getPixieType() == 1;
-		state.texture = ClientProxy.dootDoot ? new Identifier(ResourcesLib.MODEL_PIXIE_HALLOWEEN)
-				: new Identifier(ResourcesLib.MODEL_PIXIE);
+		state.texture = Identifier.parse(ClientProxy.dootDoot ? ResourcesLib.MODEL_PIXIE_HALLOWEEN
+				: ResourcesLib.MODEL_PIXIE);
 		state.grainIntensity = GaiaGuardianRenderer.DEFAULT_GRAIN_INTENSITY;
 		state.disfiguration = GaiaGuardianRenderer.DEFAULT_DISFIGURATION;
 	}

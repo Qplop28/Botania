@@ -41,7 +41,7 @@ public class ManaStormRenderer extends EntityRenderer<ManaStormEntity, ManaStorm
 	@Override
 	public void submit(ManaStormRenderState state, PoseStack poseStack, SubmitNodeCollector submitNodeCollector,
 			CameraRenderState camera) {
-		submitNodeCollector.submitCustomGeometry(poseStack, RenderHelper.STAR, (pose, consumer) -> {
+		submitNodeCollector.submitCustomGeometry(poseStack, RenderHelper.starRenderType(), (pose, consumer) -> {
 			PoseStack starPose = new PoseStack();
 			starPose.last().pose().set(pose.pose());
 			starPose.last().normal().set(pose.normal());

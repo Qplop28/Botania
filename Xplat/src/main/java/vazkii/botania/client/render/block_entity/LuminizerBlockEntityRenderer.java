@@ -87,7 +87,7 @@ public class LuminizerBlockEntityRenderer implements BlockEntityRenderer<Luminiz
 		}
 
 		Minecraft minecraft = Minecraft.getInstance();
-		if (minecraft.cameraEntity instanceof LivingEntity view
+		if (minecraft.getCameraEntity() instanceof LivingEntity view
 				&& ManaseerMonocleItem.hasMonocle(view)
 				&& SpecialFlowerBlockEntityRenderer.hasBindingAttempt(view, blockEntity.getBlockPos())) {
 			state.bindingRadius = new RadiusRenderData.Circle(0.5F, 0F, 0.5F, LuminizerBlockEntity.MAX_DIST);

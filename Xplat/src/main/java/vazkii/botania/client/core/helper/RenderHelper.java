@@ -80,6 +80,10 @@ public final class RenderHelper {
 			CompareOp.LESS_THAN_OR_EQUAL, true, 1);
 
 	private static final RenderType STAR = layer("star", STAR_PIPELINE, 256, false, false, null);
+	public static RenderType starRenderType() {
+		return STAR;
+	}
+
 	public static final RenderType RECTANGLE = layer("rectangle_highlight", HIGHLIGHT_QUADS_PIPELINE, 256, false, true, null);
 	public static final RenderType CIRCLE = layer("circle_highlight", HIGHLIGHT_TRIANGLES_PIPELINE, 256, false, false, null);
 	public static final RenderType RED_STRING = lineLayer("red_string", LINE_PIPELINE, 128, false);

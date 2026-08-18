@@ -101,7 +101,7 @@ public class PetalApothecaryRecipeCategory implements IRecipeCategory<PetalApoth
 		Vec2 center = new Vec2(CENTER_X, CENTER_Y);
 		if (reagents.length > 0) {
 			Vec2 reagentPoint = new Vec2(CENTER_X, CENTER_Y + 10);
-			builder.addSlot(RecipeIngredientRole.CATALYST, (int) reagentPoint.x, (int) reagentPoint.y).add(new ItemStack(catalyst));
+			builder.addSlot(RecipeIngredientRole.CRAFTING_STATION, (int) reagentPoint.x, (int) reagentPoint.y).add(new ItemStack(catalyst));
 
 			double angleBetweenReagents = 360.0 / (reagents.length + 1);
 			for (int i = 0; i < reagents.length; i++) {
@@ -109,7 +109,7 @@ public class PetalApothecaryRecipeCategory implements IRecipeCategory<PetalApoth
 				builder.addSlot(RecipeIngredientRole.INPUT, (int) reagentPoint.x, (int) reagentPoint.y).add(reagents[i]);
 			}
 		} else {
-			builder.addSlot(RecipeIngredientRole.CATALYST, CENTER_X, CENTER_Y).add(new ItemStack(catalyst));
+			builder.addSlot(RecipeIngredientRole.CRAFTING_STATION, CENTER_X, CENTER_Y).add(new ItemStack(catalyst));
 		}
 		double angleBetweenEach = 360.0 / ingredients.size();
 		Vec2 point = new Vec2(CENTER_X, 13);

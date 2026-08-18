@@ -25,12 +25,15 @@ import mezz.jei.api.runtime.IJeiRuntime;
 import mezz.jei.api.runtime.IRecipesGui;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.Container;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.RecipeInput;
 import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.block.Block;
@@ -66,8 +69,6 @@ import vazkii.botania.common.item.equipment.tool.terrasteel.TerraShattererItem;
 import vazkii.botania.xplat.XplatAbstractions;
 
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.Supplier;
@@ -142,18 +143,19 @@ public class JEIBotaniaPlugin implements IModPlugin {
 		registry.addRecipes(ManaPoolRecipeCategory.TYPE, sortRecipes(BotaniaRecipeTypes.MANA_INFUSION_TYPE, BY_CATALYST.thenComparing(BY_GROUP).thenComparing(BY_ID)));
 		registry.addRecipes(TerrestrialAgglomerationRecipeCategory.TYPE, sortRecipes(BotaniaRecipeTypes.TERRA_PLATE_TYPE, BY_ID));
 
-		Comparator<OrechidRecipe> comp = BY_WEIGHT.thenComparing(BY_ID);
-		registry.addRecipes(OrechidRecipeCategory.TYPE, sortRecipes(BotaniaRecipeTypes.ORECHID_TYPE, comp));
-		registry.addRecipes(OrechidIgnemRecipeCategory.TYPE, sortRecipes(BotaniaRecipeTypes.ORECHID_IGNEM_TYPE, comp));
-		registry.addRecipes(MarimorphosisRecipeCategory.TYPE, sortRecipes(BotaniaRecipeTypes.MARIMORPHOSIS_TYPE, comp));
+		registry.addRecipes(OrechidRecipeCategory.TYPE,
+				sortRecipes(BotaniaRecipeTypes.ORECHID_TYPE, orechidComparator()));
+		registry.addRecipes(OrechidIgnemRecipeCategory.TYPE,
+				sortRecipes(BotaniaRecipeTypes.ORECHID_IGNEM_TYPE, orechidComparator()));
+		registry.addRecipes(MarimorphosisRecipeCategory.TYPE,
+				sortRecipes(BotaniaRecipeTypes.MARIMORPHOSIS_TYPE, orechidComparator()));
 	}
 
-	private static final Comparator<Recipe<?>> BY_ID = Comparator.comparing(Recipe::getId);
-	private static final Comparator<Recipe<?>> BY_GROUP = Comparator.comparing(Recipe::getGroup);
-	private static final Comparator<OrechidRecipe> BY_WEIGHT = Comparator.<OrechidRecipe, Integer>comparing(OrechidRecipe::getWeight).reversed();
-	private static final Comparator<ManaInfusionRecipe> BY_CATALYST = (l, r) -> {
-		StateIngredient left = l.getRecipeCatalyst();
-		StateIngredient right = r.getRecipeCatalyst();
+	private static final Comparator<RecipeHolder<?>> BY_ID = Comparator.comparing(holder -> holder.id().identifier());
+	private static final Comparator<RecipeHolder<?>> BY_GROUP = Comparator.comparing(holder -> holder.value().group());
+	private static final Comparator<RecipeHolder<? extends ManaInfusionRecipe>> BY_CATALYST = (l, r) -> {
+		StateIngredient left = l.value().getRecipeCatalyst();
+		StateIngredient right = r.value().getRecipeCatalyst();
 		if (left == null) {
 			return right == null ? 0 : -1;
 		} else if (right == null) {
@@ -163,11 +165,19 @@ public class JEIBotaniaPlugin implements IModPlugin {
 		}
 	};
 
-	private static <T extends Recipe<C>, C extends Container> List<T> sortRecipes(RecipeType<T> type, Comparator<? super T> comparator) {
-		Collection<T> recipes = BotaniaRecipeTypes.getRecipes(Minecraft.getInstance().level, type).values();
-		List<T> list = new ArrayList<>(recipes);
-		list.sort(comparator);
-		return list;
+	private static <T extends OrechidRecipe> Comparator<RecipeHolder<T>> orechidComparator() {
+		return Comparator.<RecipeHolder<T>, Integer>comparing(holder -> holder.value().getWeight())
+				.reversed().thenComparing(BY_ID);
+	}
+
+	private static <T extends Recipe<I>, I extends RecipeInput> List<T> sortRecipes(
+			RecipeType<T> type, Comparator<? super RecipeHolder<T>> comparator) {
+		return BotaniaRecipeTypes.getRecipes(Minecraft.getInstance().level, type).entrySet().stream()
+				.map(entry -> new RecipeHolder<T>(
+						ResourceKey.create(Registries.RECIPE, entry.getKey()), entry.getValue()))
+				.sorted(comparator)
+				.map(RecipeHolder::value)
+				.toList();
 	}
 
 	@Override
@@ -218,16 +228,18 @@ public class JEIBotaniaPlugin implements IModPlugin {
 			}
 		}
 
-		RecipeManager recipeManager = Minecraft.getInstance().level.getRecipeManager();
-		recipeManager.byKey(prefix("petal_apothecary/daybloom_motif"))
+		RecipeManager recipeManager = (RecipeManager) Minecraft.getInstance().level.recipeAccess();
+		recipeManager.byKey(ResourceKey.create(Registries.RECIPE,
+				prefix("petal_apothecary/daybloom_motif")))
 				.ifPresent(r -> {
-					if (r instanceof PetalApothecaryRecipe pr) {
+					if (r.value() instanceof PetalApothecaryRecipe pr) {
 						recipeRegistry.hideRecipes(PetalApothecaryRecipeCategory.TYPE, List.of(pr));
 					}
 				});
-		recipeManager.byKey(prefix("petal_apothecary/nightshade_motif"))
+		recipeManager.byKey(ResourceKey.create(Registries.RECIPE,
+				prefix("petal_apothecary/nightshade_motif")))
 				.ifPresent(r -> {
-					if (r instanceof PetalApothecaryRecipe pr) {
+					if (r.value() instanceof PetalApothecaryRecipe pr) {
 						recipeRegistry.hideRecipes(PetalApothecaryRecipeCategory.TYPE, List.of(pr));
 					}
 				});

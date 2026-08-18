@@ -14,6 +14,7 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 
 public interface FloatingFlower {
 
@@ -33,32 +34,42 @@ public interface FloatingFlower {
 	class IslandType {
 		private static final Map<String, IslandType> registry = new HashMap<>();
 
-		public static final IslandType GRASS = new IslandType("GRASS");
-		public static final IslandType PODZOL = new IslandType("PODZOL");
-		public static final IslandType MYCEL = new IslandType("MYCEL");
-		public static final IslandType SNOW = new IslandType("SNOW");
-		public static final IslandType DRY = new IslandType("DRY");
-		public static final IslandType GOLDEN = new IslandType("GOLDEN");
-		public static final IslandType VIVID = new IslandType("VIVID");
-		public static final IslandType SCORCHED = new IslandType("SCORCHED");
-		public static final IslandType INFUSED = new IslandType("INFUSED");
-		public static final IslandType MUTATED = new IslandType("MUTATED");
+		public static final IslandType GRASS = register("GRASS");
+		public static final IslandType PODZOL = register("PODZOL");
+		public static final IslandType MYCEL = register("MYCEL");
+		public static final IslandType SNOW = register("SNOW");
+		public static final IslandType DRY = register("DRY");
+		public static final IslandType GOLDEN = register("GOLDEN");
+		public static final IslandType VIVID = register("VIVID");
+		public static final IslandType SCORCHED = register("SCORCHED");
+		public static final IslandType INFUSED = register("INFUSED");
+		public static final IslandType MUTATED = register("MUTATED");
 
 		private final String typeName;
 
 		/**
-		 * Instantiates and registers a new floating flower island type
+		 * Instantiates a floating flower island type. Use {@link #register(String)} for a plain
+		 * island type, or {@link #register(String, Function)} for a subclass.
 		 * Note that you need to register the model for this island type, see BotaniaAPIClient
 		 * 
 		 * @param name The name of this floating flower island type
 		 */
-		public IslandType(String name) {
+		protected IslandType(String name) {
 			typeName = name;
+		}
+
+		public static IslandType register(String name) {
+			return register(name, IslandType::new);
+		}
+
+		public static <T extends IslandType> T register(String name, Function<String, T> factory) {
 			synchronized (registry) {
 				if (registry.containsKey(name)) {
 					throw new IllegalArgumentException(name + " already registered!");
 				}
-				registry.put(name, this);
+				T type = factory.apply(name);
+				registry.put(name, type);
+				return type;
 			}
 		}
 

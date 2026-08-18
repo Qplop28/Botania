@@ -366,16 +366,16 @@ public class TinyPotatoBlockEntityRenderer
 		float scale = 0.016666668F * 1.6F;
 		poseStack.scale(-scale, -scale, scale);
 		var displayName = state.displayName.getVisualOrderText();
-		collector.submitText(poseStack, displayName, -state.nameWidth / 2F, 0, 0x20FFFFFF,
+		collector.submitText(poseStack, -state.nameWidth / 2F, 0, displayName, 0x20FFFFFF,
 				false, Font.DisplayMode.SEE_THROUGH, state.lightCoords, state.nameBackground, 0);
-		collector.submitText(poseStack, displayName, -state.nameWidth / 2F, 0, 0xFFFFFFFF,
+		collector.submitText(poseStack, -state.nameWidth / 2F, 0, displayName, 0xFFFFFFFF,
 				false, Font.DisplayMode.NORMAL, state.lightCoords, 0, 0);
 		if (!state.sublabel.getString().isEmpty()) {
 			poseStack.translate(0, 14, 0);
 			var sublabel = state.sublabel.getVisualOrderText();
-			collector.submitText(poseStack, sublabel, -state.sublabelWidth / 2F, 0, 0x20FFFFFF,
+			collector.submitText(poseStack, -state.sublabelWidth / 2F, 0, sublabel, 0x20FFFFFF,
 					false, Font.DisplayMode.SEE_THROUGH, state.lightCoords, state.nameBackground, 0);
-			collector.submitText(poseStack, sublabel, -state.sublabelWidth / 2F, 0, 0xFFFFFFFF,
+			collector.submitText(poseStack, -state.sublabelWidth / 2F, 0, sublabel, 0xFFFFFFFF,
 					false, Font.DisplayMode.SEE_THROUGH, state.lightCoords, 0, 0);
 		}
 		poseStack.popPose();

@@ -159,9 +159,10 @@ public class RunicAltarBlockEntityRenderer implements BlockEntityRenderer<RunicA
 				poseStack.mulPose(new Quaternionf().rotateAxis(rad, xRotate, yRotate, zRotate));
 				float alpha = curIter < iters ? (float) curIter / (float) iters * 0.4F : 1F;
 				int tintedColor = curIter < iters ? ((int) (alpha * 255F) << 24) | 0xFFFFFF : 0xFFFFFFFF;
-				submitNodeCollector.submitModelPart(poseStack, spinningCube,
-						curIter < iters ? RenderTypes.entityTranslucentCull(cubeTexture) : RenderTypes.entitySolid(cubeTexture),
-						0xF000F0, OverlayTexture.NO_OVERLAY, tintedColor, null, state.breakProgress);
+				submitNodeCollector.submitModelPart(spinningCube, poseStack,
+						curIter < iters ? RenderTypes.entityTranslucent(cubeTexture) : RenderTypes.entitySolid(cubeTexture),
+						0xF000F0, OverlayTexture.NO_OVERLAY, null, false, false, tintedColor,
+						state.breakProgress, 0);
 				poseStack.popPose();
 			}
 			poseStack.popPose();

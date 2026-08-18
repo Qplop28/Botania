@@ -62,12 +62,12 @@ public final class SkyblockWorldEvents {
 	}
 
 	public static void onPlayerJoin(ServerPlayer player) {
-		ServerLevel world = (ServerLevel) player.level();
+		ServerLevel world = player.level();
 		if (SkyblockChunkGenerator.isWorldSkyblock(world)) {
 			SkyblockSavedData data = SkyblockSavedData.get(world);
 			if (!data.skyblocks.containsValue(Util.NIL_UUID)) {
 				IslandPos islandPos = data.getSpawn();
-				world.setDefaultSpawnPosition(islandPos.getCenter(), 0);
+				world.setDefaultSpawnPos(islandPos.getCenter(), 0);
 				spawnPlayer(player, islandPos);
 				BotaniaAPI.LOGGER.info("Created the spawn GoG island");
 			}
@@ -130,9 +130,9 @@ public final class SkyblockWorldEvents {
 		BlockPos pos = islandPos.getCenter();
 
 		if (player instanceof ServerPlayer pmp) {
-			createSkyblock((ServerLevel) pmp.level(), pos);
+			createSkyblock(pmp.level(), pos);
 			pmp.teleportTo(pos.getX() + 0.5, pos.getY() + 1.6, pos.getZ() + 0.5);
-			pmp.setRespawnPosition(pmp.level().dimension(), pos, 0, true, false);
+			pmp.setRespawnPosition(new ServerPlayer.RespawnConfig(pmp.level().dimension(), pos, 0, true), false);
 			if (BotaniaConfig.common().gogSpawnWithLexicon()) {
 				player.getInventory().add(new ItemStack(BotaniaItems.lexicon));
 			}
@@ -162,15 +162,15 @@ public final class SkyblockWorldEvents {
 				startPoint,
 				startPoint,
 				new StructurePlaceSettings().addProcessor(BlockIgnoreProcessor.STRUCTURE_BLOCK),
-				level.random,
+				level.getRandom(),
 				Block.UPDATE_ALL);
 		for (var info : structureBlockInfos) {
 			if (info.nbt().getString("metadata").filter("light"::equals).isPresent()) {
 				BlockPos lightPos = startPoint.offset(info.pos());
 				if (level.setBlockAndUpdate(lightPos, BotaniaBlocks.manaFlame.defaultBlockState())) {
-					int r = 70 + level.random.nextInt(185);
-					int g = 70 + level.random.nextInt(185);
-					int b = 70 + level.random.nextInt(185);
+					int r = 70 + level.getRandom().nextInt(185);
+					int g = 70 + level.getRandom().nextInt(185);
+					int b = 70 + level.getRandom().nextInt(185);
 					int color = r << 16 | g << 8 | b;
 					((ManaFlameBlockEntity) level.getBlockEntity(lightPos)).setColor(color);
 				}

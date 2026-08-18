@@ -10,6 +10,7 @@ package vazkii.botania.client.render.block_entity;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.BiomeColors;
 import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.SubmitNodeCollector;
@@ -90,7 +91,8 @@ public class PetalApothecaryBlockEntityRenderer implements
 			state.fluidAlpha = 1F;
 			state.fluidLight = 0xF000F0;
 		} else if (water) {
-			state.fluidColor = BiomeColors.getAverageWaterColor(blockEntity.getLevel(), blockEntity.getBlockPos());
+			ClientLevel level = (ClientLevel) blockEntity.getLevel();
+			state.fluidColor = BiomeColors.getAverageWaterColor(level, blockEntity.getBlockPos());
 			state.fluidAlpha = 0.7F;
 			state.fluidLight = state.lightCoords;
 

@@ -13,6 +13,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.ItemStack;
@@ -71,7 +72,7 @@ public class AvatarBlockEntity extends SimpleInventoryBlockEntity implements Ava
 		ListTag boostCooldowns = new ListTag();
 		for (Map.Entry<UUID, Integer> e : this.boostCooldowns.entrySet()) {
 			CompoundTag cmp = new CompoundTag();
-			cmp.putUUID("id", e.getKey());
+			cmp.store("id", UUIDUtil.CODEC, e.getKey());
 			cmp.putInt("cooldown", e.getValue());
 			boostCooldowns.add(cmp);
 		}
@@ -81,16 +82,19 @@ public class AvatarBlockEntity extends SimpleInventoryBlockEntity implements Ava
 	@Override
 	public void readPacketNBT(CompoundTag tag) {
 		super.readPacketNBT(tag);
-		enabled = tag.getBoolean(TAG_ENABLED);
-		ticksElapsed = tag.getInt(TAG_TICKS_ELAPSED);
-		mana = tag.getInt(TAG_MANA);
+		enabled = tag.getBoolean(TAG_ENABLED).orElse(false);
+		ticksElapsed = tag.getInt(TAG_TICKS_ELAPSED).orElse(0);
+		mana = tag.getInt(TAG_MANA).orElse(0);
 		boostCooldowns.clear();
-		ListTag boostCooldowns = tag.getList(TAG_COOLDOWNS, Tag.TAG_COMPOUND);
+		ListTag boostCooldowns = tag.getList(TAG_COOLDOWNS)
+				.filter(list -> list.isEmpty() || list.getElementType() == Tag.TAG_COMPOUND)
+				.orElseGet(ListTag::new);
 		for (Tag nbt : boostCooldowns) {
 			CompoundTag cmp = ((CompoundTag) nbt);
-			UUID id = cmp.getUUID("id");
-			int cooldown = cmp.getInt("cooldown");
-			this.boostCooldowns.put(id, cooldown);
+			cmp.read("id", UUIDUtil.CODEC).ifPresent(id -> {
+				int cooldown = cmp.getInt("cooldown").orElse(0);
+				this.boostCooldowns.put(id, cooldown);
+			});
 		}
 	}
 
@@ -107,7 +111,7 @@ public class AvatarBlockEntity extends SimpleInventoryBlockEntity implements Ava
 	@Override
 	public void setChanged() {
 		super.setChanged();
-		if (level != null && !level.isClientSide) {
+		if (level != null && !level.isClientSide()) {
 			VanillaPacketDispatcher.dispatchTEToNearbyPlayers(this);
 		}
 	}

@@ -81,7 +81,7 @@ public class ManaPrismBlockEntity extends ExposedSimpleInventoryBlockEntity impl
 	@Override
 	public void setChanged() {
 		super.setChanged();
-		if (level != null && !level.isClientSide) {
+		if (level != null && !level.isClientSide()) {
 			VanillaPacketDispatcher.dispatchTEToNearbyPlayers(this);
 			BlockState state = getBlockState();
 			boolean hasLens = !getItemHandler().getItem(0).isEmpty();
@@ -110,8 +110,8 @@ public class ManaPrismBlockEntity extends ExposedSimpleInventoryBlockEntity impl
 
 				RenderHelper.renderHUDBox(gui, centerX - halfWidth, centerY + 8, centerX + halfWidth, centerY + 28);
 
-				gui.drawString(mc.font, lensName, centerX - halfWidth + 22, centerY + 14, 0xFFFFFF);
-				gui.renderFakeItem(lens, centerX - halfWidth + 2, centerY + 10);
+				gui.text(mc.font, lensName, centerX - halfWidth + 22, centerY + 14, 0xFFFFFF);
+				gui.item(lens, centerX - halfWidth + 2, centerY + 10);
 			}
 		}
 	}

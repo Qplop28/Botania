@@ -18,6 +18,8 @@ import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.RecipeInput;
+import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -41,8 +43,6 @@ import vazkii.botania.common.handler.BotaniaSounds;
 import vazkii.botania.common.helper.EntityHelper;
 
 import java.util.List;
-import java.util.Optional;
-
 public class BreweryBlockEntity extends SimpleInventoryBlockEntity implements ManaReceiver {
 	private static final String TAG_MANA = "mana";
 	private static final int CRAFT_EFFECT_EVENT = 0;
@@ -89,11 +89,27 @@ public class BreweryBlockEntity extends SimpleInventoryBlockEntity implements Ma
 	}
 
 	private void findRecipe() {
-		Optional<BotanicalBreweryRecipe> maybeRecipe = level.getRecipeManager().getRecipeFor(BotaniaRecipeTypes.BREW_TYPE, getItemHandler(), level);
-		maybeRecipe.ifPresent(recipeBrew -> {
-			this.recipe = recipeBrew;
+		if (!(level.recipeAccess() instanceof RecipeManager recipeManager)) {
+			return;
+		}
+		recipeManager.getRecipeFor(BotaniaRecipeTypes.BREW_TYPE, createRecipeInput(), level).ifPresent(recipeHolder -> {
+			this.recipe = recipeHolder.value();
 			level.setBlockAndUpdate(worldPosition, BotaniaBlocks.brewery.defaultBlockState().setValue(BlockStateProperties.POWERED, true));
 		});
+	}
+
+	private RecipeInput createRecipeInput() {
+		return new RecipeInput() {
+			@Override
+			public ItemStack getItem(int slot) {
+				return getItemHandler().getItem(slot);
+			}
+
+			@Override
+			public int size() {
+				return inventorySize();
+			}
+		};
 	}
 
 	public static void commonTick(Level level, BlockPos worldPosition, BlockState state, BreweryBlockEntity self) {
@@ -108,7 +124,7 @@ public class BreweryBlockEntity extends SimpleInventoryBlockEntity implements Ma
 		// Update every tick.
 		self.receiveMana(0);
 
-		if (!level.isClientSide && self.recipe == null) {
+		if (!level.isClientSide() && self.recipe == null) {
 			List<ItemEntity> items = level.getEntitiesOfClass(ItemEntity.class, new AABB(worldPosition.getX(), worldPosition.getY(), worldPosition.getZ(), worldPosition.getX() + 1, worldPosition.getY() + 1, worldPosition.getZ() + 1));
 			for (ItemEntity item : items) {
 				if (item.isAlive() && !item.getItem().isEmpty()) {
@@ -121,7 +137,7 @@ public class BreweryBlockEntity extends SimpleInventoryBlockEntity implements Ma
 		}
 
 		if (self.recipe != null) {
-			if (!self.recipe.matches(self.getItemHandler(), level)) {
+			if (!self.recipe.matches(self.createRecipeInput(), level)) {
 				self.recipe = null;
 				level.setBlockAndUpdate(worldPosition, BotaniaBlocks.brewery.defaultBlockState());
 			}
@@ -142,7 +158,7 @@ public class BreweryBlockEntity extends SimpleInventoryBlockEntity implements Ma
 					}
 				}
 
-				if (self.mana >= self.getManaCost() && !level.isClientSide) {
+				if (self.mana >= self.getManaCost() && !level.isClientSide()) {
 					int mana = self.getManaCost();
 					self.receiveMana(-mana);
 
@@ -174,7 +190,7 @@ public class BreweryBlockEntity extends SimpleInventoryBlockEntity implements Ma
 	@Override
 	public boolean triggerEvent(int event, int param) {
 		if (event == CRAFT_EFFECT_EVENT) {
-			if (level.isClientSide) {
+			if (level.isClientSide()) {
 				for (int i = 0; i < 25; i++) {
 					float r = (param >> 16 & 0xFF) / 255F;
 					float g = (param >> 8 & 0xFF) / 255F;
@@ -213,7 +229,7 @@ public class BreweryBlockEntity extends SimpleInventoryBlockEntity implements Ma
 	public void readPacketNBT(CompoundTag tag) {
 		super.readPacketNBT(tag);
 
-		mana = tag.getInt(TAG_MANA);
+		mana = tag.getInt(TAG_MANA).orElse(0);
 	}
 
 	@Override

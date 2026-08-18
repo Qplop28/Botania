@@ -40,7 +40,6 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Quaternionf;
 
@@ -137,7 +136,8 @@ public class TinyPotatoBlockEntityRenderer
 				|| state.name.equals("eloraam") && jump != 0);
 		state.bodyParts = collect(getModel(state.name));
 		state.bodyItem.clear();
-		ItemStack bodyStack = new ItemStack(BotaniaBlocks.tinyPotato).setHoverName(state.displayName.copy());
+		ItemStack bodyStack = new ItemStack(BotaniaBlocks.tinyPotato);
+		bodyStack.set(DataComponents.CUSTOM_NAME, state.displayName.copy());
 		if (state.enchanted) {
 			bodyStack.set(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true);
 		}
@@ -163,7 +163,7 @@ public class TinyPotatoBlockEntityRenderer
 			state.attachedBlock[i] = stack.getItem() instanceof BlockItem;
 			state.attachedPotato[i] = stack.getItem() instanceof TinyPotatoBlockItem;
 			state.attachedSkull[i] = stack.getItem() instanceof BlockItem item && item.getBlock() instanceof AbstractSkullBlock;
-			if (state.attachedPotato[i] && stack.hasCustomHoverName()) {
+			if (state.attachedPotato[i] && stack.has(DataComponents.CUSTOM_NAME)) {
 				var child = new StringBuilder();
 				TinyPotatoBlockItem.isEnchantedName(stack.getHoverName(), child);
 				state.attachedKing[i] = child.toString().equals("kingdaddydmac");
@@ -199,7 +199,8 @@ public class TinyPotatoBlockEntityRenderer
 			}
 			case "martysgames", "marty" -> {
 				state.showMartyBoot = true;
-				ItemStack boot = new ItemStack(BotaniaItems.infiniteFruit).setHoverName(Component.literal("das boot"));
+				ItemStack boot = new ItemStack(BotaniaItems.infiniteFruit);
+				boot.set(DataComponents.CUSTOM_NAME, Component.literal("das boot"));
 				itemModelResolver.updateForTopItem(state.martyBoot, boot, ItemDisplayContext.HEAD,
 						blockEntity.getLevel(), null, blockEntity.getBlockPos().hashCode() + 31);
 			}
@@ -307,7 +308,7 @@ public class TinyPotatoBlockEntityRenderer
 			poseStack.translate(-0.08, 0.1, 0.4);
 			poseStack.mulPose(VecHelper.rotateY(90F));
 			poseStack.mulPose(new Quaternionf().rotateAxis(VecHelper.toRadians(20), 1, 0, 1));
-			collector.submitBlockModel(poseStack, Sheets.translucentCullBlockSheet(), state.phiFlowerParts,
+			collector.submitBlockModel(poseStack, Sheets.translucentBlockSheet(), state.phiFlowerParts,
 					BlockModelRenderState.EMPTY_TINTS, state.lightCoords, OverlayTexture.NO_OVERLAY, 0);
 			poseStack.popPose();
 		}
@@ -316,14 +317,14 @@ public class TinyPotatoBlockEntityRenderer
 			poseStack.mulPose(VecHelper.rotateX(180F));
 			poseStack.mulPose(VecHelper.rotateY(-90F));
 			poseStack.translate(0.2, -1.25, -0.075);
-			collector.submitBlockModel(poseStack, Sheets.translucentCullBlockSheet(), state.nerfBatParts,
+			collector.submitBlockModel(poseStack, Sheets.translucentBlockSheet(), state.nerfBatParts,
 					BlockModelRenderState.EMPTY_TINTS, state.lightCoords, OverlayTexture.NO_OVERLAY, 0);
 		} else if (state.showGoldfish) {
 			poseStack.scale(1.25F, 1.25F, 1.25F);
 			poseStack.mulPose(VecHelper.rotateZ(180F));
 			poseStack.mulPose(VecHelper.rotateY(-90F));
 			poseStack.translate(-0.5F, -1.2F, -0.075F);
-			collector.submitBlockModel(poseStack, Sheets.translucentCullBlockSheet(), state.goldfishParts,
+			collector.submitBlockModel(poseStack, Sheets.translucentBlockSheet(), state.goldfishParts,
 					BlockModelRenderState.EMPTY_TINTS, state.lightCoords, OverlayTexture.NO_OVERLAY, 0);
 		} else if (state.showMartyBoot) {
 			poseStack.scale(0.7F, 0.7F, 0.7F);
@@ -364,15 +365,17 @@ public class TinyPotatoBlockEntityRenderer
 		poseStack.mulPose(camera.orientation);
 		float scale = 0.016666668F * 1.6F;
 		poseStack.scale(-scale, -scale, scale);
-		collector.submitText(poseStack, state.displayName, -state.nameWidth / 2F, 0, 0x20FFFFFF,
+		var displayName = state.displayName.getVisualOrderText();
+		collector.submitText(poseStack, displayName, -state.nameWidth / 2F, 0, 0x20FFFFFF,
 				false, Font.DisplayMode.SEE_THROUGH, state.lightCoords, state.nameBackground, 0);
-		collector.submitText(poseStack, state.displayName, -state.nameWidth / 2F, 0, 0xFFFFFFFF,
+		collector.submitText(poseStack, displayName, -state.nameWidth / 2F, 0, 0xFFFFFFFF,
 				false, Font.DisplayMode.NORMAL, state.lightCoords, 0, 0);
 		if (!state.sublabel.getString().isEmpty()) {
 			poseStack.translate(0, 14, 0);
-			collector.submitText(poseStack, state.sublabel, -state.sublabelWidth / 2F, 0, 0x20FFFFFF,
+			var sublabel = state.sublabel.getVisualOrderText();
+			collector.submitText(poseStack, sublabel, -state.sublabelWidth / 2F, 0, 0x20FFFFFF,
 					false, Font.DisplayMode.SEE_THROUGH, state.lightCoords, state.nameBackground, 0);
-			collector.submitText(poseStack, state.sublabel, -state.sublabelWidth / 2F, 0, 0xFFFFFFFF,
+			collector.submitText(poseStack, sublabel, -state.sublabelWidth / 2F, 0, 0xFFFFFFFF,
 					false, Font.DisplayMode.SEE_THROUGH, state.lightCoords, 0, 0);
 		}
 		poseStack.popPose();
@@ -384,8 +387,4 @@ public class TinyPotatoBlockEntityRenderer
 		return List.copyOf(parts);
 	}
 
-	@Override
-	public boolean shouldRenderOffScreen(@NotNull TinyPotatoBlockEntity blockEntity) {
-		return false;
-	}
 }

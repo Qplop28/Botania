@@ -14,7 +14,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
@@ -22,7 +21,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
@@ -76,30 +74,12 @@ public abstract class ExposedSimpleInventoryBlockEntity extends SimpleInventoryB
 		return getItemHandler().getMaxStackSize();
 	}
 
-	@Override
-	public void startOpen(Player player) {
-		getItemHandler().startOpen(player);
-	}
-
-	@Override
-	public void stopOpen(Player player) {
-		getItemHandler().stopOpen(player);
-	}
 
 	@Override
 	public boolean canPlaceItem(int index, ItemStack stack) {
 		return getItemHandler().canPlaceItem(index, stack);
 	}
 
-	@Override
-	public int countItem(Item item) {
-		return getItemHandler().countItem(item);
-	}
-
-	@Override
-	public boolean hasAnyOf(Set<Item> set) {
-		return getItemHandler().hasAnyOf(set);
-	}
 
 	@NotNull
 	@Override

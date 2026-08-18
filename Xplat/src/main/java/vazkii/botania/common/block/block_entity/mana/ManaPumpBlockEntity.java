@@ -88,11 +88,11 @@ public class ManaPumpBlockEntity extends BotaniaBlockEntity {
 
 	@Override
 	public void readPacketNBT(CompoundTag cmp) {
-		active = cmp.getBoolean(TAG_ACTIVE);
+		active = cmp.getBoolean(TAG_ACTIVE).orElse(false);
 	}
 
 	public void setActive(boolean active) {
-		if (!level.isClientSide) {
+		if (!level.isClientSide()) {
 			boolean diff = this.active != active;
 			this.active = active;
 			if (diff) {

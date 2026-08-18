@@ -9,6 +9,7 @@
 package vazkii.botania.common.block.block_entity;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
@@ -16,33 +17,41 @@ import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class BotaniaBlockEntity extends BlockEntity {
+	private static final String TAG_DATA = "BotaniaData";
+
 	public BotaniaBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
 		super(type, pos, state);
 	}
 
 	@Override
-	public void saveAdditional(CompoundTag tag) {
-		super.saveAdditional(tag);
+	protected void saveAdditional(ValueOutput output) {
+		super.saveAdditional(output);
+		var tag = new CompoundTag();
 		writePacketNBT(tag);
+		output.store(TAG_DATA, CompoundTag.CODEC, tag);
 	}
 
 	@NotNull
 	@Override
-	public final CompoundTag getUpdateTag() {
+	public final CompoundTag getUpdateTag(HolderLookup.Provider registryLookup) {
 		var tag = new CompoundTag();
-		writePacketNBT(tag);
+		var data = new CompoundTag();
+		writePacketNBT(data);
+		tag.put(TAG_DATA, data);
 		return tag;
 	}
 
 	@Override
-	public void load(@NotNull CompoundTag tag) {
-		super.load(tag);
-		readPacketNBT(tag);
+	protected void loadAdditional(ValueInput input) {
+		super.loadAdditional(input);
+		input.read(TAG_DATA, CompoundTag.CODEC).ifPresent(this::readPacketNBT);
 	}
 
 	public void writePacketNBT(CompoundTag cmp) {}

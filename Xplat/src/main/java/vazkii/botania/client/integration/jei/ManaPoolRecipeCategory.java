@@ -95,12 +95,12 @@ public class ManaPoolRecipeCategory implements IRecipeCategory<ManaInfusionRecip
 
 		var catalyst = recipe.getRecipeCatalyst();
 		if (catalyst != null) {
-			builder.addSlot(RecipeIngredientRole.CATALYST, 12, 12)
+			builder.addSlot(RecipeIngredientRole.CRAFTING_STATION, 12, 12)
 					.addItemStacks(catalyst.getDisplayedStacks())
-					.addTooltipCallback((view, tooltip) -> tooltip.addAll(catalyst.descriptionTooltip()));
+					.addRichTooltipCallback((view, tooltip) -> tooltip.addAll(catalyst.descriptionTooltip()));
 		}
 
-		builder.addSlot(RecipeIngredientRole.CATALYST, 62, 12).add(renderStack);
+		builder.addSlot(RecipeIngredientRole.CRAFTING_STATION, 62, 12).add(renderStack);
 		// TODO 1.19.4 figure out the proper way to get a registry access
 		builder.addSlot(RecipeIngredientRole.OUTPUT, 93, 12).add(recipe.getResultItem(RegistryAccess.EMPTY));
 	}

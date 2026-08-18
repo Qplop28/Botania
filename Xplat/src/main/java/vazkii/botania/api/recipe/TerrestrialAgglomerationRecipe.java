@@ -8,8 +8,12 @@
  */
 package vazkii.botania.api.recipe;
 
+import net.minecraft.core.NonNullList;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeBookCategories;
 import net.minecraft.world.item.crafting.RecipeBookCategory;
@@ -27,6 +31,13 @@ public interface TerrestrialAgglomerationRecipe
 	Identifier TYPE_ID = TERRA_PLATE_ID;
 
 	int getMana();
+
+	/** Transitional accessors for recipe-viewer integrations. */
+	@Deprecated
+	NonNullList<Ingredient> getIngredients();
+
+	@Deprecated
+	ItemStack getResultItem(RegistryAccess registries);
 
 	@SuppressWarnings("unchecked")
 	@Override

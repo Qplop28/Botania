@@ -102,9 +102,9 @@ public class PureDaisyRecipeCategory implements IRecipeCategory<PureDaisyRecipe>
 			}
 		}
 		inputSlotBuilder.addItemStacks(input.getDisplayedStacks())
-				.addTooltipCallback((view, tooltip) -> tooltip.addAll(input.descriptionTooltip()));
+				.addRichTooltipCallback((view, tooltip) -> tooltip.addAll(input.descriptionTooltip()));
 
-		builder.addSlot(RecipeIngredientRole.CATALYST, 39, 12)
+		builder.addSlot(RecipeIngredientRole.CRAFTING_STATION, 39, 12)
 				.add(new ItemStack(BotaniaFlowerBlocks.pureDaisy));
 
 		Block outBlock = recipe.getOutputState().getBlock();

@@ -162,6 +162,6 @@ public class OrechidUIHelper {
 		if (biomeKey == null) {
 			return "argument.id.invalid";
 		}
-		return String.format("biome.%s.%s", biomeKey.location().getNamespace(), biomeKey.location().getPath());
+		return String.format("biome.%s.%s", biomeKey.identifier().getNamespace(), biomeKey.identifier().getPath());
 	}
 }

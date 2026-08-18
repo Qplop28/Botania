@@ -82,11 +82,11 @@ public abstract class OrechidRecipeCategoryBase<T extends OrechidRecipe> impleme
 
 		builder.addSlot(RecipeIngredientRole.INPUT, 9, 12)
 				.addItemStacks(recipe.getInput().getDisplayedStacks());
-		builder.addSlot(RecipeIngredientRole.CATALYST, 39, 12).add(iconStack);
+		builder.addSlot(RecipeIngredientRole.CRAFTING_STATION, 39, 12).add(iconStack);
 
 		builder.addSlot(RecipeIngredientRole.OUTPUT, 68, 12)
 				.addItemStacks(recipe.getOutput().getDisplayedStacks())
-				.addTooltipCallback((view, tooltip) -> tooltip.addAll(recipe.getOutput().descriptionTooltip()));
+				.addRichTooltipCallback((view, tooltip) -> tooltip.addAll(recipe.getOutput().descriptionTooltip()));
 	}
 
 	@Override

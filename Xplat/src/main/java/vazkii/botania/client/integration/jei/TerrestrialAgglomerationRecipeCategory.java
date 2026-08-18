@@ -110,7 +110,7 @@ public class TerrestrialAgglomerationRecipeCategory implements IRecipeCategory<T
 			point = PetalApothecaryRecipeCategory.rotatePointAbout(point, center, angleBetweenEach);
 		}
 
-		builder.addSlot(RecipeIngredientRole.CATALYST, 48, 92)
+		builder.addSlot(RecipeIngredientRole.CRAFTING_STATION, 48, 92)
 				.add(new ItemStack(BotaniaBlocks.terraPlate));
 	}
 }

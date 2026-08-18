@@ -26,7 +26,8 @@ public final class CoreShaders {
 	private static RenderPipeline register(String name, RenderPipeline.Snippet snippet,
 			String vertexShader, VertexFormat format, VertexFormat.Mode mode) {
 		Identifier id = prefix(name);
-		return RenderPipelines.register(RenderPipeline.builder(snippet)
+		var builder = snippet == null ? RenderPipeline.builder() : RenderPipeline.builder(snippet);
+		return RenderPipelines.register(builder
 				.withLocation(id)
 				.withVertexShader(vertexShader)
 				.withFragmentShader(id.toString())
@@ -34,23 +35,23 @@ public final class CoreShaders {
 				.build());
 	}
 
-	public static final RenderPipeline STARFIELD = register("starfield", RenderPipelines.END_PORTAL_SNIPPET,
+	public static final RenderPipeline STARFIELD = register("starfield", null,
 			"core/rendertype_end_portal", DefaultVertexFormat.POSITION, VertexFormat.Mode.QUADS);
-	public static final RenderPipeline DOPPLEGANGER = register("doppleganger", RenderPipelines.ENTITY_SNIPPET,
-			"botania:doppleganger", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS);
-	public static final RenderPipeline MANA_POOL = register("mana_pool", RenderPipelines.POSITION_COLOR_TEX_LIGHTMAP_SNIPPET,
+	public static final RenderPipeline DOPPLEGANGER = register("doppleganger", null,
+			"botania:doppleganger", DefaultVertexFormat.ENTITY, VertexFormat.Mode.QUADS);
+	public static final RenderPipeline MANA_POOL = register("mana_pool", null,
 			"core/position_color_tex_lightmap", DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP, VertexFormat.Mode.QUADS);
-	public static final RenderPipeline TERRA_PLATE_RUNE = register("terra_plate_rune", RenderPipelines.POSITION_COLOR_TEX_LIGHTMAP_SNIPPET,
+	public static final RenderPipeline TERRA_PLATE_RUNE = register("terra_plate_rune", null,
 			"core/position_color_tex_lightmap", DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP, VertexFormat.Mode.QUADS);
-	public static final RenderPipeline ENCHANTER_RUNE = register("enchanter_rune", RenderPipelines.POSITION_COLOR_TEX_LIGHTMAP_SNIPPET,
+	public static final RenderPipeline ENCHANTER_RUNE = register("enchanter_rune", null,
 			"core/position_color_tex_lightmap", DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP, VertexFormat.Mode.QUADS);
-	public static final RenderPipeline PYLON = register("pylon", RenderPipelines.ENTITY_SNIPPET,
-			"core/rendertype_entity_translucent", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS);
-	public static final RenderPipeline HALO = register("halo", RenderPipelines.POSITION_COLOR_TEX_SNIPPET,
+	public static final RenderPipeline PYLON = register("pylon", null,
+			"core/rendertype_entity_translucent", DefaultVertexFormat.ENTITY, VertexFormat.Mode.QUADS);
+	public static final RenderPipeline HALO = register("halo", null,
 			"core/position_color_tex", DefaultVertexFormat.POSITION_COLOR_TEX, VertexFormat.Mode.QUADS);
-	public static final RenderPipeline FILM_GRAIN_PARTICLE = register("film_grain_particle", RenderPipelines.PARTICLE_SNIPPET,
+	public static final RenderPipeline FILM_GRAIN_PARTICLE = register("film_grain_particle", null,
 			"core/particle", DefaultVertexFormat.PARTICLE, VertexFormat.Mode.QUADS);
-	public static final RenderPipeline DOPPLEGANGER_BAR = register("doppleganger_bar", RenderPipelines.GUI_TEXTURED_SNIPPET,
+	public static final RenderPipeline DOPPLEGANGER_BAR = register("doppleganger_bar", null,
 			"botania:doppleganger_bar", DefaultVertexFormat.POSITION_TEX_COLOR, VertexFormat.Mode.QUADS);
 
 	public static RenderPipeline doppleganger() {

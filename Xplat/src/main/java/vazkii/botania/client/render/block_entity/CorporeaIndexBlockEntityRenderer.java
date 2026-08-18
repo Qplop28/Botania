@@ -24,7 +24,6 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.phys.Vec3;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Quaternionf;
 
@@ -84,7 +83,7 @@ public class CorporeaIndexBlockEntityRenderer implements BlockEntityRenderer<Cor
 	@Override
 	public void submit(CorporeaIndexRenderState state, PoseStack poseStack, SubmitNodeCollector collector,
 			CameraRenderState camera) {
-		var layer = RenderTypes.entityCutoutNoCull(TEXTURE);
+		var layer = RenderTypes.entityCutout(TEXTURE);
 		poseStack.pushPose();
 		poseStack.translate(0.5, 0, 0.5);
 		poseStack.pushPose();
@@ -123,10 +122,5 @@ public class CorporeaIndexBlockEntityRenderer implements BlockEntityRenderer<Cor
 			SubmitNodeCollector collector, net.minecraft.client.renderer.rendertype.RenderType layer) {
 		collector.submitModelPart(part, poseStack, layer, state.lightCoords, OverlayTexture.NO_OVERLAY,
 				null, false, false, -1, state.breakProgress, 0);
-	}
-
-	@Override
-	public boolean shouldRenderOffScreen(@NotNull CorporeaIndexBlockEntity blockEntity) {
-		return true;
 	}
 }

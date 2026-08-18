@@ -8,15 +8,14 @@
  */
 package vazkii.botania.common.block.block_entity.corporea;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.util.profiling.ProfilerFiller;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.resources.RegistryOps;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
@@ -82,7 +81,7 @@ public class CorporeaCrystalCubeBlockEntity extends BaseCorporeaBlockEntity impl
 	}
 
 	public void doRequest(Player player) {
-		if (level.isClientSide) {
+		if (level.isClientSide()) {
 			return;
 		}
 
@@ -95,7 +94,7 @@ public class CorporeaCrystalCubeBlockEntity extends BaseCorporeaBlockEntity impl
 	}
 
 	private void updateCount() {
-		if (level.isClientSide) {
+		if (level.isClientSide()) {
 			return;
 		}
 
@@ -124,11 +123,9 @@ public class CorporeaCrystalCubeBlockEntity extends BaseCorporeaBlockEntity impl
 	@Override
 	public void writePacketNBT(CompoundTag tag) {
 		super.writePacketNBT(tag);
-		CompoundTag cmp = new CompoundTag();
-		if (!requestTarget.isEmpty()) {
-			cmp = requestTarget.save(cmp);
-		}
-		tag.put(TAG_REQUEST_TARGET, cmp);
+		var ops = RegistryOps.create(NbtOps.INSTANCE, level.registryAccess());
+		ItemStack.OPTIONAL_CODEC.encodeStart(ops, requestTarget).result()
+				.ifPresent(encoded -> tag.put(TAG_REQUEST_TARGET, encoded));
 		tag.putInt(TAG_ITEM_COUNT, itemCount);
 		tag.putBoolean(TAG_LOCK, locked);
 		tag.putBoolean(TAG_HIDE_COUNT, hideCount);
@@ -137,11 +134,13 @@ public class CorporeaCrystalCubeBlockEntity extends BaseCorporeaBlockEntity impl
 	@Override
 	public void readPacketNBT(CompoundTag tag) {
 		super.readPacketNBT(tag);
-		CompoundTag cmp = tag.getCompound(TAG_REQUEST_TARGET);
-		requestTarget = ItemStack.of(cmp);
-		setCount(tag.getInt(TAG_ITEM_COUNT));
-		locked = tag.getBoolean(TAG_LOCK);
-		hideCount = tag.getBoolean(TAG_HIDE_COUNT);
+		var ops = RegistryOps.create(NbtOps.INSTANCE, level.registryAccess());
+		requestTarget = tag.getCompound(TAG_REQUEST_TARGET)
+				.flatMap(encoded -> ItemStack.OPTIONAL_CODEC.parse(ops, encoded).result())
+				.orElse(ItemStack.EMPTY);
+		setCount(tag.getInt(TAG_ITEM_COUNT).orElse(0));
+		locked = tag.getBoolean(TAG_LOCK).orElse(false);
+		hideCount = tag.getBoolean(TAG_HIDE_COUNT).orElse(false);
 	}
 
 	public int getComparatorValue() {
@@ -207,11 +206,7 @@ public class CorporeaCrystalCubeBlockEntity extends BaseCorporeaBlockEntity impl
 
 	public static class Hud {
 		public static void render(GuiGraphicsExtractor gui, CorporeaCrystalCubeBlockEntity cube) {
-			PoseStack ps = gui.pose();
 			Minecraft mc = Minecraft.getInstance();
-			ProfilerFiller profiler = mc.getProfiler();
-
-			profiler.push("crystalCube");
 			ItemStack target = cube.getRequestTarget();
 			if (!target.isEmpty()) {
 				String nameStr = target.getHoverName().getString();
@@ -225,23 +220,17 @@ public class CorporeaCrystalCubeBlockEntity extends BaseCorporeaBlockEntity impl
 
 				int centerX = mc.getWindow().getGuiScaledWidth() / 2;
 				int centerY = mc.getWindow().getGuiScaledHeight() / 2;
-				ps.pushPose();
-				ps.translate(centerX, centerY, 0);
+				RenderHelper.renderHUDBox(gui, centerX + 8, centerY - 11,
+						centerX + strlen + 32, centerY + (cube.locked ? 21 : 11));
 
-				RenderHelper.renderHUDBox(gui, 8, -11, strlen + 32, cube.locked ? 21 : 11);
-
-				gui.drawString(mc.font, nameStr, 30, -9, 0x6666FF);
-				gui.drawString(mc.font, countStr, 30, 1, 0xFFFFFF);
+				gui.text(mc.font, nameStr, centerX + 30, centerY - 9, 0x6666FF);
+				gui.text(mc.font, countStr, centerX + 30, centerY + 1, 0xFFFFFF);
 				if (cube.locked) {
-					gui.drawString(mc.font, lockedStr, 30, 11, 0xFFAA00);
+					gui.text(mc.font, lockedStr, centerX + 30, centerY + 11, 0xFFAA00);
 				}
 
-				gui.renderItem(target, 10, -9);
-
-				ps.popPose();
+				gui.item(target, centerX + 10, centerY - 9);
 			}
-
-			profiler.pop();
 		}
 	}
 }

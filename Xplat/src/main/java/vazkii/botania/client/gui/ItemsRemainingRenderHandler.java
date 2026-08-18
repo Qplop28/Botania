@@ -8,8 +8,6 @@
  */
 package vazkii.botania.client.gui;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -18,6 +16,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
 import org.jetbrains.annotations.Nullable;
+import org.joml.Matrix3x2fStack;
 
 import vazkii.botania.network.clientbound.UpdateItemsRemainingPacket;
 import vazkii.botania.xplat.XplatAbstractions;
@@ -35,7 +34,7 @@ public final class ItemsRemainingRenderHandler {
 	private static int ticks, count;
 
 	public static void render(GuiGraphicsExtractor gui, float partTicks) {
-		PoseStack ms = gui.pose();
+		Matrix3x2fStack ms = gui.pose();
 		if (ticks > 0 && !stack.isEmpty()) {
 			int pos = maxTicks - ticks;
 			Minecraft mc = Minecraft.getInstance();
@@ -47,11 +46,11 @@ public final class ItemsRemainingRenderHandler {
 
 			// RenderSystem.setShaderColor(1F, 1F, 1F, alpha);
 			int xp = x + (int) (16F * (1F - alpha));
-			ms.pushPose();
-			ms.translate(xp, y, 0F);
-			ms.scale(alpha, 1F, 1F);
-			gui.renderItem(stack, 0, 0);
-			ms.popPose();
+			ms.pushMatrix();
+			ms.translate(xp, y);
+			ms.scale(alpha, 1F);
+			gui.item(stack, 0, 0);
+			ms.popMatrix();
 
 			Component text = Component.empty();
 
@@ -86,7 +85,7 @@ public final class ItemsRemainingRenderHandler {
 			}
 
 			int color = 0x00FFFFFF | (int) (alpha * 0xFF) << 24;
-			gui.drawString(mc.font, text, x + 20, y + 6, color);
+			gui.text(mc.font, text, x + 20, y + 6, color);
 		}
 	}
 
@@ -115,7 +114,7 @@ public final class ItemsRemainingRenderHandler {
 		int count = 0;
 		for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
 			ItemStack stack = player.getInventory().getItem(i);
-			if (!stack.isEmpty() && pattern.matcher(stack.getDescriptionId()).find()) {
+			if (!stack.isEmpty() && pattern.matcher(stack.getItem().getDescriptionId()).find()) {
 				count += stack.getCount();
 			}
 		}

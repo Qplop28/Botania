@@ -8,18 +8,14 @@
  */
 package vazkii.botania.client.gui;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.util.Mth;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
 
 import org.jetbrains.annotations.Nullable;
-import org.joml.Matrix4f;
 
 import vazkii.botania.api.mana.ManaBarTooltip;
 import vazkii.botania.client.core.handler.ClientTickHandler;
@@ -48,7 +44,7 @@ public class ManaBarTooltipComponent implements ClientTooltipComponent {
 	}
 
 	@Override
-	public int getHeight() {
+	public int getHeight(Font font) {
 		return 0;
 	}
 
@@ -64,7 +60,7 @@ public class ManaBarTooltipComponent implements ClientTooltipComponent {
 	}
 
 	@Override
-	public void renderText(Font font, int x, int y, Matrix4f matrix, MultiBufferSource.BufferSource buffers) {
+	public void renderText(GuiGraphicsExtractor gui, Font font, int x, int y) {
 		int level = pickLevel;
 		if (level < 0) {
 			return;
@@ -73,21 +69,17 @@ public class ManaBarTooltipComponent implements ClientTooltipComponent {
 		boolean ss = level >= TerraShattererItem.LEVELS.length - 1;
 		String rank = I18n.get("botania.rank" + pickLevel).replaceAll("&", "\u00a7");
 
-		font.drawInBatch(rank, mouseX, mouseY - 16, 0xFFFFFF, true, matrix, buffers, Font.DisplayMode.NORMAL, 0, 0xF000F0);
+		gui.text(font, rank, mouseX, mouseY - 16, 0xFFFFFF, true);
 		if (!ss) {
 			rank = I18n.get("botania.rank" + (level + 1)).replaceAll("&", "\u00a7");
-			font.drawInBatch(rank, mouseX + totalWidth - font.width(rank), mouseY - 16, 0xFFFFFF, true,
-					matrix, buffers, Font.DisplayMode.NORMAL, 0, 0xF000F0);
+			gui.text(font, rank, mouseX + totalWidth - font.width(rank), mouseY - 16, 0xFFFFFF, true);
 		}
 	}
 
 	@Override
-	public void renderImage(Font font, int x, int y, GuiGraphicsExtractor gui) {
-		PoseStack ps = gui.pose();
-		int height = 3;
+	public void renderImage(Font font, int x, int y, int width, int height, GuiGraphicsExtractor gui) {
+		int barHeight = 3;
 		int offsetFromBox = 4;
-
-		ps.pushPose();
 
 		if (pickLevel >= 0) {
 			boolean ss = pickLevel >= TerraShattererItem.LEVELS.length - 1;
@@ -96,20 +88,18 @@ public class ManaBarTooltipComponent implements ClientTooltipComponent {
 			float huePer = totalWidth == 0 ? 0F : 1F / totalWidth;
 			float hueOff = (ClientTickHandler.ticksInGame + ClientTickHandler.partialTicks) * 0.01F;
 
-			gui.fill(mouseX - 1, mouseY - height - offsetFromBox - 1, mouseX + totalWidth + 1, mouseY - offsetFromBox, 0xFF000000);
+			gui.fill(mouseX - 1, mouseY - barHeight - offsetFromBox - 1, mouseX + totalWidth + 1, mouseY - offsetFromBox, 0xFF000000);
 			for (int i = 0; i < rainbowWidth; i++) {
-				gui.fill(mouseX + i, mouseY - height - offsetFromBox, mouseX + i + 1, mouseY - offsetFromBox, 0xFF000000 | Mth.hsvToRgb((hueOff + huePer * i) % 1F, 1F, 1F));
+				gui.fill(mouseX + i, mouseY - barHeight - offsetFromBox, mouseX + i + 1, mouseY - offsetFromBox, 0xFF000000 | Mth.hsvToRgb((hueOff + huePer * i) % 1F, 1F, 1F));
 			}
-			gui.fill(mouseX + rainbowWidth, mouseY - height - offsetFromBox, mouseX + totalWidth, mouseY - offsetFromBox, 0xFF555555);
+			gui.fill(mouseX + rainbowWidth, mouseY - barHeight - offsetFromBox, mouseX + totalWidth, mouseY - offsetFromBox, 0xFF555555);
 		} else {
 			int manaBarWidth = (int) Math.ceil(totalWidth * percentageFull);
 
-			gui.fill(mouseX - 1, mouseY - height - offsetFromBox - 1, mouseX + totalWidth + 1, mouseY - offsetFromBox, 0xFF000000);
-			gui.fill(mouseX, mouseY - height - offsetFromBox, mouseX + manaBarWidth, mouseY - offsetFromBox, 0xFF000000 | Mth.hsvToRgb(0.528F, ((float) Math.sin((ClientTickHandler.ticksInGame + ClientTickHandler.partialTicks) * 0.2) + 1F) * 0.3F + 0.4F, 1F));
-			gui.fill(mouseX + manaBarWidth, mouseY - height - offsetFromBox, mouseX + totalWidth, mouseY - offsetFromBox, 0xFF555555);
+			gui.fill(mouseX - 1, mouseY - barHeight - offsetFromBox - 1, mouseX + totalWidth + 1, mouseY - offsetFromBox, 0xFF000000);
+			gui.fill(mouseX, mouseY - barHeight - offsetFromBox, mouseX + manaBarWidth, mouseY - offsetFromBox, 0xFF000000 | Mth.hsvToRgb(0.528F, ((float) Math.sin((ClientTickHandler.ticksInGame + ClientTickHandler.partialTicks) * 0.2) + 1F) * 0.3F + 0.4F, 1F));
+			gui.fill(mouseX + manaBarWidth, mouseY - barHeight - offsetFromBox, mouseX + totalWidth, mouseY - offsetFromBox, 0xFF555555);
 		}
-		ps.popPose();
-
 		// Reset these after we're done each frame so it's obvious if things ever glitch out.
 		mouseX = mouseY = 0;
 		totalWidth = 50;

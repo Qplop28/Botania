@@ -86,14 +86,14 @@ public class TerrestrialAgglomerationPlateBlockEntity
 							XplatAbstractions.INSTANCE.isFabric()
 									? TagKey.create(
 											Registries.BLOCK,
-											new Identifier(
+											Identifier.fromNamespaceAndPath(
 													"c",
 													"lapis_blocks"
 											)
 									)
 									: TagKey.create(
 											Registries.BLOCK,
-											new Identifier(
+											Identifier.fromNamespaceAndPath(
 													"forge",
 													"storage_blocks/lapis"
 											)
@@ -272,8 +272,8 @@ public class TerrestrialAgglomerationPlateBlockEntity
 		return level.getEntitiesOfClass(
 				ItemEntity.class,
 				new AABB(
-						worldPosition,
-						worldPosition.offset(1, 1, 1)
+						Vec3.atLowerCornerOf(worldPosition),
+						Vec3.atLowerCornerOf(worldPosition.offset(1, 1, 1))
 				),
 				EntitySelector.ENTITY_STILL_ALIVE
 		);
@@ -416,8 +416,8 @@ public class TerrestrialAgglomerationPlateBlockEntity
 		List<Entity> sparks = level.getEntitiesOfClass(
 				Entity.class,
 				new AABB(
-						worldPosition.above(),
-						worldPosition.above().offset(1, 1, 1)
+						Vec3.atLowerCornerOf(worldPosition.above()),
+						Vec3.atLowerCornerOf(worldPosition.above().offset(1, 1, 1))
 				),
 				Predicates.instanceOf(ManaSpark.class)
 		);

@@ -86,16 +86,17 @@ public class AvatarBlockEntity extends SimpleInventoryBlockEntity implements Ava
 		ticksElapsed = tag.getInt(TAG_TICKS_ELAPSED).orElse(0);
 		mana = tag.getInt(TAG_MANA).orElse(0);
 		boostCooldowns.clear();
-		ListTag boostCooldowns = tag.getList(TAG_COOLDOWNS)
-				.filter(list -> list.isEmpty() || list.getElementType() == Tag.TAG_COMPOUND)
-				.orElseGet(ListTag::new);
-		for (Tag nbt : boostCooldowns) {
-			CompoundTag cmp = ((CompoundTag) nbt);
-			cmp.read("id", UUIDUtil.CODEC).ifPresent(id -> {
-				int cooldown = cmp.getInt("cooldown").orElse(0);
-				this.boostCooldowns.put(id, cooldown);
-			});
-		}
+		tag.getList(TAG_COOLDOWNS).ifPresent(boostCooldowns -> {
+			for (Tag nbt : boostCooldowns) {
+				if (!(nbt instanceof CompoundTag cmp)) {
+					continue;
+				}
+				cmp.read("id", UUIDUtil.CODEC).ifPresent(id -> {
+					int cooldown = cmp.getInt("cooldown").orElse(0);
+					this.boostCooldowns.put(id, cooldown);
+				});
+			}
+		});
 	}
 
 	@Override

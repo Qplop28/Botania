@@ -13,11 +13,8 @@ import com.google.common.base.Suppliers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.core.RegistryOps;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtOps;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -34,6 +31,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
 
 import org.jetbrains.annotations.Nullable;
@@ -309,33 +307,28 @@ public class AlfheimPortalBlockEntity extends BotaniaBlockEntity implements Wand
 	}
 
 	@Override
-	protected void writePacketNBT(CompoundTag cmp, HolderLookup.Provider registryLookup) {
-		writePacketNBT(cmp);
-		cmp.putInt(TAG_STACK_COUNT, stacksIn.size());
-		int i = 0;
+	protected void writePersistentData(ValueOutput output) {
+		ValueOutput.TypedOutputList<ItemStack> stacks = output.list(TAG_STACK, ItemStack.CODEC);
 		for (ItemStack stack : stacksIn) {
-			ItemStack.CODEC.encodeStart(RegistryOps.create(NbtOps.INSTANCE, registryLookup), stack)
-					.result().ifPresent(stackTag -> cmp.put(TAG_STACK + i, stackTag));
-			i++;
+			stacks.add(stack);
 		}
 	}
 
 	@Override
-	protected void readPacketNBT(CompoundTag cmp, HolderLookup.Provider registryLookup) {
-		readPacketNBT(cmp);
-		int count = cmp.getInt(TAG_STACK_COUNT).orElse(0);
+	protected void readPersistentData(ValueInput input) {
 		stacksIn.clear();
-		for (int i = 0; i < count; i++) {
-			cmp.getCompound(TAG_STACK + i)
-					.flatMap(stackTag -> ItemStack.CODEC.parse(
-							RegistryOps.create(NbtOps.INSTANCE, registryLookup), stackTag).result())
-					.filter(stack -> !stack.isEmpty())
-					.ifPresent(stacksIn::add);
+		for (ItemStack stack : input.listOrEmpty(TAG_STACK, ItemStack.CODEC)) {
+			if (!stack.isEmpty()) {
+				stacksIn.add(stack);
+			}
 		}
 	}
 
 	@Override
 	protected void readLegacyPersistentData(ValueInput input) {
+		if (!stacksIn.isEmpty()) {
+			return;
+		}
 		int count = input.getIntOr(TAG_STACK_COUNT, 0);
 		if (count <= 0) {
 			return;

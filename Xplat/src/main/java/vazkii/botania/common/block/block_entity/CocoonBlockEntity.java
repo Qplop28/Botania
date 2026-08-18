@@ -17,11 +17,11 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.*;
-import net.minecraft.world.entity.npc.VillagerData;
 import net.minecraft.world.entity.npc.villager.Villager;
+import net.minecraft.world.entity.npc.villager.VillagerData;
 import net.minecraft.world.entity.npc.villager.VillagerType;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -60,7 +60,7 @@ public class CocoonBlockEntity extends BotaniaBlockEntity {
 	}
 
 	private void hatch() {
-		if (!level.isClientSide()) {
+		if (level instanceof ServerLevel serverLevel) {
 			timePassed = 0;
 			level.destroyBlock(worldPosition, false);
 
@@ -123,7 +123,7 @@ public class CocoonBlockEntity extends BotaniaBlockEntity {
 				if (entity instanceof AgeableMob ageable) {
 					ageable.setAge(-24000);
 				}
-				entity.finalizeSpawn((ServerLevelAccessor) level, level.getCurrentDifficultyAt(getBlockPos()), EntitySpawnReason.EVENT, null);
+				entity.finalizeSpawn(serverLevel, serverLevel.getCurrentDifficultyAt(getBlockPos()), EntitySpawnReason.EVENT, null);
 				entity.setPersistenceRequired();
 				level.addFreshEntity(entity);
 				entity.spawnAnim();

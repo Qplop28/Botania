@@ -34,8 +34,9 @@ public class BotaniaBlockEntity extends BlockEntity {
 	protected void saveAdditional(ValueOutput output) {
 		super.saveAdditional(output);
 		var tag = new CompoundTag();
-		writePacketNBT(tag, output.lookup());
+		writePacketNBT(tag);
 		output.store(TAG_DATA, CompoundTag.CODEC, tag);
+		writePersistentData(output);
 	}
 
 	@NotNull
@@ -52,8 +53,15 @@ public class BotaniaBlockEntity extends BlockEntity {
 	protected void loadAdditional(ValueInput input) {
 		super.loadAdditional(input);
 		input.read(TAG_DATA, CompoundTag.CODEC).ifPresent(tag -> readPacketNBT(tag, input.lookup()));
+		readPersistentData(input);
 		readLegacyPersistentData(input);
 	}
+
+	/** Writes data which belongs on disk, but must not be sent in an update tag. */
+	protected void writePersistentData(ValueOutput output) {}
+
+	/** Reads data written by {@link #writePersistentData(ValueOutput)}. */
+	protected void readPersistentData(ValueInput input) {}
 
 	/** Reads data that older versions stored outside {@value #TAG_DATA}. */
 	protected void readLegacyPersistentData(ValueInput input) {}

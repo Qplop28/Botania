@@ -33,6 +33,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.item.enchantment.EnchantmentInstance;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.tags.EnchantmentTags;
@@ -430,12 +432,27 @@ public class ManaEnchanterBlockEntity extends BotaniaBlockEntity implements Mana
 	}
 
 	@Override
+	protected void writePersistentData(ValueOutput output) {
+		if (!itemToEnchant.isEmpty()) {
+			output.store(TAG_ITEM, ItemStack.CODEC, itemToEnchant);
+		}
+	}
+
+	@Override
+	protected void readPersistentData(ValueInput input) {
+		input.read(TAG_ITEM, ItemStack.CODEC).ifPresent(stack -> itemToEnchant = stack);
+	}
+
+	@Override
 	protected void readPacketNBT(CompoundTag cmp, HolderLookup.Provider registryLookup) {
 		readPacketNBT(cmp);
 		itemToEnchant = cmp.get(TAG_ITEM) == null ? ItemStack.EMPTY
 				: ItemStack.CODEC.parse(RegistryOps.create(NbtOps.INSTANCE, registryLookup), cmp.get(TAG_ITEM))
 						.result().orElse(ItemStack.EMPTY);
-		String enchStr = cmp.getString(TAG_ENCHANTS).orElse("");
+		readEnchantments(cmp.getString(TAG_ENCHANTS).orElse(""), registryLookup);
+	}
+
+	private void readEnchantments(String enchStr, HolderLookup.Provider registryLookup) {
 		if (!enchStr.isEmpty()) {
 			for (String token : enchStr.split(",")) {
 				try {

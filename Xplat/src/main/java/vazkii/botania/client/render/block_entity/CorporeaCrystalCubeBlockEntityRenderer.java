@@ -142,10 +142,10 @@ public class CorporeaCrystalCubeBlockEntityRenderer implements BlockEntityRender
 			for (int i = 0; i < 4; i++) {
 				poseStack.mulPose(VecHelper.rotateY(90F));
 				poseStack.translate(0F, 0F, tr);
-				submitNodeCollector.submitText(poseStack, state.countText, -state.countTextWidth / 2F, 0F,
+				submitNodeCollector.submitText(poseStack, -state.countTextWidth / 2F, 0F, state.countText,
 						state.countColor, false, Font.DisplayMode.NORMAL, state.lightCoords, 0, 0);
 				poseStack.translate(0F, 0F, 0.1F);
-				submitNodeCollector.submitText(poseStack, state.countText, -state.countTextWidth / 2F + 1F, 1F,
+				submitNodeCollector.submitText(poseStack, -state.countTextWidth / 2F + 1F, 1F, state.countText,
 						state.countShadeColor, false, Font.DisplayMode.NORMAL, state.lightCoords, 0, 0);
 				poseStack.translate(0F, 0F, -tr - 0.1F);
 			}

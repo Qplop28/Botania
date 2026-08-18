@@ -389,7 +389,7 @@ public class PetalApothecaryBlockEntity extends SimpleInventoryBlockEntity imple
 					float xPos = (float) (xc + Math.cos(angle * Math.PI / 180D) * radius - 8);
 					float yPos = (float) (yc + Math.sin(angle * Math.PI / 180D) * radius - 8);
 					pose.pushMatrix();
-					pose.translate(xPos, yPos, 0);
+					pose.translate(xPos, yPos);
 					gui.fakeItem(altar.getItemHandler().getItem(i), 0, 0);
 					pose.popMatrix();
 

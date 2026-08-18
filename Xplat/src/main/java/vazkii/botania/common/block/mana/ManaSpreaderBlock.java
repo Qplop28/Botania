@@ -10,6 +10,7 @@ package vazkii.botania.common.block.mana;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
@@ -101,12 +102,12 @@ public class ManaSpreaderBlock extends BotaniaWaterloggedBlock implements Entity
 
 	@NotNull
 	@Override
-	public VoxelShape getOcclusionShape(BlockState state, @NotNull BlockGetter world, @NotNull BlockPos pos) {
+	protected VoxelShape getOcclusionShape(BlockState state) {
 		return SHAPE;
 	}
 
 	@Override
-	public float getShadeBrightness(BlockState state, BlockGetter level, BlockPos pos) {
+	protected float getShadeBrightness(BlockState state) {
 		return 1.0F;
 	}
 
@@ -139,17 +140,17 @@ public class ManaSpreaderBlock extends BotaniaWaterloggedBlock implements Entity
 	@NotNull
 	@Override
 	public RenderShape getRenderShape(BlockState state) {
-		return RenderShape.ENTITYBLOCK_ANIMATED;
+		return RenderShape.INVISIBLE;
 	}
 
 	@Override
-	public InteractionResult use(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+	protected InteractionResult useItemOn(ItemStack heldItem, BlockState state, Level world, BlockPos pos, Player player,
+			InteractionHand hand, BlockHitResult hit) {
 		BlockEntity tile = world.getBlockEntity(pos);
 		if (!(tile instanceof ManaSpreaderBlockEntity spreader)) {
 			return InteractionResult.PASS;
 		}
 
-		ItemStack heldItem = player.getItemInHand(hand);
 		if (heldItem.getItem() instanceof WandOfTheForestItem) {
 			return InteractionResult.PASS;
 		}
@@ -157,12 +158,12 @@ public class ManaSpreaderBlock extends BotaniaWaterloggedBlock implements Entity
 
 		ItemStack lens = spreader.getItemHandler().getItem(0);
 		boolean playerHasLens = heldItem.getItem() instanceof BasicLensItem;
-		boolean lensIsSame = playerHasLens && ItemStack.isSameItemSameTags(heldItem, lens);
+		boolean lensIsSame = playerHasLens && ItemStack.isSameItemSameComponents(heldItem, lens);
 		ItemStack wool = spreader.paddingColor != null
 				? new ItemStack(ColorHelper.WOOL_MAP.apply(spreader.paddingColor))
 				: ItemStack.EMPTY;
 		boolean playerHasWool = ColorHelper.isWool(Block.byItem(heldItem.getItem()));
-		boolean woolIsSame = playerHasWool && ItemStack.isSameItemSameTags(heldItem, wool);
+		boolean woolIsSame = playerHasWool && ItemStack.isSameItemSameComponents(heldItem, wool);
 		boolean playerHasScaffolding = !heldItem.isEmpty() && heldItem.is(Items.SCAFFOLDING);
 		boolean shouldInsert = (playerHasLens && !lensIsSame)
 				|| (playerHasWool && !woolIsSame)
@@ -200,7 +201,7 @@ public class ManaSpreaderBlock extends BotaniaWaterloggedBlock implements Entity
 
 				world.playSound(player, pos, BotaniaSounds.spreaderScaffold, SoundSource.BLOCKS, 1F, 1F);
 			}
-			return InteractionResult.sidedSuccess(world.isClientSide());
+			return world.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
 		}
 
 		if (state.getValue(BotaniaStateProperties.HAS_SCAFFOLDING) && player.isSecondaryUseActive()) {
@@ -213,7 +214,7 @@ public class ManaSpreaderBlock extends BotaniaWaterloggedBlock implements Entity
 
 			world.playSound(player, pos, BotaniaSounds.spreaderUnScaffold, SoundSource.BLOCKS, 1F, 1F);
 
-			return InteractionResult.sidedSuccess(world.isClientSide());
+			return world.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
 		}
 		if (!lens.isEmpty() && (mainHandEmpty || lensIsSame)) {
 			player.getInventory().placeItemBackInInventory(lens);
@@ -221,7 +222,7 @@ public class ManaSpreaderBlock extends BotaniaWaterloggedBlock implements Entity
 
 			world.playSound(player, pos, BotaniaSounds.spreaderRemoveLens, SoundSource.BLOCKS, 1F, 1F);
 
-			return InteractionResult.sidedSuccess(world.isClientSide());
+			return world.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
 		}
 		if (spreader.paddingColor != null && (mainHandEmpty || woolIsSame)) {
 			player.getInventory().placeItemBackInInventory(wool);
@@ -230,20 +231,16 @@ public class ManaSpreaderBlock extends BotaniaWaterloggedBlock implements Entity
 
 			world.playSound(player, pos, BotaniaSounds.spreaderUncover, SoundSource.BLOCKS, 1F, 1F);
 
-			return InteractionResult.sidedSuccess(world.isClientSide());
+			return world.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
 		}
 
 		return InteractionResult.PASS;
 	}
 
 	@Override
-	public void onRemove(@NotNull BlockState state, @NotNull Level world, @NotNull BlockPos pos, @NotNull BlockState newState, boolean isMoving) {
-		if (!state.is(newState.getBlock())) {
-			BlockEntity tile = world.getBlockEntity(pos);
-			if (!(tile instanceof ManaSpreaderBlockEntity spreader)) {
-				return;
-			}
-
+	protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel world, BlockPos pos, boolean isMoving) {
+		BlockEntity tile = world.getBlockEntity(pos);
+		if (tile instanceof ManaSpreaderBlockEntity spreader) {
 			if (spreader.paddingColor != null) {
 				ItemStack padding = new ItemStack(ColorHelper.WOOL_MAP.apply(spreader.paddingColor));
 				Containers.dropItemStack(world, pos.getX(), pos.getY(), pos.getZ(), padding);
@@ -255,9 +252,9 @@ public class ManaSpreaderBlock extends BotaniaWaterloggedBlock implements Entity
 			}
 
 			Containers.dropContents(world, pos, spreader.getItemHandler());
-
-			super.onRemove(state, world, pos, newState, isMoving);
 		}
+
+		super.affectNeighborsAfterRemoval(state, world, pos, isMoving);
 	}
 
 	@NotNull

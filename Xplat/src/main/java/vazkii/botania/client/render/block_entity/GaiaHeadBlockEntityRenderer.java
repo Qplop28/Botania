@@ -82,7 +82,9 @@ public class GaiaHeadBlockEntityRenderer
 		var wallFacing = blockState.getBlock() instanceof WallSkullBlock
 				? blockState.getValue(WallSkullBlock.FACING) : null;
 		int rotation = wallFacing == null ? blockState.getValue(SkullBlock.ROTATION) : 0;
-		state.transformation = SkullBlockRenderer.TRANSFORMATIONS.get(wallFacing).apply(rotation);
+		state.transformation = (wallFacing == null
+				? SkullBlockRenderer.TRANSFORMATIONS.ground()
+				: SkullBlockRenderer.TRANSFORMATIONS.wall().get(wallFacing)).apply(rotation);
 
 		Entity view = Minecraft.getInstance().getCameraEntity();
 		state.skullType = getViewType(view);
@@ -140,7 +142,7 @@ public class GaiaHeadBlockEntityRenderer
 		} else if (type == SkullBlock.Types.DRAGON) {
 			return DRAGON_TEXTURE;
 		}
-		return DefaultPlayerSkin.getDefaultSkin();
+		return DefaultPlayerSkin.getDefaultSkin().body().texturePath();
 	}
 
 	private static SkullModelBase requireModel(EntityModelSet modelSet,

@@ -80,7 +80,7 @@ public class SpecialFlowerBlockEntityRenderer<T extends SpecialFlowerBlockEntity
 		}
 
 		Minecraft minecraft = Minecraft.getInstance();
-		if (!(minecraft.cameraEntity instanceof LivingEntity view) || !ManaseerMonocleItem.hasMonocle(view)) {
+		if (!(minecraft.getCameraEntity() instanceof LivingEntity view) || !ManaseerMonocleItem.hasMonocle(view)) {
 			return;
 		}
 

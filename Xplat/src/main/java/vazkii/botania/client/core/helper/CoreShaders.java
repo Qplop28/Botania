@@ -11,6 +11,7 @@ package vazkii.botania.client.core.helper;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.blaze3d.vertex.VertexFormatElement;
 
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.resources.Identifier;
@@ -40,7 +41,16 @@ public final class CoreShaders {
 		return register(name, snippet, vertexShader, prefix(name).toString(), format, mode);
 	}
 
-	private static final VertexFormat POSITION_TEX_COLOR_LIGHTMAP = DefaultVertexFormat.POSITION_TEX_COLOR_LIGHTMAP;
+	/**
+	 * The position/texture/color/lightmap shaders use UV0 before Color. Vanilla no longer
+	 * publishes this particular layout, so keep the shader input order explicit here.
+	 */
+	public static final VertexFormat POSITION_TEX_COLOR_LIGHTMAP = VertexFormat.builder()
+			.add("Position", VertexFormatElement.POSITION)
+			.add("UV0", VertexFormatElement.UV0)
+			.add("Color", VertexFormatElement.COLOR)
+			.add("UV2", VertexFormatElement.UV2)
+			.build();
 	private static final RenderPipeline POSITION_TEX_COLOR = register("position_tex_color_fallback", null,
 			"core/position_tex_color", "core/position_tex_color", DefaultVertexFormat.POSITION_TEX_COLOR, VertexFormat.Mode.QUADS);
 	private static final RenderPipeline POSITION_TEX_COLOR_LIGHTMAP_PIPELINE = register("position_tex_color_lightmap_fallback", null,

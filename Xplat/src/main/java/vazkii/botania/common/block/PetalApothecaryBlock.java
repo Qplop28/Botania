@@ -9,12 +9,15 @@
 package vazkii.botania.common.block;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.InsideBlockEffectApplier;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -106,8 +109,9 @@ public class PetalApothecaryBlock extends BotaniaBlock implements EntityBlock {
 	}
 
 	@Override
-	public void entityInside(BlockState state, Level world, BlockPos pos, Entity entity) {
-		if (!world.isClientSide && entity instanceof ItemEntity itemEntity) {
+	protected void entityInside(BlockState state, Level world, BlockPos pos, Entity entity,
+			InsideBlockEffectApplier effectApplier, boolean entityIsAbove) {
+		if (!world.isClientSide() && entity instanceof ItemEntity itemEntity) {
 			PetalApothecaryBlockEntity tile = (PetalApothecaryBlockEntity) world.getBlockEntity(pos);
 			if (tile.collideEntityItem(itemEntity)) {
 				VanillaPacketDispatcher.dispatchTEToNearbyPlayers(tile);
@@ -116,7 +120,19 @@ public class PetalApothecaryBlock extends BotaniaBlock implements EntityBlock {
 	}
 
 	@Override
-	public InteractionResult use(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+	protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level world, BlockPos pos, Player player,
+			InteractionHand hand, BlockHitResult hit) {
+		return handleInteraction(world, pos, player, hand);
+	}
+
+	@Override
+	protected InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player,
+			BlockHitResult hit) {
+		return handleInteraction(world, pos, player, InteractionHand.MAIN_HAND);
+	}
+
+	private InteractionResult handleInteraction(Level world, BlockPos pos, Player player,
+			InteractionHand hand) {
 		if (!(world.getBlockEntity(pos) instanceof PetalApothecaryBlockEntity apothecary)) {
 			return InteractionResult.PASS;
 		}
@@ -127,17 +143,17 @@ public class PetalApothecaryBlock extends BotaniaBlock implements EntityBlock {
 		} else if (!apothecary.isEmpty() && mainHandEmpty) {
 			InventoryHelper.withdrawFromInventory(apothecary, player);
 			VanillaPacketDispatcher.dispatchTEToNearbyPlayers(apothecary);
-			return InteractionResult.sidedSuccess(world.isClientSide());
+			return world.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
 		} else if (tryWithdrawFluid(player, hand, apothecary, pos) || tryDepositFluid(player, hand, apothecary, pos)) {
-			return InteractionResult.sidedSuccess(world.isClientSide());
+			return world.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
 		}
 
 		return InteractionResult.PASS;
 	}
 
 	@Override
-	public void handlePrecipitation(BlockState state, Level world, BlockPos pos, Biome.Precipitation precipitation) {
-		if (world.random.nextInt(20) == 1) {
+	protected void handlePrecipitation(BlockState state, ServerLevel world, BlockPos pos, Biome.Precipitation precipitation) {
+		if (world.getRandom().nextInt(20) == 1) {
 			if (state.getValue(FLUID) == State.EMPTY) {
 				world.setBlockAndUpdate(pos, state.setValue(FLUID, State.WATER));
 				world.gameEvent(null, GameEvent.BLOCK_CHANGE, pos);
@@ -202,7 +218,7 @@ public class PetalApothecaryBlock extends BotaniaBlock implements EntityBlock {
 	@Nullable
 	@Override
 	public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-		if (level.isClientSide) {
+		if (level.isClientSide()) {
 			return createTickerHelper(type, BotaniaBlockEntities.ALTAR, PetalApothecaryBlockEntity::clientTick);
 		} else {
 			return createTickerHelper(type, BotaniaBlockEntities.ALTAR, PetalApothecaryBlockEntity::serverTick);
@@ -210,17 +226,12 @@ public class PetalApothecaryBlock extends BotaniaBlock implements EntityBlock {
 	}
 
 	@Override
-	public void onRemove(@NotNull BlockState state, @NotNull Level world, @NotNull BlockPos pos, @NotNull BlockState newState, boolean isMoving) {
-		boolean blockChanged = !state.is(newState.getBlock());
-		if (blockChanged || newState.getValue(FLUID) != State.WATER) {
-			BlockEntity be = world.getBlockEntity(pos);
-			if (be instanceof SimpleInventoryBlockEntity inventory) {
-				Containers.dropContents(world, pos, inventory.getItemHandler());
-			}
-			if (blockChanged) {
-				super.onRemove(state, world, pos, newState, isMoving);
-			}
+	protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel world, BlockPos pos, boolean isMoving) {
+		BlockEntity be = world.getBlockEntity(pos);
+		if (be instanceof SimpleInventoryBlockEntity inventory) {
+			Containers.dropContents(world, pos, inventory.getItemHandler());
 		}
+		super.affectNeighborsAfterRemoval(state, world, pos, isMoving);
 	}
 
 	@Override
@@ -229,7 +240,7 @@ public class PetalApothecaryBlock extends BotaniaBlock implements EntityBlock {
 	}
 
 	@Override
-	public int getAnalogOutputSignal(BlockState state, Level world, BlockPos pos) {
+	public int getAnalogOutputSignal(BlockState state, Level world, BlockPos pos, Direction direction) {
 		return state.getValue(FLUID) == State.WATER ? 15 : 0;
 	}
 }

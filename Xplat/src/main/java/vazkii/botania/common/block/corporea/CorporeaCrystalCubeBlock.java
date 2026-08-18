@@ -9,6 +9,7 @@
 package vazkii.botania.common.block.corporea;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -45,7 +46,7 @@ public class CorporeaCrystalCubeBlock extends BotaniaWaterloggedBlock implements
 
 	@Override
 	public void attack(BlockState state, Level world, BlockPos pos, Player player) {
-		if (!world.isClientSide) {
+		if (!world.isClientSide()) {
 			CorporeaCrystalCubeBlockEntity cube = (CorporeaCrystalCubeBlockEntity) world.getBlockEntity(pos);
 			cube.doRequest(player);
 		}
@@ -58,21 +59,21 @@ public class CorporeaCrystalCubeBlock extends BotaniaWaterloggedBlock implements
 	}
 
 	@Override
-	public InteractionResult use(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
-		ItemStack stack = player.getItemInHand(hand);
+	protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level world, BlockPos pos, Player player,
+			InteractionHand hand, BlockHitResult hit) {
 		if (!stack.isEmpty()) {
 			if (stack.getItem() instanceof WandOfTheForestItem && player.isSecondaryUseActive()) {
 				return InteractionResult.PASS;
 			}
 			CorporeaCrystalCubeBlockEntity cube = (CorporeaCrystalCubeBlockEntity) world.getBlockEntity(pos);
 			if (cube.locked) {
-				if (!world.isClientSide) {
-					player.displayClientMessage(Component.translatable("botaniamisc.crystalCubeLocked"), false);
+				if (!world.isClientSide()) {
+					player.sendSystemMessage(Component.translatable("botaniamisc.crystalCubeLocked"));
 				}
-			} else {
+			} else if (!world.isClientSide()) {
 				cube.setRequestTarget(stack);
 			}
-			return InteractionResult.sidedSuccess(world.isClientSide());
+			return world.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
 		}
 		return InteractionResult.PASS;
 	}
@@ -86,7 +87,7 @@ public class CorporeaCrystalCubeBlock extends BotaniaWaterloggedBlock implements
 	@Nullable
 	@Override
 	public <T extends BlockEntity> BlockEntityTicker<T> getTicker(@NotNull Level level, @NotNull BlockState state, @NotNull BlockEntityType<T> type) {
-		if (!level.isClientSide) {
+		if (!level.isClientSide()) {
 			return createTickerHelper(type, BotaniaBlockEntities.CORPOREA_CRYSTAL_CUBE, CorporeaCrystalCubeBlockEntity::serverTick);
 		}
 		return null;
@@ -98,7 +99,7 @@ public class CorporeaCrystalCubeBlock extends BotaniaWaterloggedBlock implements
 	}
 
 	@Override
-	public int getAnalogOutputSignal(BlockState state, Level world, BlockPos pos) {
+	public int getAnalogOutputSignal(BlockState state, Level world, BlockPos pos, Direction direction) {
 		return ((CorporeaCrystalCubeBlockEntity) world.getBlockEntity(pos)).getComparatorValue();
 	}
 }

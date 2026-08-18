@@ -22,7 +22,7 @@ public class StarfieldCreatorBlockEntity extends BotaniaBlockEntity {
 
 	public static void clientTick(Level level, BlockPos worldPosition, BlockState state, StarfieldCreatorBlockEntity self) {
 		level.updateSkyBrightness(); // this isn't called often on clients, but we need so that isDay is accurate.
-		if (level.isDay()) {
+		if (level.getSkyDarken() < 4) {
 			return;
 		}
 
@@ -44,7 +44,7 @@ public class StarfieldCreatorBlockEntity extends BotaniaBlockEntity {
 			int m = 50;
 
 			SparkleParticleData data = SparkleParticleData.sparkle(s, r, g, b, m);
-			level.addParticle(data, true, x, y, z, 0, 0, 0);
+			level.addParticle(data, true, false, x, y, z, 0, 0, 0);
 		}
 	}
 

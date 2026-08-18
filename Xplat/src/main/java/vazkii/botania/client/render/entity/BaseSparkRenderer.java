@@ -17,7 +17,7 @@ import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.world.inventory.InventoryMenu;
+import net.minecraft.client.renderer.texture.TextureAtlas;
 
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
@@ -40,7 +40,7 @@ public abstract class BaseSparkRenderer<T extends SparkBaseEntity> extends Entit
 
 	public BaseSparkRenderer(EntityRendererProvider.Context ctx) {
 		super(ctx);
-		var atlas = Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS);
+		var atlas = Minecraft.getInstance().getTextureAtlas(TextureAtlas.LOCATION_BLOCKS);
 		this.starSprite = Objects.requireNonNull(atlas.apply(prefix("item/corporea_spark_star")));
 		this.worldSprite = Objects.requireNonNull(atlas.apply(prefix("item/spark")));
 	}

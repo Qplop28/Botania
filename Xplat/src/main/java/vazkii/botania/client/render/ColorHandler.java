@@ -105,7 +105,7 @@ public final class ColorHandler {
 
 	public static void submitBlocks(BlockHandlerConsumer blocks) {
 		// [VanillaCopy] BlockColors for vine
-		blocks.register(tinted((state, world, pos, tint) -> world != null && pos != null ? BiomeColors.getAverageFoliageColor(world, pos) : FoliageColor.getDefaultColor()), BotaniaBlocks.solidVines);
+		blocks.register(tinted((state, world, pos, tint) -> world != null && pos != null ? BiomeColors.getAverageFoliageColor(world, pos) : FoliageColor.FOLIAGE_DEFAULT), BotaniaBlocks.solidVines);
 
 		// Pool
 		blocks.register(tinted(
@@ -158,7 +158,7 @@ public final class ColorHandler {
 							if (camoState != null) {
 								return camoState.getBlock() instanceof PlatformBlock
 										? 0xFFFFFF
-										: Minecraft.getInstance().getBlockColors().getColor(camoState, world, pos, tintIndex);
+										: Minecraft.getInstance().getBlockColors().getColor(camoState, world, pos);
 							}
 						}
 					}
@@ -196,7 +196,7 @@ public final class ColorHandler {
 				: -1,
 				BotaniaItems.twigWand, BotaniaItems.dreamwoodWand);
 
-		items.register((s, t) -> t == 0 ? Minecraft.getInstance().getBlockColors().getColor(((BlockItem) s.getItem()).getBlock().defaultBlockState(), null, null, t) : -1,
+		items.register((s, t) -> t == 0 ? Minecraft.getInstance().getBlockColors().getColor(((BlockItem) s.getItem()).getBlock().defaultBlockState()) : -1,
 				BotaniaBlocks.petalBlockWhite, BotaniaBlocks.petalBlockOrange, BotaniaBlocks.petalBlockMagenta, BotaniaBlocks.petalBlockLightBlue,
 				BotaniaBlocks.petalBlockYellow, BotaniaBlocks.petalBlockLime, BotaniaBlocks.petalBlockPink, BotaniaBlocks.petalBlockGray,
 				BotaniaBlocks.petalBlockSilver, BotaniaBlocks.petalBlockCyan, BotaniaBlocks.petalBlockPurple, BotaniaBlocks.petalBlockBlue,

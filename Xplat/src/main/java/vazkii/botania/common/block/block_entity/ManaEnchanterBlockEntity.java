@@ -41,7 +41,6 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
 
 import org.jetbrains.annotations.Nullable;
@@ -419,13 +418,6 @@ public class ManaEnchanterBlockEntity extends BotaniaBlockEntity implements Mana
 		stage3EndTicks = cmp.getInt(TAG_STAGE_3_END_TICKS).orElse(0);
 
 		enchants.clear();
-	}
-
-	@Override
-	protected void writePacketNBT(ValueOutput output) {
-		if (!itemToEnchant.isEmpty()) {
-			output.store(TAG_ITEM, ItemStack.CODEC, itemToEnchant);
-		}
 	}
 
 	@Override

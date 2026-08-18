@@ -34,9 +34,8 @@ public class BotaniaBlockEntity extends BlockEntity {
 	protected void saveAdditional(ValueOutput output) {
 		super.saveAdditional(output);
 		var tag = new CompoundTag();
-		writePacketNBT(tag);
+		writePacketNBT(tag, output.lookup());
 		output.store(TAG_DATA, CompoundTag.CODEC, tag);
-		writePacketNBT(output.child(TAG_DATA));
 	}
 
 	@NotNull
@@ -53,16 +52,17 @@ public class BotaniaBlockEntity extends BlockEntity {
 	protected void loadAdditional(ValueInput input) {
 		super.loadAdditional(input);
 		input.read(TAG_DATA, CompoundTag.CODEC).ifPresent(tag -> readPacketNBT(tag, input.lookup()));
+		readLegacyPersistentData(input);
 	}
+
+	/** Reads data that older versions stored outside {@value #TAG_DATA}. */
+	protected void readLegacyPersistentData(ValueInput input) {}
 
 	public void writePacketNBT(CompoundTag cmp) {}
 
 	public void readPacketNBT(CompoundTag cmp) {}
 
-	/** Registry-aware save hook for data that cannot safely be encoded into a plain tag. */
-	protected void writePacketNBT(ValueOutput output) {}
-
-	/** Registry-aware packet save hook; legacy subclasses continue through the plain-tag method. */
+	/** Registry-aware save hook; legacy subclasses continue through the plain-tag method. */
 	protected void writePacketNBT(CompoundTag cmp, HolderLookup.Provider registryLookup) {
 		writePacketNBT(cmp);
 	}

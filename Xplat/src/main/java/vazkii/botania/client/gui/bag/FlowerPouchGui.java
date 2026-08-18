@@ -8,8 +8,7 @@
  */
 package vazkii.botania.client.gui.bag;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.pipeline.RenderPipelines;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -26,28 +25,17 @@ public class FlowerPouchGui extends AbstractContainerScreen<FlowerPouchContainer
 	private static final Identifier texture = Identifier.parse(ResourcesLib.GUI_FLOWER_BAG);
 
 	public FlowerPouchGui(FlowerPouchContainer container, Inventory playerInv, Component title) {
-		super(container, playerInv, title);
-		imageHeight += 36;
-
-		// recompute, same as super
-		inventoryLabelY = imageHeight - 94;
+		super(container, playerInv, title, 176, 202);
 	}
 
 	@Override
-	public void render(GuiGraphicsExtractor gui, int mouseX, int mouseY, float partialTicks) {
-		this.renderBackground(gui);
-		super.render(gui, mouseX, mouseY, partialTicks);
-		this.renderTooltip(gui, mouseX, mouseY);
-	}
-
-	@Override
-	protected void renderBg(GuiGraphicsExtractor gui, float partialTicks, int mouseX, int mouseY) {
-		PoseStack ms = gui.pose();
+	protected void renderBg(GuiGraphicsExtractor gui, int mouseX, int mouseY) {
+		var pose = gui.pose();
 		Minecraft mc = Minecraft.getInstance();
-		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 		int k = (width - imageWidth) / 2;
 		int l = (height - imageHeight) / 2;
-		gui.blit(texture, k, l, 0, 0, imageWidth, imageHeight);
+		gui.blit(RenderPipelines.GUI_TEXTURED, texture, k, l, 0, 0,
+				imageWidth, imageHeight, imageWidth, imageHeight, 256, 256, 0xFFFFFFFF);
 
 		for (Slot slot : menu.slots) {
 			if (slot.container == menu.flowerBagInv
@@ -57,17 +45,18 @@ public class FlowerPouchGui extends AbstractContainerScreen<FlowerPouchContainer
 				int y = this.topPos + slot.y;
 
 				// Always draw the count even at 1
-				ms.pushPose();
+				pose.pushMatrix();
 				// Same as how much vanilla offsets when drawing items in GUIs
-				ms.translate(0, 0, 200);
-				gui.drawString(
+				pose.translate(0, 0, 200);
+				gui.text(
 						mc.font,
 						"1",
 						x + 11,
 						y + 9,
-						0xFFFFFF
+						0xFFFFFF,
+						true
 				);
-				ms.popPose();
+				pose.popMatrix();
 			}
 		}
 	}

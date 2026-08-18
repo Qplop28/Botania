@@ -368,7 +368,7 @@ public class PetalApothecaryBlockEntity extends SimpleInventoryBlockEntity imple
 				altar.findRecipe().ifPresent(recipeHolder -> {
 					PetalApothecaryRecipe recipe = recipeHolder.value();
 					gui.blit(HUDHandler.manaBar, xc + radius + 9, yc - 8, 22, 15,
-							0F, 8F / 256F, 22F / 256F, 23F / 256F);
+							0F, 22F / 256F, 8F / 256F, 23F / 256F);
 
 					ItemStack stack = recipe.assemble(altar.createRecipeInput());
 					gui.fakeItem(stack, xc + radius + 32, yc - 8);
@@ -386,8 +386,8 @@ public class PetalApothecaryBlockEntity extends SimpleInventoryBlockEntity imple
 				});
 
 				for (int i = 0; i < amt; i++) {
-					double xPos = xc + Math.cos(angle * Math.PI / 180D) * radius - 8;
-					double yPos = yc + Math.sin(angle * Math.PI / 180D) * radius - 8;
+					float xPos = (float) (xc + Math.cos(angle * Math.PI / 180D) * radius - 8);
+					float yPos = (float) (yc + Math.sin(angle * Math.PI / 180D) * radius - 8);
 					pose.pushMatrix();
 					pose.translate(xPos, yPos, 0);
 					gui.fakeItem(altar.getItemHandler().getItem(i), 0, 0);

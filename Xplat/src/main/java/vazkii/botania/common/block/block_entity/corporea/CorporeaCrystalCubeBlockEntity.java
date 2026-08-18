@@ -13,6 +13,7 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.resources.RegistryOps;
@@ -24,6 +25,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.GameEvent;
+import net.minecraft.world.level.storage.ValueOutput;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -123,9 +125,6 @@ public class CorporeaCrystalCubeBlockEntity extends BaseCorporeaBlockEntity impl
 	@Override
 	public void writePacketNBT(CompoundTag tag) {
 		super.writePacketNBT(tag);
-		var ops = RegistryOps.create(NbtOps.INSTANCE, level.registryAccess());
-		ItemStack.OPTIONAL_CODEC.encodeStart(ops, requestTarget).result()
-				.ifPresent(encoded -> tag.put(TAG_REQUEST_TARGET, encoded));
 		tag.putInt(TAG_ITEM_COUNT, itemCount);
 		tag.putBoolean(TAG_LOCK, locked);
 		tag.putBoolean(TAG_HIDE_COUNT, hideCount);
@@ -134,13 +133,30 @@ public class CorporeaCrystalCubeBlockEntity extends BaseCorporeaBlockEntity impl
 	@Override
 	public void readPacketNBT(CompoundTag tag) {
 		super.readPacketNBT(tag);
-		var ops = RegistryOps.create(NbtOps.INSTANCE, level.registryAccess());
-		requestTarget = tag.getCompound(TAG_REQUEST_TARGET)
-				.flatMap(encoded -> ItemStack.OPTIONAL_CODEC.parse(ops, encoded).result())
-				.orElse(ItemStack.EMPTY);
 		setCount(tag.getInt(TAG_ITEM_COUNT).orElse(0));
 		locked = tag.getBoolean(TAG_LOCK).orElse(false);
 		hideCount = tag.getBoolean(TAG_HIDE_COUNT).orElse(false);
+	}
+
+	@Override
+	protected void writePacketNBT(ValueOutput output) {
+		output.store(TAG_REQUEST_TARGET, ItemStack.OPTIONAL_CODEC, requestTarget);
+	}
+
+	@Override
+	protected void writePacketNBT(CompoundTag tag, HolderLookup.Provider registryLookup) {
+		writePacketNBT(tag);
+		ItemStack.OPTIONAL_CODEC.encodeStart(RegistryOps.create(NbtOps.INSTANCE, registryLookup), requestTarget)
+				.result().ifPresent(encoded -> tag.put(TAG_REQUEST_TARGET, encoded));
+	}
+
+	@Override
+	protected void readPacketNBT(CompoundTag tag, HolderLookup.Provider registryLookup) {
+		readPacketNBT(tag);
+		requestTarget = tag.getCompound(TAG_REQUEST_TARGET)
+				.flatMap(encoded -> ItemStack.OPTIONAL_CODEC.parse(
+						RegistryOps.create(NbtOps.INSTANCE, registryLookup), encoded).result())
+				.orElse(ItemStack.EMPTY);
 	}
 
 	public int getComparatorValue() {

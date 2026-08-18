@@ -316,7 +316,7 @@ public class BotaniaBlockEntityItemRenderer implements SpecialModelRenderer<Item
 		ModelPart root = context.entityModelSet().bakeLayer(BotaniaModelLayers.CORPOREA_INDEX);
 		ModelPart ring = root.getChild("ring");
 		ModelPart cube = root.getChild("cube");
-		RenderType renderType = RenderTypes.entityCutoutNoCull(Identifier.parse(ResourcesLib.MODEL_CORPOREA_INDEX));
+		RenderType renderType = RenderTypes.entityCutout(Identifier.parse(ResourcesLib.MODEL_CORPOREA_INDEX), false);
 		return new RootDelegate(root) {
 			@Override
 			public void submit(ItemStack stack, PoseStack poseStack, SubmitNodeCollector collector,

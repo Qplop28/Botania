@@ -26,7 +26,7 @@ public class PixieModel extends EntityModel<PixieRenderState> {
 	private final ModelPart rightWingB;
 
 	public PixieModel(ModelPart root) {
-		super(root, RenderTypes::entityCutoutNoCull);
+		super(root, RenderTypes::entityCutout);
 
 		body = root.getChild("body");
 		leftWingT = root.getChild("leftWingT");

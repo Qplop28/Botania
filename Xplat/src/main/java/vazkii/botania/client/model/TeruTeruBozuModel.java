@@ -65,7 +65,7 @@ public class TeruTeruBozuModel {
 	public void submit(TeruTeruBozuRenderState state, PoseStack poseStack,
 			SubmitNodeCollector submitNodeCollector, Identifier texture, int overlay,
 			boolean hasFoil, int outlineColor) {
-		var renderType = RenderTypes.entityCutoutNoCull(texture);
+		var renderType = RenderTypes.entityCutout(texture);
 		for (ModelPart part : List.of(state.raining ? sadFace : happyFace, thread, cloth)) {
 			submitNodeCollector.submitModelPart(part, poseStack, renderType, state.lightCoords, overlay,
 					null, false, hasFoil, -1, state.breakProgress, outlineColor);

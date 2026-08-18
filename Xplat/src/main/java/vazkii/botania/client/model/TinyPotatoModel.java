@@ -12,6 +12,7 @@ import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.world.entity.ItemOwner;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.core.component.DataComponents;
 
 import vazkii.botania.client.core.proxy.ClientProxy;
 import vazkii.botania.client.render.block_entity.TinyPotatoBlockEntityRenderer;
@@ -25,7 +26,7 @@ public final class TinyPotatoModel extends WrapperBakedItemModel {
 	@Override
 	public void update(ItemStackRenderState renderState, ItemStack stack, ItemModelResolver resolver,
 			ItemDisplayContext displayContext, ClientLevel level, ItemOwner itemOwner, int seed) {
-		if (!stack.hasCustomHoverName() && !ClientProxy.dootDoot) {
+		if (!stack.has(DataComponents.CUSTOM_NAME) && !ClientProxy.dootDoot) {
 			super.update(renderState, stack, resolver, displayContext, level, itemOwner, seed);
 			return;
 		}

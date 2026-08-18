@@ -129,12 +129,12 @@ public final class MiscellaneousModels {
 		}
 		if (key == null) {
 			BotaniaAPI.LOGGER.error("No Tiny Potato item model was registered for {}", id);
-			return Minecraft.getInstance().getItemModelResolver().getMissingModel();
+			return Minecraft.getInstance().getModelManager().getItemModel(id);
 		}
 		ItemModel model = ((FabricModelManager) Minecraft.getInstance().getModelManager()).getModel(key);
 		if (model == null) {
 			BotaniaAPI.LOGGER.error("Missing registered Tiny Potato item model; identifier={}, key={}", id, key);
-			return Minecraft.getInstance().getItemModelResolver().getMissingModel();
+			return Minecraft.getInstance().getModelManager().getItemModel(id);
 		}
 		return model;
 	}

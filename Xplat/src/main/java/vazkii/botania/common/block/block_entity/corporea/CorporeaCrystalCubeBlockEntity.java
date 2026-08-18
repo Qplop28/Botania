@@ -25,7 +25,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.GameEvent;
-import net.minecraft.world.level.storage.ValueOutput;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -136,11 +135,6 @@ public class CorporeaCrystalCubeBlockEntity extends BaseCorporeaBlockEntity impl
 		setCount(tag.getInt(TAG_ITEM_COUNT).orElse(0));
 		locked = tag.getBoolean(TAG_LOCK).orElse(false);
 		hideCount = tag.getBoolean(TAG_HIDE_COUNT).orElse(false);
-	}
-
-	@Override
-	protected void writePacketNBT(ValueOutput output) {
-		output.store(TAG_REQUEST_TARGET, ItemStack.OPTIONAL_CODEC, requestTarget);
 	}
 
 	@Override

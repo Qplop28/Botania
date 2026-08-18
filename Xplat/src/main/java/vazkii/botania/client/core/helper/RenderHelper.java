@@ -13,11 +13,8 @@ import com.mojang.blaze3d.pipeline.ColorTargetState;
 import com.mojang.blaze3d.pipeline.DepthStencilState;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.platform.CompareOp;
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexFormat;
 
@@ -41,7 +38,6 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 
 import org.joml.Matrix4f;
-import org.lwjgl.opengl.GL11;
 
 import vazkii.botania.client.core.handler.ClientTickHandler;
 import vazkii.botania.client.lib.ResourcesLib;
@@ -56,13 +52,13 @@ import java.util.Random;
 import java.util.function.Function;
 
 public final class RenderHelper {
-	private static final RenderPipeline STAR_PIPELINE = pipeline("star", RenderPipelines.POSITION_COLOR_SNIPPET,
+	private static final RenderPipeline STAR_PIPELINE = pipeline("star", null,
 			DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.TRIANGLES, BlendFunction.LIGHTNING, true,
 			CompareOp.LESS_THAN_OR_EQUAL, false, 1);
-	private static final RenderPipeline HIGHLIGHT_QUADS_PIPELINE = pipeline("rectangle_highlight", RenderPipelines.POSITION_COLOR_SNIPPET,
+	private static final RenderPipeline HIGHLIGHT_QUADS_PIPELINE = pipeline("rectangle_highlight", null,
 			DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS, BlendFunction.TRANSLUCENT, false,
 			CompareOp.LESS_THAN_OR_EQUAL, true, 1);
-	private static final RenderPipeline HIGHLIGHT_TRIANGLES_PIPELINE = pipeline("circle_highlight", RenderPipelines.POSITION_COLOR_SNIPPET,
+	private static final RenderPipeline HIGHLIGHT_TRIANGLES_PIPELINE = pipeline("circle_highlight", null,
 			DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.TRIANGLES, BlendFunction.TRANSLUCENT, false,
 			CompareOp.LESS_THAN_OR_EQUAL, true, 1);
 	private static final RenderPipeline LINE_PIPELINE = linePipeline("red_string", 1, false);
@@ -70,17 +66,17 @@ public final class RenderHelper {
 	private static final RenderPipeline LINE_4_NO_DEPTH_PIPELINE = linePipeline("line_4_no_depth", 4, true);
 	private static final RenderPipeline LINE_5_NO_DEPTH_PIPELINE = linePipeline("line_5_no_depth", 5, true);
 	private static final RenderPipeline LINE_8_NO_DEPTH_PIPELINE = linePipeline("line_8_no_depth", 8, true);
-	private static final RenderPipeline SPARK_PIPELINE = pipeline("spark", RenderPipelines.POSITION_COLOR_TEX_LIGHTMAP_SNIPPET,
+	private static final RenderPipeline SPARK_PIPELINE = pipeline("spark", null,
 			DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP, VertexFormat.Mode.QUADS, BlendFunction.TRANSLUCENT, true,
 			CompareOp.LESS_THAN_OR_EQUAL, true, 1);
-	private static final RenderPipeline ICON_OVERLAY_PIPELINE = pipeline("icon_overlay", RenderPipelines.POSITION_COLOR_TEX_LIGHTMAP_SNIPPET,
+	private static final RenderPipeline ICON_OVERLAY_PIPELINE = pipeline("icon_overlay", null,
 			DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP, VertexFormat.Mode.QUADS, BlendFunction.TRANSLUCENT, true,
 			CompareOp.LESS_THAN_OR_EQUAL, true, 1);
-	private static final RenderPipeline LIGHTNING_PIPELINE = pipeline("lightning", RenderPipelines.POSITION_COLOR_SNIPPET,
+	private static final RenderPipeline LIGHTNING_PIPELINE = pipeline("lightning", null,
 			DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS, BlendFunction.LIGHTNING, true,
 			CompareOp.LESS_THAN_OR_EQUAL, true, 1);
-	private static final RenderPipeline ASTROLABE_PIPELINE = pipeline("astrolabe", RenderPipelines.ENTITY_SNIPPET,
-			DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS, BlendFunction.TRANSLUCENT, true,
+	private static final RenderPipeline ASTROLABE_PIPELINE = pipeline("astrolabe", null,
+			DefaultVertexFormat.ENTITY, VertexFormat.Mode.QUADS, BlendFunction.TRANSLUCENT, true,
 			CompareOp.LESS_THAN_OR_EQUAL, true, 1);
 
 	private static final RenderType STAR = layer("star", STAR_PIPELINE, 256, false, false, null);
@@ -108,7 +104,7 @@ public final class RenderHelper {
 	public static final RenderType ASTROLABE_PREVIEW = layer("astrolabe", ASTROLABE_PIPELINE, 256, true, true, TextureAtlas.LOCATION_BLOCKS);
 	public static final RenderType STARFIELD = starfield();
 	public static final RenderType LIGHTNING = layer("lightning", LIGHTNING_PIPELINE, 256, false, true, null);
-	public static final RenderType TRANSLUCENT = RenderTypes.entityTranslucentCull(TextureAtlas.LOCATION_BLOCKS);
+	public static final RenderType TRANSLUCENT = RenderTypes.entityTranslucentCullItemTarget(TextureAtlas.LOCATION_BLOCKS);
 
 	private static final int ITEM_AND_PADDING_WIDTH = 20;
 	private static final double INITIAL_OFFSET = 0.005;
@@ -118,8 +114,16 @@ public final class RenderHelper {
 	private static RenderPipeline pipeline(String name, RenderPipeline.Snippet snippet, VertexFormat format,
 			VertexFormat.Mode mode, BlendFunction blend, boolean cull, CompareOp depthCompare,
 			boolean depthWrite, int lineWidth) {
-		var builder = RenderPipeline.builder(snippet)
-				.withLocation(Identifier.parse(ResourcesLib.PREFIX_MOD + name))
+		var builder = snippet == null
+				? RenderPipeline.builder()
+						.withVertexShader(format == DefaultVertexFormat.ENTITY
+								? "core/rendertype_entity_translucent" : format == DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP
+										? "core/position_color_tex_lightmap" : "core/position_color")
+						.withFragmentShader(format == DefaultVertexFormat.ENTITY
+								? "core/rendertype_entity_translucent" : format == DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP
+										? "core/position_color_tex_lightmap" : "core/position_color")
+				: RenderPipeline.builder(snippet);
+		builder = builder.withLocation(Identifier.parse(ResourcesLib.PREFIX_MOD + name))
 				.withVertexFormat(format, mode)
 				.withCull(cull)
 				.withDepthStencilState(new DepthStencilState(depthCompare, depthWrite, 0, 0))
@@ -301,48 +305,17 @@ public final class RenderHelper {
 	}
 
 	public static void renderProgressPie(GuiGraphicsExtractor gui, int x, int y, float progress, ItemStack stack) {
-		PoseStack ms = gui.pose();
-		Minecraft mc = Minecraft.getInstance();
-		gui.renderItem(stack, x, y);
+		gui.item(stack, x, y);
 
-		RenderSystem.clear(GL11.GL_DEPTH_BUFFER_BIT, true);
-		GL11.glEnable(GL11.GL_STENCIL_TEST);
-		RenderSystem.colorMask(false, false, false, false);
-		RenderSystem.depthMask(false);
-		RenderSystem.stencilFunc(GL11.GL_NEVER, 1, 0xFF);
-		RenderSystem.stencilOp(GL11.GL_REPLACE, GL11.GL_KEEP, GL11.GL_KEEP);
-		RenderSystem.stencilMask(0xFF);
-		gui.renderItem(stack, x, y);
-
-		int r = 10;
-		int centerX = x + 8;
-		int centerY = y + 8;
-		int degs = (int) (360 * progress);
-		float a = 0.5F + 0.2F * ((float) Math.cos((double) (ClientTickHandler.ticksInGame + ClientTickHandler.partialTicks) / 10) * 0.5F + 0.5F);
-
-		RenderSystem.enableBlend();
-		RenderSystem.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-		RenderSystem.colorMask(true, true, true, true);
-		RenderSystem.depthMask(true);
-		RenderSystem.stencilMask(0x00);
-		RenderSystem.stencilFunc(GL11.GL_EQUAL, 1, 0xFF);
-
-		Matrix4f mat = ms.last().pose();
-		BufferBuilder buf = Tesselator.getInstance().getBuilder();
-		RenderSystem.setPipeline(RenderPipelines.DEBUG_FILLED);
-		buf.begin(VertexFormat.Mode.TRIANGLE_FAN, DefaultVertexFormat.POSITION_COLOR);
-		buf.addVertex(mat, centerX, centerY, 0).setColor(0, 0.5F, 0.5F, a);
-
-		for (int i = degs; i >= 0; i--) {
-			float rad = (i - 90) / 180F * (float) Math.PI;
-			buf.addVertex(mat, centerX + Mth.cos(rad) * r, centerY + Mth.sin(rad) * r, 0).setColor(0F, 1F, 0.5F, a);
+		// GUI rendering is extracted into immutable render-state nodes in 26.1.2. Represent the
+		// progress without mutating global depth/stencil state, which is no longer safe here.
+		int covered = Mth.clamp(Mth.ceil(16F * progress), 0, 16);
+		if (covered > 0) {
+			float pulse = 0.5F + 0.2F * ((float) Math.cos(
+					(ClientTickHandler.ticksInGame + ClientTickHandler.partialTicks) / 10.0) * 0.5F + 0.5F);
+			int alpha = Mth.clamp((int) (pulse * 255F), 0, 255);
+			gui.fill(x, y + 16 - covered, x + 16, y + 16, ARGB.color(alpha, 0, 255, 128));
 		}
-
-		buf.addVertex(mat, centerX, centerY, 0).setColor(0F, 1F, 0.5F, a);
-		Tesselator.getInstance().end();
-
-		RenderSystem.disableBlend();
-		GL11.glDisable(GL11.GL_STENCIL_TEST);
 	}
 
 	/**
@@ -448,8 +421,8 @@ public final class RenderHelper {
 	*/
 	public static void renderItemWithName(GuiGraphicsExtractor gui, Minecraft mc, ItemStack itemStack, int startX, int startY, int color) {
 		if (!itemStack.isEmpty()) {
-			gui.drawString(mc.font, itemStack.getHoverName(), startX + ITEM_AND_PADDING_WIDTH, startY + 4, color);
-			gui.renderItem(itemStack, startX, startY);
+			gui.text(mc.font, itemStack.getHoverName(), startX + ITEM_AND_PADDING_WIDTH, startY + 4, color);
+			gui.item(itemStack, startX, startY);
 		}
 	}
 

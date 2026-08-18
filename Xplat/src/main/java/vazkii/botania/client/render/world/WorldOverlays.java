@@ -17,7 +17,7 @@ public final class WorldOverlays {
 		BoltRenderer.onWorldRenderLast(camera, tickDelta, matrix, buffers);
 		AssemblyHaloItem.Rendering.onRenderWorldLast(camera, tickDelta, matrix, buffers, submitNodeCollector);
 		BoundBlockRenderer.onWorldRenderLast(camera, matrix, level);
-		AstrolabePreviewHandler.onWorldRenderLast(matrix, buffers, level);
+		AstrolabePreviewHandler.onWorldRenderLast(matrix, level, submitNodeCollector);
 		RenderHelper.onWorldRenderLast();
 	}
 

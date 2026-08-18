@@ -31,8 +31,6 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 
-import org.joml.Matrix3x2fStack;
-
 import vazkii.botania.api.BotaniaAPI;
 import vazkii.botania.api.mana.ManaItemHandler;
 import vazkii.botania.api.recipe.ManaInfusionRecipe;
@@ -316,7 +314,6 @@ public final class HUDHandler {
 	 * Renders a mana HUD below the crosshair, containing a mana bar, a name above, and a bound item status to the right
 	 */
 	public static void drawComplexManaHUD(int color, GuiGraphicsExtractor gui, int mana, int maxMana, String name, ItemStack bindDisplay, boolean properlyBound) {
-		Matrix3x2fStack ms = gui.pose();
 		drawSimpleManaHUD(gui, color, mana, maxMana, name);
 
 		Minecraft mc = Minecraft.getInstance();
@@ -326,7 +323,8 @@ public final class HUDHandler {
 
 		gui.item(bindDisplay, x, y);
 
-		ms.pushMatrix();
+		// Item models are extracted on their own stratum; submit the status after it.
+		gui.nextStratum();
 		if (properlyBound) {
 			gui.text(mc.font, "✔", x + 10, y + 9, 0x004C00);
 			gui.text(mc.font, "✔", x + 10, y + 8, 0x0BD20D);
@@ -334,7 +332,6 @@ public final class HUDHandler {
 			gui.text(mc.font, "✘", x + 10, y + 9, 0x4C0000);
 			gui.text(mc.font, "✘", x + 10, y + 8, 0xD2080D);
 		}
-		ms.popMatrix();
 	}
 
 	public static void renderManaBar(GuiGraphicsExtractor gui, int x, int y, int color, float alpha, int mana, int maxMana) {

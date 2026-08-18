@@ -9,7 +9,6 @@
 package vazkii.botania.client.gui;
 
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
@@ -33,7 +32,7 @@ public final class TooltipHandler {
 	}
 
 	public static void addOnShift(List<Component> tooltip, Runnable lambda) {
-		if (Screen.hasShiftDown(Minecraft.getInstance())) {
+		if (Screen.hasShiftDown()) {
 			lambda.run();
 		} else {
 			tooltip.add(getShiftInfoTooltip());

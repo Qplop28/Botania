@@ -1,6 +1,7 @@
 package vazkii.botania.fabric.client;
 
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
@@ -9,7 +10,6 @@ import net.fabricmc.fabric.api.client.model.loading.v1.PreparableModelLoadingPlu
 import net.fabricmc.fabric.api.client.particle.v1.ParticleProviderRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.ArmorRenderer;
 import net.fabricmc.fabric.api.client.rendering.v1.BlockColorRegistry;
-import net.fabricmc.fabric.api.client.rendering.v1.BlockRenderLayerRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.ClientTooltipComponentCallback;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.ModelLayerRegistry;
@@ -79,7 +79,7 @@ public class FabricClientInitializer implements ClientModInitializer {
 		FabricPacketHandler.initClient();
 
 		ColorHandler.submitBlocks(BlockColorRegistry::register);
-		BlockRenderLayers.init((block, layer) -> BlockRenderLayerRegistry.register(layer, block));
+		BlockRenderLayers.init((block, layer) -> BlockRenderLayerMap.INSTANCE.putBlock(block, layer));
 		ColorHandler.initItemTints();
 		ItemTintSources.ID_MAPPER.put(Identifier.fromNamespaceAndPath(LibMisc.MOD_ID, "dynamic_item_color"), BotaniaItemTintSource.MAP_CODEC);
 		ItemModels.ID_MAPPER.put(ClientXplatAbstractions.MANA_GUN_MODEL_LOADER_ID, ManaBlasterItemModel.Unbaked.MAP_CODEC);

@@ -14,6 +14,7 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
@@ -34,7 +35,7 @@ import vazkii.botania.common.block.block_entity.BotaniaBlockEntity;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
+import java.util.function.BiFunction;
 
 public class CorporeaRetainerBlockEntity extends BotaniaBlockEntity implements Wandable {
 	private static final String TAG_REQUEST_X = "requestX";
@@ -44,7 +45,7 @@ public class CorporeaRetainerBlockEntity extends BotaniaBlockEntity implements W
 	private static final String TAG_REQUEST_COUNT = "requestCount";
 	private static final String TAG_RETAIN_MISSING = "retainMissing";
 
-	private static final Map<Identifier, Function<CompoundTag, ? extends CorporeaRequestMatcher>> corporeaMatcherDeserializers = new ConcurrentHashMap<>();
+	private static final Map<Identifier, BiFunction<CompoundTag, HolderLookup.Provider, ? extends CorporeaRequestMatcher>> corporeaMatcherDeserializers = new ConcurrentHashMap<>();
 	private static final Map<Class<? extends CorporeaRequestMatcher>, Identifier> corporeaMatcherSerializers = new ConcurrentHashMap<>();
 
 	private BlockPos requestPos = ManaBurst.NO_SOURCE;
@@ -97,8 +98,8 @@ public class CorporeaRetainerBlockEntity extends BotaniaBlockEntity implements W
 	}
 
 	@Override
-	public void writePacketNBT(CompoundTag cmp) {
-		super.writePacketNBT(cmp);
+	protected void writePacketNBT(CompoundTag cmp, HolderLookup.Provider registryLookup) {
+		super.writePacketNBT(cmp, registryLookup);
 
 		cmp.putInt(TAG_REQUEST_X, requestPos.getX());
 		cmp.putInt(TAG_REQUEST_Y, requestPos.getY());
@@ -108,32 +109,33 @@ public class CorporeaRetainerBlockEntity extends BotaniaBlockEntity implements W
 
 		if (reqType != null) {
 			cmp.putString(TAG_REQUEST_TYPE, reqType.toString());
-			request.writeToNBT(cmp);
+			request.writeToNBT(cmp, registryLookup);
 			cmp.putInt(TAG_REQUEST_COUNT, requestCount);
 		}
 		cmp.putBoolean(TAG_RETAIN_MISSING, retainMissing);
 	}
 
 	@Override
-	public void readPacketNBT(CompoundTag cmp) {
-		super.readPacketNBT(cmp);
+	protected void readPacketNBT(CompoundTag cmp, HolderLookup.Provider registryLookup) {
+		super.readPacketNBT(cmp, registryLookup);
 
-		int x = cmp.getInt(TAG_REQUEST_X);
-		int y = cmp.getInt(TAG_REQUEST_Y);
-		int z = cmp.getInt(TAG_REQUEST_Z);
+		int x = cmp.getInt(TAG_REQUEST_X).orElse(0);
+		int y = cmp.getInt(TAG_REQUEST_Y).orElse(0);
+		int z = cmp.getInt(TAG_REQUEST_Z).orElse(0);
 		requestPos = new BlockPos(x, y, z);
 
-		Identifier reqType = Identifier.tryParse(cmp.getString(TAG_REQUEST_TYPE));
+		Identifier reqType = Identifier.tryParse(cmp.getString(TAG_REQUEST_TYPE).orElse(""));
 		if (reqType != null && corporeaMatcherDeserializers.containsKey(reqType)) {
-			request = corporeaMatcherDeserializers.get(reqType).apply(cmp);
+			request = corporeaMatcherDeserializers.get(reqType).apply(cmp, registryLookup);
 		} else {
 			request = null;
 		}
-		requestCount = cmp.getInt(TAG_REQUEST_COUNT);
-		retainMissing = cmp.getBoolean(TAG_RETAIN_MISSING);
+		requestCount = cmp.getInt(TAG_REQUEST_COUNT).orElse(0);
+		retainMissing = cmp.getBoolean(TAG_RETAIN_MISSING).orElse(false);
 	}
 
-	public static <T extends CorporeaRequestMatcher> void addCorporeaRequestMatcher(Identifier id, Class<T> clazz, Function<CompoundTag, T> deserializer) {
+	public static <T extends CorporeaRequestMatcher> void addCorporeaRequestMatcher(Identifier id, Class<T> clazz,
+			BiFunction<CompoundTag, HolderLookup.Provider, T> deserializer) {
 		corporeaMatcherSerializers.put(clazz, id);
 		corporeaMatcherDeserializers.put(id, deserializer);
 	}

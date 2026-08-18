@@ -9,6 +9,7 @@
 package vazkii.botania.api.corporea;
 
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 
@@ -30,7 +31,7 @@ public interface CorporeaRequestMatcher extends Predicate<ItemStack> {
 	/**
 	 * Serialize to NBT data, for the Corporea Retainer's benefit.
 	 */
-	default void writeToNBT(CompoundTag tag) {}
+	default void writeToNBT(CompoundTag tag, HolderLookup.Provider registryLookup) {}
 
 	/**
 	 * Returns the pretty name of the requested item, for printing request feedback on Corporea Indexes.

@@ -11,13 +11,13 @@ package vazkii.botania.client.render.entity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.client.resources.model.sprite.SpriteId;
 
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
@@ -29,7 +29,6 @@ import vazkii.botania.common.helper.ColorHelper;
 import vazkii.botania.common.helper.VecHelper;
 import vazkii.botania.xplat.ClientXplatAbstractions;
 
-import java.util.Objects;
 import java.util.Random;
 
 import static vazkii.botania.common.lib.ResourceLocationHelper.prefix;
@@ -40,9 +39,8 @@ public abstract class BaseSparkRenderer<T extends SparkBaseEntity> extends Entit
 
 	public BaseSparkRenderer(EntityRendererProvider.Context ctx) {
 		super(ctx);
-		var atlas = Minecraft.getInstance().getTextureAtlas(TextureAtlas.LOCATION_BLOCKS);
-		this.starSprite = Objects.requireNonNull(atlas.apply(prefix("item/corporea_spark_star")));
-		this.worldSprite = Objects.requireNonNull(atlas.apply(prefix("item/spark")));
+		this.starSprite = ctx.getSprites().get(new SpriteId(TextureAtlas.LOCATION_BLOCKS, prefix("item/corporea_spark_star")));
+		this.worldSprite = ctx.getSprites().get(new SpriteId(TextureAtlas.LOCATION_BLOCKS, prefix("item/spark")));
 	}
 
 	@Override

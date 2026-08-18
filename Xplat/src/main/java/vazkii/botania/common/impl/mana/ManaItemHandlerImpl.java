@@ -13,6 +13,7 @@ import com.google.common.collect.Iterables;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 
+import net.minecraft.core.registries.Registries;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
@@ -37,7 +38,8 @@ public class ManaItemHandlerImpl implements ManaItemHandler {
 
 		List<ItemStack> toReturn = new ArrayList<>();
 
-		for (ItemStack stackInSlot : Iterables.concat(player.getInventory().items, player.getInventory().offhand)) {
+		for (int slot = 0; slot < player.getInventory().getContainerSize(); slot++) {
+			ItemStack stackInSlot = player.getInventory().getItem(slot);
 			if (!stackInSlot.isEmpty() && XplatAbstractions.INSTANCE.findManaItem(stackInSlot) != null) {
 				toReturn.add(stackInSlot);
 			}
@@ -267,14 +269,21 @@ public class ManaItemHandlerImpl implements ManaItemHandler {
 	@Override
 	public float getFullDiscountForTools(Player player, ItemStack tool) {
 		float discount = 0F;
-		for (int i = 0; i < player.getInventory().armor.size(); i++) {
-			ItemStack armor = player.getInventory().armor.get(i);
-			if (!armor.isEmpty() && armor.getItem() instanceof ManaDiscountArmor discountArmor) {
-				discount += discountArmor.getDiscount(armor, i, player, tool);
+		int armorIndex = 0;
+		for (EquipmentSlot slot : EquipmentSlot.values()) {
+			if (!slot.isArmor()) {
+				continue;
 			}
+			ItemStack armor = player.getItemBySlot(slot);
+			if (!armor.isEmpty() && armor.getItem() instanceof ManaDiscountArmor discountArmor) {
+				discount += discountArmor.getDiscount(armor, armorIndex, player, tool);
+			}
+			armorIndex++;
 		}
 
-		int unbreaking = EnchantmentHelper.getItemEnchantmentLevel(Enchantments.UNBREAKING, tool);
+		var unbreakingEnchantment = player.registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
+				.getOrThrow(Enchantments.UNBREAKING);
+		int unbreaking = EnchantmentHelper.getItemEnchantmentLevel(unbreakingEnchantment, tool);
 		discount += unbreaking * 0.05F;
 		discount = XplatAbstractions.INSTANCE.fireManaDiscountEvent(player, discount, tool);
 
@@ -286,7 +295,7 @@ public class ManaItemHandlerImpl implements ManaItemHandler {
 		boolean proficient = false;
 
 		for (EquipmentSlot e : EquipmentSlot.values()) {
-			if (e.getType() != EquipmentSlot.Type.ARMOR) {
+			if (!e.isArmor()) {
 				continue;
 			}
 			ItemStack stack = player.getItemBySlot(e);

@@ -373,7 +373,7 @@ public class CorporeaIndexBlockEntity extends BaseCorporeaBlockEntity implements
 
 			player.sendSystemMessage(Component.translatable("botaniamisc.requestMsg", count, request.getRequestName(), res.matchedCount(), res.extractedCount()).withStyle(ChatFormatting.LIGHT_PURPLE));
 			player.awardStat(BotaniaStats.CORPOREA_ITEMS_REQUESTED, res.extractedCount());
-			CorporeaRequestTrigger.INSTANCE.trigger(player, player.serverLevel(), this.getBlockPos(), res.extractedCount());
+			CorporeaRequestTrigger.INSTANCE.trigger(player, player.level(), this.getBlockPos(), res.extractedCount());
 		}
 	}
 

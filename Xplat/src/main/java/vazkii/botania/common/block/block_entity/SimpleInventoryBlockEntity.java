@@ -29,7 +29,7 @@ public abstract class SimpleInventoryBlockEntity extends BotaniaBlockEntity impl
 
 	protected SimpleInventoryBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
 		super(type, pos, state);
-		itemHandler.addContentChangeListener(i -> setChanged());
+		itemHandler.addListener(i -> setChanged());
 	}
 
 	private static void copyToInv(NonNullList<ItemStack> src, Container dest) {

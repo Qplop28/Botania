@@ -15,6 +15,9 @@ import net.fabricmc.fabric.api.client.model.loading.v1.SimpleUnbakedExtraModel;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
 import net.minecraft.client.renderer.item.ItemModel;
+import net.minecraft.client.renderer.item.ItemStackRenderState;
+import net.minecraft.client.renderer.item.ModelRenderProperties;
+import net.minecraft.client.renderer.block.dispatch.BlockModelRotation;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.world.item.DyeColor;
@@ -96,7 +99,23 @@ public final class MiscellaneousModels {
 		registerIslands();
 		KEYS.forEach((id, key) -> context.addModel(key, SimpleUnbakedExtraModel.blockStateModel(id)));
 		preparedTinyPotatoes.blockModels.forEach((id, key) -> context.addModel(key, SimpleUnbakedExtraModel.blockStateModel(id)));
-		preparedTinyPotatoes.itemModels.forEach((id, key) -> context.addModel(key, SimpleUnbakedExtraModel.itemModel(id)));
+		preparedTinyPotatoes.itemModels.forEach((id, key) -> context.addModel(key,
+				new SimpleUnbakedExtraModel<>(id, (resolved, baker) -> {
+					var textures = resolved.getTopTextureSlots();
+					var quads = resolved.bakeTopGeometry(textures, baker, BlockModelRotation.IDENTITY);
+					var properties = ModelRenderProperties.fromResolvedModel(baker, resolved, textures);
+					return (renderState, stack, resolver, displayContext, level, owner, seed) -> {
+						renderState.appendModelIdentityElement(key);
+						var layer = renderState.newLayer();
+						if (stack.hasFoil()) {
+							layer.setFoilType(ItemStackRenderState.FoilType.STANDARD);
+						}
+						layer.setExtents(() -> net.minecraft.client.renderer.item.CuboidItemModelWrapper
+								.computeExtents(quads.getAll()));
+						properties.applyToLayer(layer, displayContext);
+						layer.prepareQuadList().addAll(quads.getAll());
+					};
+				})));
 		tinyPotatoKeys = preparedTinyPotatoes.blockModels;
 		tinyPotatoItemKeys = preparedTinyPotatoes.itemModels;
 	}
@@ -107,7 +126,7 @@ public final class MiscellaneousModels {
 			Identifier id = KEYS.entrySet().stream().filter(entry -> entry.getValue().equals(key))
 					.map(Map.Entry::getKey).findFirst().orElse(null);
 			BotaniaAPI.LOGGER.error("Missing registered Botania extra model; identifier={}, key={}", id, key);
-			return Minecraft.getInstance().getModelManager().getMissingModel();
+			return Minecraft.getInstance().getModelManager().getBlockStateModelSet().missingModel();
 		}
 		return model;
 	}
@@ -118,7 +137,7 @@ public final class MiscellaneousModels {
 			String fallback = ClientProxy.dootDoot ? "halloween" : "default";
 			key = tinyPotatoKeys.get(prefix(ResourcesLib.PREFIX_TINY_POTATO + "/" + fallback));
 		}
-		return key == null ? Minecraft.getInstance().getModelManager().getMissingModel() : get(key);
+		return key == null ? Minecraft.getInstance().getModelManager().getBlockStateModelSet().missingModel() : get(key);
 	}
 
 	public ItemModel getTinyPotatoItemModel(Identifier id) {

@@ -83,7 +83,7 @@ public class CorporeaIndexBlockEntityRenderer implements BlockEntityRenderer<Cor
 	@Override
 	public void submit(CorporeaIndexRenderState state, PoseStack poseStack, SubmitNodeCollector collector,
 			CameraRenderState camera) {
-		var layer = RenderTypes.entityCutout(TEXTURE);
+		var layer = RenderTypes.entityCutout(TEXTURE, false);
 		poseStack.pushPose();
 		poseStack.translate(0.5, 0, 0.5);
 		poseStack.pushPose();

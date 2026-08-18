@@ -36,6 +36,7 @@ public class BotaniaBlockEntity extends BlockEntity {
 		var tag = new CompoundTag();
 		writePacketNBT(tag);
 		output.store(TAG_DATA, CompoundTag.CODEC, tag);
+		writePacketNBT(output.child(TAG_DATA));
 	}
 
 	@NotNull
@@ -43,7 +44,7 @@ public class BotaniaBlockEntity extends BlockEntity {
 	public final CompoundTag getUpdateTag(HolderLookup.Provider registryLookup) {
 		var tag = new CompoundTag();
 		var data = new CompoundTag();
-		writePacketNBT(data);
+		writePacketNBT(data, registryLookup);
 		tag.put(TAG_DATA, data);
 		return tag;
 	}
@@ -51,12 +52,25 @@ public class BotaniaBlockEntity extends BlockEntity {
 	@Override
 	protected void loadAdditional(ValueInput input) {
 		super.loadAdditional(input);
-		input.read(TAG_DATA, CompoundTag.CODEC).ifPresent(this::readPacketNBT);
+		input.read(TAG_DATA, CompoundTag.CODEC).ifPresent(tag -> readPacketNBT(tag, input.lookup()));
 	}
 
 	public void writePacketNBT(CompoundTag cmp) {}
 
 	public void readPacketNBT(CompoundTag cmp) {}
+
+	/** Registry-aware save hook for data that cannot safely be encoded into a plain tag. */
+	protected void writePacketNBT(ValueOutput output) {}
+
+	/** Registry-aware packet save hook; legacy subclasses continue through the plain-tag method. */
+	protected void writePacketNBT(CompoundTag cmp, HolderLookup.Provider registryLookup) {
+		writePacketNBT(cmp);
+	}
+
+	/** Registry-aware load hook; legacy subclasses continue through the plain-tag method. */
+	protected void readPacketNBT(CompoundTag cmp, HolderLookup.Provider registryLookup) {
+		readPacketNBT(cmp);
+	}
 
 	@Nullable
 	@Override

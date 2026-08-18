@@ -17,6 +17,7 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
@@ -40,6 +41,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
 
 import org.jetbrains.annotations.Nullable;
@@ -401,14 +403,8 @@ public class ManaEnchanterBlockEntity extends BotaniaBlockEntity implements Mana
 		cmp.putInt(TAG_STAGE_TICKS, stageTicks);
 		cmp.putInt(TAG_STAGE_3_END_TICKS, stage3EndTicks);
 
-		if (!itemToEnchant.isEmpty()) {
-			ItemStack.CODEC.encodeStart(RegistryOps.create(NbtOps.INSTANCE, level.registryAccess()), itemToEnchant)
-					.result()
-					.ifPresent(itemTag -> cmp.put(TAG_ITEM, itemTag));
-		}
-
 		String enchStr = enchants.stream()
-				.map(e -> e.enchantment().unwrapKey().orElseThrow().location() + "=" + e.level())
+				.map(e -> e.enchantment().unwrapKey().orElseThrow().identifier() + "=" + e.level())
 				.collect(Collectors.joining(","));
 		cmp.putString(TAG_ENCHANTS, enchStr);
 	}
@@ -422,28 +418,41 @@ public class ManaEnchanterBlockEntity extends BotaniaBlockEntity implements Mana
 		stageTicks = cmp.getInt(TAG_STAGE_TICKS).orElse(0);
 		stage3EndTicks = cmp.getInt(TAG_STAGE_3_END_TICKS).orElse(0);
 
-		itemToEnchant = cmp.get(TAG_ITEM) == null
-				? ItemStack.EMPTY
-				: ItemStack.CODEC.parse(RegistryOps.create(NbtOps.INSTANCE, level.registryAccess()), cmp.get(TAG_ITEM))
-						.result().orElse(ItemStack.EMPTY);
-
 		enchants.clear();
+	}
+
+	@Override
+	protected void writePacketNBT(ValueOutput output) {
+		if (!itemToEnchant.isEmpty()) {
+			output.store(TAG_ITEM, ItemStack.CODEC, itemToEnchant);
+		}
+	}
+
+	@Override
+	protected void writePacketNBT(CompoundTag cmp, HolderLookup.Provider registryLookup) {
+		writePacketNBT(cmp);
+		if (!itemToEnchant.isEmpty()) {
+			ItemStack.CODEC.encodeStart(RegistryOps.create(NbtOps.INSTANCE, registryLookup), itemToEnchant)
+					.result().ifPresent(itemTag -> cmp.put(TAG_ITEM, itemTag));
+		}
+	}
+
+	@Override
+	protected void readPacketNBT(CompoundTag cmp, HolderLookup.Provider registryLookup) {
+		readPacketNBT(cmp);
+		itemToEnchant = cmp.get(TAG_ITEM) == null ? ItemStack.EMPTY
+				: ItemStack.CODEC.parse(RegistryOps.create(NbtOps.INSTANCE, registryLookup), cmp.get(TAG_ITEM))
+						.result().orElse(ItemStack.EMPTY);
 		String enchStr = cmp.getString(TAG_ENCHANTS).orElse("");
 		if (!enchStr.isEmpty()) {
-			String[] enchTokens = enchStr.split(",");
-			for (String token : enchTokens) {
+			for (String token : enchStr.split(",")) {
 				try {
 					String[] entryTokens = token.split("=");
 					int lvl = Integer.parseInt(entryTokens[1]);
-					level.holderLookup(Registries.ENCHANTMENT)
-							.get(ResourceKey.create(
-									Registries.ENCHANTMENT,
-									Identifier.parse(entryTokens[0])
-							))
-							.ifPresent(ench -> enchants.add(
-									new EnchantmentInstance(ench, lvl)
-							));
-				} catch (IdentifierException ignored) {}
+					registryLookup.lookupOrThrow(Registries.ENCHANTMENT)
+							.get(ResourceKey.create(Registries.ENCHANTMENT, Identifier.parse(entryTokens[0])))
+							.ifPresent(ench -> enchants.add(new EnchantmentInstance(ench, lvl)));
+				} catch (IdentifierException | NumberFormatException | ArrayIndexOutOfBoundsException ignored) {}
 			}
 		}
 	}

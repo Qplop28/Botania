@@ -82,9 +82,9 @@ public class GaiaHeadBlockEntityRenderer
 		var wallFacing = blockState.getBlock() instanceof WallSkullBlock
 				? blockState.getValue(WallSkullBlock.FACING) : null;
 		int rotation = wallFacing == null ? blockState.getValue(SkullBlock.ROTATION) : 0;
-		state.transformation = (wallFacing == null
-				? SkullBlockRenderer.TRANSFORMATIONS.ground()
-				: SkullBlockRenderer.TRANSFORMATIONS.wall().get(wallFacing)).apply(rotation);
+		state.transformation = wallFacing == null
+				? SkullBlockRenderer.TRANSFORMATIONS.freeTransformations(rotation)
+				: SkullBlockRenderer.TRANSFORMATIONS.wallTransformation(wallFacing);
 
 		Entity view = Minecraft.getInstance().getCameraEntity();
 		state.skullType = getViewType(view);

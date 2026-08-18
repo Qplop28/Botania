@@ -25,6 +25,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.GameEvent;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -142,6 +144,16 @@ public class CorporeaCrystalCubeBlockEntity extends BaseCorporeaBlockEntity impl
 		writePacketNBT(tag);
 		ItemStack.OPTIONAL_CODEC.encodeStart(RegistryOps.create(NbtOps.INSTANCE, registryLookup), requestTarget)
 				.result().ifPresent(encoded -> tag.put(TAG_REQUEST_TARGET, encoded));
+	}
+
+	@Override
+	protected void writePersistentData(ValueOutput output) {
+		output.store(TAG_REQUEST_TARGET, ItemStack.OPTIONAL_CODEC, requestTarget);
+	}
+
+	@Override
+	protected void readPersistentData(ValueInput input) {
+		input.read(TAG_REQUEST_TARGET, ItemStack.OPTIONAL_CODEC).ifPresent(stack -> requestTarget = stack);
 	}
 
 	@Override

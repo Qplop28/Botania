@@ -107,7 +107,7 @@ public class ManaSpreaderBlock extends BotaniaWaterloggedBlock implements Entity
 	}
 
 	@Override
-	protected float getShadeBrightness(BlockState state) {
+	public float getShadeBrightness(BlockState state, BlockGetter level, BlockPos pos) {
 		return 1.0F;
 	}
 
@@ -146,6 +146,17 @@ public class ManaSpreaderBlock extends BotaniaWaterloggedBlock implements Entity
 	@Override
 	protected InteractionResult useItemOn(ItemStack heldItem, BlockState state, Level world, BlockPos pos, Player player,
 			InteractionHand hand, BlockHitResult hit) {
+		return handleInteraction(heldItem, state, world, pos, player);
+	}
+
+	@Override
+	protected InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player,
+			BlockHitResult hit) {
+		return handleInteraction(ItemStack.EMPTY, state, world, pos, player);
+	}
+
+	private InteractionResult handleInteraction(ItemStack heldItem, BlockState state, Level world, BlockPos pos,
+			Player player) {
 		BlockEntity tile = world.getBlockEntity(pos);
 		if (!(tile instanceof ManaSpreaderBlockEntity spreader)) {
 			return InteractionResult.PASS;

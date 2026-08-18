@@ -30,7 +30,6 @@ import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.entity.LivingEntity;
 
 import vazkii.botania.api.BotaniaAPI;
 import vazkii.botania.api.BotaniaAPIClient;
@@ -165,7 +164,7 @@ public class FabricClientInitializer implements ClientModInitializer {
 			var texture = armor.getArmorTexture(stack, null, slot, "");
 			if (model != null) {
 				model.prepareForRender();
-				ArmorRenderer.submitTransformCopyingModel(contextModel, renderState, model, (LivingEntity) null, false,
+				ArmorRenderer.submitTransformCopyingModel(contextModel, renderState, model, renderState, false,
 						submitNodeCollector, poseStack, model.renderType(Identifier.parse(texture)), light, 0, -1, null);
 			}
 		};

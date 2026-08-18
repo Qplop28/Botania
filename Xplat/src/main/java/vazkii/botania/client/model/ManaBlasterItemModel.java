@@ -13,11 +13,12 @@ import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.client.resources.model.ResolvableModel;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ItemOwner;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Matrix4fc;
 import org.joml.Vector3f;
 import vazkii.botania.client.render.BotaniaItemTintSource;
 import vazkii.botania.common.helper.VecHelper;
@@ -41,16 +42,16 @@ public record ManaBlasterItemModel(ItemModel gunNoClip, ItemModel gunClip, ItemM
 
 	@Override
 	public void update(ItemStackRenderState state, ItemStack stack, ItemModelResolver resolver, ItemDisplayContext displayContext,
-			@Nullable ClientLevel level, @Nullable LivingEntity entity, int seed) {
+			@Nullable ClientLevel level, @Nullable ItemOwner itemOwner, int seed) {
 		state.appendModelIdentityElement(this);
 		boolean clip = ManaBlasterItem.hasClip(stack);
 		state.appendModelIdentityElement(clip);
-		(clip ? this.gunClip : this.gunNoClip).update(state, stack, resolver, displayContext, level, entity, seed);
+		(clip ? this.gunClip : this.gunNoClip).update(state, stack, resolver, displayContext, level, itemOwner, seed);
 
 		ItemStack lens = ManaBlasterItem.getLens(stack);
 		if (!lens.isEmpty()) {
 			state.appendModelIdentityElement(lens.getItem());
-			this.lensModels.getOrDefault(lens.getItem(), this.missingLens).update(state, lens, resolver, displayContext, level, entity, seed);
+			this.lensModels.getOrDefault(lens.getItem(), this.missingLens).update(state, lens, resolver, displayContext, level, itemOwner, seed);
 		}
 	}
 
@@ -74,19 +75,19 @@ public record ManaBlasterItemModel(ItemModel gunNoClip, ItemModel gunClip, ItemM
 		}
 
 		@Override
-		public ItemModel bake(ItemModel.BakingContext context) {
+		public ItemModel bake(ItemModel.BakingContext context, Matrix4fc modelTransform) {
 			Map<Item, ItemModel> lenses = new java.util.HashMap<>();
 			for (Item item : BuiltInRegistries.ITEM) {
 				ItemStack lens = item.getDefaultInstance();
 				if (ManaBlasterItem.isValidLens(lens)) {
 					lenses.put(item, new CuboidItemModelWrapper.Unbaked(
-							BuiltInRegistries.ITEM.getKey(item).withPrefix("item/"), Optional.of(LENS_TRANSFORMATION), this.tints).bake(context));
+							BuiltInRegistries.ITEM.getKey(item).withPrefix("item/"), Optional.of(LENS_TRANSFORMATION), this.tints).bake(context, modelTransform));
 				}
 			}
 			return new ManaBlasterItemModel(
-					new CuboidItemModelWrapper.Unbaked(this.gunNoClip, Optional.empty(), this.tints).bake(context),
-					new CuboidItemModelWrapper.Unbaked(this.gunClip, Optional.empty(), this.tints).bake(context),
-					new CuboidItemModelWrapper.Unbaked(Identifier.withDefaultNamespace("builtin/missing"), Optional.of(LENS_TRANSFORMATION), this.tints).bake(context),
+					new CuboidItemModelWrapper.Unbaked(this.gunNoClip, Optional.empty(), this.tints).bake(context, modelTransform),
+					new CuboidItemModelWrapper.Unbaked(this.gunClip, Optional.empty(), this.tints).bake(context, modelTransform),
+					context.missingItemModel(Transformation.compose(modelTransform, Optional.of(LENS_TRANSFORMATION))),
 					Map.copyOf(lenses));
 		}
 

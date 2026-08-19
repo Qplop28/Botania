@@ -17,6 +17,7 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -43,7 +44,7 @@ public class CorporeaFunnelBlockEntity extends BaseCorporeaBlockEntity implement
 		if (spark != null && spark.getMaster() != null) {
 			WeightedList<FilterHelper.WeightedItemStack> filter = getFilter();
 			if (!filter.isEmpty()) {
-				ItemStack stack = filter.getRandom(level.random)
+				ItemStack stack = filter.getRandom(level.getRandom())
 						.map(FilterHelper.WeightedItemStack::stack)
 						.orElse(ItemStack.EMPTY);
 
@@ -61,10 +62,8 @@ public class CorporeaFunnelBlockEntity extends BaseCorporeaBlockEntity implement
 		for (Direction dir : Direction.values()) {
 			List<ItemFrame> frames = level.getEntitiesOfClass(
 					ItemFrame.class,
-					new AABB(
-							worldPosition.relative(dir),
-							worldPosition.relative(dir).offset(1, 1, 1)
-					)
+					new AABB(Vec3.atLowerCornerOf(worldPosition.relative(dir)),
+							Vec3.atLowerCornerOf(worldPosition.relative(dir).offset(1, 1, 1)))
 			);
 
 			for (ItemFrame frame : frames) {

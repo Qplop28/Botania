@@ -41,7 +41,7 @@ public class LifeImbuerBlockEntity extends BotaniaBlockEntity implements ManaRec
 
 			if (be instanceof LifeImbuerBlockEntity claw && claw.mana > 5) {
 				claw.receiveMana(-6);
-				if (level.isClientSide && Math.random() > 0.5) {
+				if (level.isClientSide() && Math.random() > 0.5) {
 					WispParticleData data = WispParticleData.wisp((float) Math.random() / 3F, 0.6F - (float) Math.random() * 0.3F, 0.1F, 0.6F - (float) Math.random() * 0.3F, 2F);
 					level.addParticle(data, up.getX() + 0.3 + Math.random() * 0.5, up.getY() - 0.3 + Math.random() * 0.25, up.getZ() + Math.random(), 0, -(-0.025F - 0.005F * (float) Math.random()), 0);
 				}
@@ -59,7 +59,7 @@ public class LifeImbuerBlockEntity extends BotaniaBlockEntity implements ManaRec
 
 	@Override
 	public void readPacketNBT(CompoundTag cmp) {
-		mana = cmp.getInt(TAG_MANA);
+		mana = cmp.getInt(TAG_MANA).orElse(0);
 	}
 
 	@Override

@@ -16,6 +16,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
+import net.minecraft.util.profiling.Profiler;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Player;
@@ -152,10 +153,11 @@ public class CraftyCrateBlockEntity extends OpenCrateBlockEntity implements Wand
 			boolean fullCheck,
 			@Nullable Player player
 	) {
-		level.getProfiler().push("craft");
+		var profiler = Profiler.get();
+		profiler.push("craft");
 
 		if (fullCheck && !isFull()) {
-			level.getProfiler().pop();
+			profiler.pop();
 			return false;
 		}
 
@@ -240,7 +242,7 @@ public class CraftyCrateBlockEntity extends OpenCrateBlockEntity implements Wand
 			matchFailed = true;
 		}
 
-		level.getProfiler().pop();
+		profiler.pop();
 
 		return matchingRecipe.isPresent()
 				&& !craftResult.isEmpty();
@@ -416,7 +418,7 @@ public class CraftyCrateBlockEntity extends OpenCrateBlockEntity implements Wand
 
 					ItemStack item =
 							crate.getItemHandler().getItem(index);
-					gui.renderItem(item, x, y);
+					gui.item(item, x, y);
 				}
 			}
 		}

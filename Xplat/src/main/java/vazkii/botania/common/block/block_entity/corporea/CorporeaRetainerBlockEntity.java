@@ -155,13 +155,13 @@ public class CorporeaRetainerBlockEntity extends BotaniaBlockEntity implements W
 			int y = mc.getWindow().getGuiScaledHeight() / 2 + 8;
 
 			RenderHelper.renderHUDBox(gui, x - 2, y, x + strWidth + 2, y + 12);
-			gui.drawString(mc.font, mode, x, y + 2, ChatFormatting.WHITE.getColor());
+			gui.text(mc.font, mode, x, y + 2, ChatFormatting.WHITE.getColor());
 		}
 	}
 
 	@Override
 	public boolean onUsedByWand(Player player, ItemStack stack, Direction side) {
-		if (!level.isClientSide) {
+		if (!level.isClientSide()) {
 			retainMissing = !retainMissing;
 			setChanged();
 			VanillaPacketDispatcher.dispatchTEToNearbyPlayers(this);

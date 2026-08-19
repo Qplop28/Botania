@@ -152,6 +152,7 @@ public class GaiaGuardianEntity extends Mob {
 	private final List<UUID> playersWhoAttacked = new ArrayList<>();
 	private UUID bossInfoUUID = UUID.randomUUID();
 	private final ServerBossEvent bossInfo = createBossInfo(bossInfoUUID);
+	private boolean clientBossRegistered;
 	public Player trueKiller = null;
 
 	private static ServerBossEvent createBossInfo(UUID id) {
@@ -168,8 +169,14 @@ public class GaiaGuardianEntity extends Mob {
 	public GaiaGuardianEntity(EntityType<GaiaGuardianEntity> type, Level world) {
 		super(type, world);
 		xpReward = 825;
-		if (world.isClientSide()) {
+	}
+
+	@Override
+	public void onAddedToLevel() {
+		super.onAddedToLevel();
+		if (level().isClientSide() && !clientBossRegistered) {
 			Proxy.INSTANCE.addBoss(this);
+			clientBossRegistered = true;
 		}
 	}
 
@@ -549,8 +556,9 @@ public class GaiaGuardianEntity extends Mob {
 
 	@Override
 	public void remove(RemovalReason reason) {
-		if (level().isClientSide()) {
+		if (clientBossRegistered) {
 			Proxy.INSTANCE.removeBoss(this);
+			clientBossRegistered = false;
 		}
 		super.remove(reason);
 	}

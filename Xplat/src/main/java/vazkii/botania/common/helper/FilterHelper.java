@@ -38,9 +38,14 @@ public class FilterHelper {
 			// Vanilla block containers and Botania's item-backed inventories both use this component.
 			ItemContainerContents contents = filterStack.get(DataComponents.CONTAINER);
 			if (contents != null) {
-				List<ItemStack> items = contents.stream().filter(stack -> !stack.isEmpty()).toList();
+				var items = new ArrayList<ItemStack>();
+				for (ItemStack stack : contents) {
+					if (!stack.isEmpty()) {
+						items.add(stack);
+					}
+				}
 				if (!items.isEmpty()) {
-					return items;
+					return List.copyOf(items);
 				}
 			}
 			// Item-backed inventories from before components are upgraded when opened, but

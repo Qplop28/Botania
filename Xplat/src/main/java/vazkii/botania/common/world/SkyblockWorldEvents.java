@@ -29,6 +29,7 @@ import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.structure.templatesystem.BlockIgnoreProcessor;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
+import net.minecraft.world.level.storage.RespawnData;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
@@ -67,7 +68,7 @@ public final class SkyblockWorldEvents {
 			SkyblockSavedData data = SkyblockSavedData.get(world);
 			if (!data.skyblocks.containsValue(Util.NIL_UUID)) {
 				IslandPos islandPos = data.getSpawn();
-				world.setDefaultSpawnPos(islandPos.getCenter(), 0);
+				world.getLevelData().setSpawn(islandPos.getCenter(), 0);
 				spawnPlayer(player, islandPos);
 				BotaniaAPI.LOGGER.info("Created the spawn GoG island");
 			}
@@ -132,7 +133,8 @@ public final class SkyblockWorldEvents {
 		if (player instanceof ServerPlayer pmp) {
 			createSkyblock(pmp.level(), pos);
 			pmp.teleportTo(pos.getX() + 0.5, pos.getY() + 1.6, pos.getZ() + 0.5);
-			pmp.setRespawnPosition(new ServerPlayer.RespawnConfig(pmp.level().dimension(), pos, 0, true), false);
+			var respawnData = new RespawnData(pmp.level().dimension(), pos, 0);
+			pmp.setRespawnPosition(new ServerPlayer.RespawnConfig(respawnData, true), false);
 			if (BotaniaConfig.common().gogSpawnWithLexicon()) {
 				player.getInventory().add(new ItemStack(BotaniaItems.lexicon));
 			}

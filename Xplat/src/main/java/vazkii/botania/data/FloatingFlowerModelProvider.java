@@ -54,7 +54,6 @@ public class FloatingFlowerModelProvider implements DataProvider {
 				}
 
 				JsonObject obj = new JsonObject();
-				obj.addProperty("render_type", "cutout");
 				obj.addProperty("parent", "minecraft:block/block");
 				obj.addProperty("loader", ClientXplatAbstractions.FLOATING_FLOWER_MODEL_LOADER_ID.toString());
 				JsonObject flower = new JsonObject();
@@ -67,7 +66,9 @@ public class FloatingFlowerModelProvider implements DataProvider {
 		PackOutput.PathProvider blocks = packOutput.createPathProvider(PackOutput.Target.RESOURCE_PACK, "models/block");
 		PackOutput.PathProvider items = packOutput.createPathProvider(PackOutput.Target.RESOURCE_PACK, "models/item");
 		for (Tuple<String, JsonElement> pair : jsons) {
-			output.add(DataProvider.saveStable(cache, pair.getB(), blocks.json(prefix(pair.getA()))));
+			JsonObject blockModel = pair.getB().getAsJsonObject().deepCopy();
+			blockModel.addProperty("render_type", "cutout");
+			output.add(DataProvider.saveStable(cache, blockModel, blocks.json(prefix(pair.getA()))));
 			output.add(DataProvider.saveStable(cache, pair.getB(), items.json(prefix(pair.getA()))));
 		}
 

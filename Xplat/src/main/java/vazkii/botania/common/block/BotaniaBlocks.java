@@ -450,7 +450,7 @@ public final class BotaniaBlocks {
 	public static final Block livingwoodSlab = new SlabBlock(BlockBehaviour.Properties.ofFullCopy(livingwood));
 	public static final Block livingwoodWall = new WallBlock(BlockBehaviour.Properties.ofFullCopy(livingwood));
 	public static final Block livingwoodFence = new FenceBlock(BlockBehaviour.Properties.ofFullCopy(livingwood));
-	public static final Block livingwoodFenceGate = new FenceGateBlock(BlockBehaviour.Properties.ofFullCopy(livingwood), BotaniaBlockSetTypes.LIVINGWOOD);
+	public static final Block livingwoodFenceGate = new FenceGateBlock(BotaniaBlockSetTypes.LIVINGWOOD, BlockBehaviour.Properties.ofFullCopy(livingwood));
 	public static final Block livingwoodStrippedStairs = new BotaniaStairBlock(livingwoodStripped.defaultBlockState(), BlockBehaviour.Properties.ofFullCopy(livingwood));
 	public static final Block livingwoodStrippedSlab = new SlabBlock(BlockBehaviour.Properties.ofFullCopy(livingwood));
 	public static final Block livingwoodStrippedWall = new WallBlock(BlockBehaviour.Properties.ofFullCopy(livingwood));
@@ -474,7 +474,7 @@ public final class BotaniaBlocks {
 	public static final Block dreamwoodSlab = new SlabBlock(BlockBehaviour.Properties.ofFullCopy(dreamwood));
 	public static final Block dreamwoodWall = new WallBlock(BlockBehaviour.Properties.ofFullCopy(dreamwood));
 	public static final Block dreamwoodFence = new FenceBlock(BlockBehaviour.Properties.ofFullCopy(dreamwood));
-	public static final Block dreamwoodFenceGate = new FenceGateBlock(BlockBehaviour.Properties.ofFullCopy(dreamwood), BotaniaBlockSetTypes.DREAMWOOD);
+	public static final Block dreamwoodFenceGate = new FenceGateBlock(BotaniaBlockSetTypes.DREAMWOOD, BlockBehaviour.Properties.ofFullCopy(dreamwood));
 	public static final Block dreamwoodStrippedStairs = new BotaniaStairBlock(dreamwoodStripped.defaultBlockState(), BlockBehaviour.Properties.ofFullCopy(dreamwood));
 	public static final Block dreamwoodStrippedSlab = new SlabBlock(BlockBehaviour.Properties.ofFullCopy(dreamwood));
 	public static final Block dreamwoodStrippedWall = new WallBlock(BlockBehaviour.Properties.ofFullCopy(dreamwood));
@@ -1307,7 +1307,7 @@ public final class BotaniaBlocks {
 		r.accept(new BlockItem(azulejo14, props), BuiltInRegistries.BLOCK.getKey(azulejo14));
 		r.accept(new BlockItem(azulejo15, props), BuiltInRegistries.BLOCK.getKey(azulejo15));
 		r.accept(new BlazeItemBlock(blazeBlock, props), BuiltInRegistries.BLOCK.getKey(blazeBlock));
-		r.accept(new StandingAndWallBlockItem(gaiaHead, gaiaHeadWall, BotaniaItems.defaultBuilder().rarity(Rarity.UNCOMMON), Direction.DOWN), BuiltInRegistries.BLOCK.getKey(gaiaHead));
+		r.accept(new StandingAndWallBlockItem(gaiaHead, gaiaHeadWall, Direction.DOWN, BotaniaItems.defaultBuilder().rarity(Rarity.UNCOMMON)), BuiltInRegistries.BLOCK.getKey(gaiaHead));
 		r.accept(new BlockItem(shimmerrock, props), BuiltInRegistries.BLOCK.getKey(shimmerrock));
 		r.accept(new BlockItem(shimmerrockSlab, props), BuiltInRegistries.BLOCK.getKey(shimmerrockSlab));
 		r.accept(new BlockItem(shimmerrockStairs, props), BuiltInRegistries.BLOCK.getKey(shimmerrockStairs));

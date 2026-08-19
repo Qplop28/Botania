@@ -60,11 +60,11 @@ public class FloatingFlowerBlock extends BotaniaWaterloggedBlock implements Enti
 	@Override
 	public RenderShape getRenderShape(BlockState state) {
 		if (!XplatAbstractions.INSTANCE.isPhysicalClient()) {
-			return RenderShape.ENTITYBLOCK_ANIMATED;
+			return RenderShape.SPECIAL;
 		}
 		return BotaniaConfig.client().staticFloaters()
 		? RenderShape.MODEL
-		: RenderShape.ENTITYBLOCK_ANIMATED;
+		: RenderShape.SPECIAL;
 	}
 
 	@Override
@@ -81,8 +81,8 @@ public class FloatingFlowerBlock extends BotaniaWaterloggedBlock implements Enti
 	}
 
 	@Override
-	public InteractionResult use(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
-		ItemStack stack = player.getItemInHand(hand);
+	protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level world, BlockPos pos, Player player,
+			InteractionHand hand, BlockHitResult hit) {
 		BlockEntity te = world.getBlockEntity(pos);
 		if (!stack.isEmpty() && te instanceof FloatingFlowerProvider provider && provider.getFloatingData() != null) {
 			FloatingFlower flower = provider.getFloatingData();
@@ -97,15 +97,15 @@ public class FloatingFlowerBlock extends BotaniaWaterloggedBlock implements Enti
 			}
 
 			if (type != null && type != flower.getIslandType()) {
-				if (!world.isClientSide) {
+				if (!world.isClientSide()) {
 					flower.setIslandType(type);
 					VanillaPacketDispatcher.dispatchTEToNearbyPlayers(te);
-				}
 
-				if (!player.getAbilities().instabuild) {
-					stack.shrink(1);
+					if (!player.getAbilities().instabuild) {
+						stack.shrink(1);
+					}
 				}
-				return InteractionResult.sidedSuccess(world.isClientSide());
+				return world.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
 			}
 		}
 		return InteractionResult.PASS;

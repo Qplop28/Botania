@@ -36,7 +36,7 @@ public class BotaniaMushroomBlock extends MushroomBlock implements CustomApothec
 	public final DyeColor color;
 
 	public BotaniaMushroomBlock(DyeColor color, Properties builder) {
-		super(builder, TreeFeatures.HUGE_BROWN_MUSHROOM /* Doesn't matter, we override the grow method */);
+		super(TreeFeatures.HUGE_BROWN_MUSHROOM /* Doesn't matter, we override the grow method */, builder);
 		this.color = color;
 	}
 
@@ -56,7 +56,7 @@ public class BotaniaMushroomBlock extends MushroomBlock implements CustomApothec
 	public boolean canSurvive(BlockState state, LevelReader worldIn, BlockPos pos) {
 		BlockPos blockpos = pos.below();
 		BlockState blockstate = worldIn.getBlockState(blockpos);
-		if (!blockstate.is(BlockTags.MUSHROOM_GROW_BLOCK)) {
+		if (!blockstate.is(BlockTags.MUSHROOM_GROW_BLOCKS)) {
 			return this.mayPlaceOn(blockstate, worldIn, blockpos);
 		} else {
 			return true;

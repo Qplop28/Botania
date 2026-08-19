@@ -44,11 +44,14 @@ public class NarslimmusBlockEntity extends GeneratingFlowerBlockEntity {
 		super.tickFlower();
 
 		if (ticksExisted % 5 == 0) {
-			List<Slime> slimes = getLevel().getEntitiesOfClass(Slime.class, new AABB(getEffectivePos().offset(-RANGE, -RANGE, -RANGE), getEffectivePos().offset(RANGE + 1, RANGE + 1, RANGE + 1)));
+			BlockPos effectivePos = getEffectivePos();
+			List<Slime> slimes = getLevel().getEntitiesOfClass(Slime.class, new AABB(
+					effectivePos.getX() - RANGE, effectivePos.getY() - RANGE, effectivePos.getZ() - RANGE,
+					effectivePos.getX() + RANGE + 1, effectivePos.getY() + RANGE + 1, effectivePos.getZ() + RANGE + 1));
 			for (Slime slime : slimes) {
 				if (slime.isAlive() && XplatAbstractions.INSTANCE.narslimmusComponent(slime).isNaturalSpawned()) {
 					int size = slime.getSize();
-					if (!slime.level().isClientSide) {
+					if (!slime.level().isClientSide()) {
 						slime.discard();
 						slime.playSound(size > 1 ? BotaniaSounds.narslimmusEatBig : BotaniaSounds.narslimmusEatSmall, 1F, 1F);
 						addMana(manaForSize(size));
@@ -57,11 +60,11 @@ public class NarslimmusBlockEntity extends GeneratingFlowerBlockEntity {
 
 					int times = 8 * (int) Math.pow(2, size);
 					for (int j = 0; j < times; ++j) {
-						float f = slime.level().random.nextFloat() * (float) Math.PI * 2.0F;
-						float f1 = slime.level().random.nextFloat() * 0.5F + 0.5F;
+						float f = slime.level().getRandom().nextFloat() * (float) Math.PI * 2.0F;
+						float f1 = slime.level().getRandom().nextFloat() * 0.5F + 0.5F;
 						float f2 = Mth.sin(f) * size * 0.5F * f1;
 						float f3 = Mth.cos(f) * size * 0.5F * f1;
-						float f4 = slime.level().random.nextFloat() * size * 0.5F * f1;
+						float f4 = slime.level().getRandom().nextFloat() * size * 0.5F * f1;
 						slime.level().addParticle(ParticleTypes.ITEM_SLIME, slime.getX() + f2, slime.getBoundingBox().minY + f4, slime.getZ() + f3, 0.0D, 0.0D, 0.0D);
 					}
 					break;
@@ -106,8 +109,11 @@ public class NarslimmusBlockEntity extends GeneratingFlowerBlockEntity {
 	}
 
 	public static boolean isSlimeChunk(Level world, BlockPos pos) {
-		ChunkPos chunkpos = new ChunkPos(pos);
-		return WorldgenRandom.seedSlimeChunk(chunkpos.x, chunkpos.z, ((ServerLevel) world).getSeed(), 987234911L).nextInt(10) == 0;
+		if (!(world instanceof ServerLevel serverLevel)) {
+			return false;
+		}
+		ChunkPos chunkpos = ChunkPos.containing(pos);
+		return WorldgenRandom.seedSlimeChunk(chunkpos.x(), chunkpos.z(), serverLevel.getSeed(), 987234911L).nextInt(10) == 0;
 	}
 
 }

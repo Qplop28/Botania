@@ -171,12 +171,17 @@ public class GaiaGuardianEntity extends Mob {
 		xpReward = 825;
 	}
 
-	@Override
-	public void onAddedToLevel() {
-		super.onAddedToLevel();
-		if (level().isClientSide() && !clientBossRegistered) {
+	public void onClientEntityLoad() {
+		if (!clientBossRegistered) {
 			Proxy.INSTANCE.addBoss(this);
 			clientBossRegistered = true;
+		}
+	}
+
+	public void onClientEntityUnload() {
+		if (clientBossRegistered) {
+			Proxy.INSTANCE.removeBoss(this);
+			clientBossRegistered = false;
 		}
 	}
 
@@ -556,10 +561,7 @@ public class GaiaGuardianEntity extends Mob {
 
 	@Override
 	public void remove(RemovalReason reason) {
-		if (clientBossRegistered) {
-			Proxy.INSTANCE.removeBoss(this);
-			clientBossRegistered = false;
-		}
+		onClientEntityUnload();
 		super.remove(reason);
 	}
 

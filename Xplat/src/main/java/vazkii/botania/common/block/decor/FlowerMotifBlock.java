@@ -31,7 +31,6 @@ public class FlowerMotifBlock extends FlowerBlock implements CustomCreativeTabCo
 		this.hidden = hidden;
 	}
 
-	@Override
 	public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display,
 			Consumer<Component> tooltip, TooltipFlag flags) {
 		if (hidden) {

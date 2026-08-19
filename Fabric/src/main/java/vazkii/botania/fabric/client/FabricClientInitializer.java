@@ -2,6 +2,7 @@ package vazkii.botania.fabric.client;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientEntityEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
@@ -58,6 +59,7 @@ import vazkii.botania.client.render.item.BotaniaBlockEntityItemRenderer;
 import vazkii.botania.common.block.BotaniaFlowerBlocks;
 import vazkii.botania.common.block.block_entity.BotaniaBlockEntities;
 import vazkii.botania.common.entity.BotaniaEntities;
+import vazkii.botania.common.entity.GaiaGuardianEntity;
 import vazkii.botania.common.item.BotaniaItems;
 import vazkii.botania.common.item.equipment.armor.manasteel.ManasteelArmorItem;
 import vazkii.botania.common.lib.LibMisc;
@@ -129,6 +131,16 @@ public class FabricClientInitializer implements ClientModInitializer {
 				BotaniaParticleRenderTypes.init(client.getTextureManager()));
 
 		// Events
+		ClientEntityEvents.ENTITY_LOAD.register((entity, level) -> {
+			if (entity instanceof GaiaGuardianEntity gaia) {
+				gaia.onClientEntityLoad();
+			}
+		});
+		ClientEntityEvents.ENTITY_UNLOAD.register((entity, level) -> {
+			if (entity instanceof GaiaGuardianEntity gaia) {
+				gaia.onClientEntityUnload();
+			}
+		});
 		ClientTickEvents.END_CLIENT_TICK.register(ClientTickHandler::clientTickEnd);
 		ClientTickEvents.END_CLIENT_TICK.register(KonamiHandler::clientTick);
 		HudElementRegistry.attachElementAfter(VanillaHudElements.SUBTITLES, Identifier.fromNamespaceAndPath(LibMisc.MOD_ID, "hud"), HUDHandler::onDrawScreenPost);

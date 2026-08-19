@@ -1320,9 +1320,9 @@ public final class BotaniaBlocks {
 		r.accept(new BlockItem(scorchedGrass, props), BuiltInRegistries.BLOCK.getKey(scorchedGrass));
 		r.accept(new BlockItem(infusedGrass, props), BuiltInRegistries.BLOCK.getKey(infusedGrass));
 		r.accept(new BlockItem(mutatedGrass, props), BuiltInRegistries.BLOCK.getKey(mutatedGrass));
-		r.accept(new BlockItem(motifDaybloom, props), BuiltInRegistries.BLOCK.getKey(motifDaybloom));
-		r.accept(new BlockItem(motifNightshade, props), BuiltInRegistries.BLOCK.getKey(motifNightshade));
-		r.accept(new BlockItem(motifHydroangeas, props), BuiltInRegistries.BLOCK.getKey(motifHydroangeas));
+		r.accept(motifItem(motifDaybloom, props), BuiltInRegistries.BLOCK.getKey(motifDaybloom));
+		r.accept(motifItem(motifNightshade, props), BuiltInRegistries.BLOCK.getKey(motifNightshade));
+		r.accept(motifItem(motifHydroangeas, props), BuiltInRegistries.BLOCK.getKey(motifHydroangeas));
 
 		r.accept(new BlockItem(darkQuartz, props), BuiltInRegistries.BLOCK.getKey(darkQuartz));
 		r.accept(new BlockItem(darkQuartzPillar, props), BuiltInRegistries.BLOCK.getKey(darkQuartzPillar));
@@ -1505,6 +1505,17 @@ public final class BotaniaBlocks {
 		r.accept(new BlockItem(managlassPane, props), BuiltInRegistries.BLOCK.getKey(managlassPane));
 		r.accept(new BlockItem(alfglassPane, props), BuiltInRegistries.BLOCK.getKey(alfglassPane));
 		r.accept(new BlockItem(bifrostPane, props), BuiltInRegistries.BLOCK.getKey(bifrostPane));
+	}
+
+	private static BlockItem motifItem(Block block, Item.Properties properties) {
+		return new BlockItem(block, properties) {
+			@Override
+			public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display,
+					Consumer<Component> tooltip, TooltipFlag flags) {
+				super.appendHoverText(stack, context, display, tooltip, flags);
+				((FlowerMotifBlock) block).appendHoverText(stack, context, display, tooltip, flags);
+			}
+		};
 	}
 
 	public static void addDispenserBehaviours() {

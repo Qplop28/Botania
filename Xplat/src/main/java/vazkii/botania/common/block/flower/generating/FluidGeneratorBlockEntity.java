@@ -147,8 +147,8 @@ public abstract class FluidGeneratorBlockEntity extends GeneratingFlowerBlockEnt
 	public void readFromPacketNBT(CompoundTag cmp) {
 		super.readFromPacketNBT(cmp);
 
-		burnTime = cmp.getInt(TAG_BURN_TIME);
-		cooldown = cmp.getInt(TAG_COOLDOWN);
+		burnTime = cmp.getIntOr(TAG_BURN_TIME, burnTime);
+		cooldown = cmp.getIntOr(TAG_COOLDOWN, cooldown);
 	}
 
 	@Override

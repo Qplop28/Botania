@@ -85,7 +85,7 @@ public class RafflowsiaBlockEntity extends GeneratingFlowerBlockEntity {
 
 		int mana = 2100;
 
-		if (getMaxMana() - this.getMana() >= mana && !getLevel().isClientSide && ticksExisted % 40 == 0) {
+		if (getMaxMana() - this.getMana() >= mana && !getLevel().isClientSide() && ticksExisted % 40 == 0) {
 			for (int i = 0; i < RANGE * 2 + 1; i++) {
 				for (int j = 0; j < RANGE * 2 + 1; j++) {
 					for (int k = 0; k < RANGE * 2 + 1; k++) {
@@ -124,16 +124,19 @@ public class RafflowsiaBlockEntity extends GeneratingFlowerBlockEntity {
 		super.readFromPacketNBT(cmp);
 
 		lastFlowers.clear();
-		ListTag flowerList = cmp.getList(TAG_LAST_FLOWERS, Tag.TAG_STRING);
+		ListTag flowerList = cmp.getListOrEmpty(TAG_LAST_FLOWERS);
 		for (int i = 0; i < flowerList.size(); i++) {
-			Identifier blockID = Identifier.tryParse(flowerList.getString(i));
-			if (blockID == null) {
+			var serializedId = flowerList.getString(i);
+			if (serializedId.isEmpty()) {
 				continue;
 			}
-			lastFlowers.add(blockID);
+			Identifier blockID = Identifier.tryParse(serializedId.get());
+			if (blockID != null && !lastFlowers.contains(blockID)) {
+				lastFlowers.add(blockID);
+			}
 		}
-		lastFlowerCount = cmp.getInt(TAG_LAST_FLOWER_TIMES);
-		streakLength = cmp.getInt(TAG_STREAK_LENGTH);
+		lastFlowerCount = cmp.getIntOr(TAG_LAST_FLOWER_TIMES, 0);
+		streakLength = cmp.getIntOr(TAG_STREAK_LENGTH, 0);
 	}
 
 	@Override

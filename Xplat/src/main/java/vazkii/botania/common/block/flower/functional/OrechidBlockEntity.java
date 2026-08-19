@@ -12,6 +12,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.random.WeightedRandom;
+import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.LevelEvent;
@@ -33,6 +34,7 @@ import vazkii.botania.xplat.BotaniaConfig;
 import vazkii.botania.xplat.XplatAbstractions;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -82,11 +84,7 @@ public class OrechidBlockEntity extends FunctionalFlowerBlockEntity {
 
 		List<OrechidRecipe> recipes =
 				new ArrayList<>(
-						OrechidManager.getMatchingRecipes(
-								getLevel().getRecipeManager(),
-								getRecipeType(),
-								input
-						)
+						getMatchingRecipes(input)
 				);
 
 		return WeightedRandom.getRandomItem(
@@ -156,11 +154,14 @@ public class OrechidBlockEntity extends FunctionalFlowerBlockEntity {
 	}
 
 	public Predicate<BlockState> getReplaceMatcher() {
-		return state -> !OrechidManager.getMatchingRecipes(
-				this.getLevel().getRecipeManager(),
-				this.getRecipeType(),
-				state
-		).isEmpty();
+		return state -> !getMatchingRecipes(state).isEmpty();
+	}
+
+	private Collection<? extends OrechidRecipe> getMatchingRecipes(BlockState state) {
+		if (!(getLevel().recipeAccess() instanceof RecipeManager recipeManager)) {
+			return List.of();
+		}
+		return OrechidManager.getMatchingRecipes(recipeManager, getRecipeType(), state);
 	}
 
 	public int getCost() {

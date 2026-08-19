@@ -75,7 +75,7 @@ public class AgricarnationBlockEntity extends FunctionalFlowerBlockEntity {
 					addMana(-MANA_COST);
 					if (state.is(BotaniaTags.Blocks.AGRICARNATION_APPLY_BONEMEAL)
 							&& block instanceof BonemealableBlock bonemealableBlock
-							&& bonemealableBlock.isValidBonemealTarget(serverLevel, pos, state, false)) {
+							&& bonemealableBlock.isValidBonemealTarget(serverLevel, pos, state)) {
 						if (serverLevel.getRandom().nextFloat() < BONEMEAL_SUCCESS_CHANCE
 								&& bonemealableBlock.isBonemealSuccess(serverLevel, serverLevel.getRandom(), pos, state)) {
 							bonemealableBlock.performBonemeal(serverLevel, serverLevel.getRandom(), pos, state);
@@ -84,7 +84,8 @@ public class AgricarnationBlockEntity extends FunctionalFlowerBlockEntity {
 						state.randomTick(serverLevel, pos, serverLevel.getRandom());
 					}
 					if (BotaniaConfig.common().blockBreakParticles()) {
-						serverLevel.levelEvent(LevelEvent.PARTICLES_PLANT_GROWTH, pos, 6 + serverLevel.getRandom().nextInt(4));
+						serverLevel.levelEvent(LevelEvent.PARTICLES_AND_SOUND_PLANT_GROWTH, pos,
+								6 + serverLevel.getRandom().nextInt(4));
 					}
 					serverLevel.playSound(null, x, y, z, BotaniaSounds.agricarnation, SoundSource.BLOCKS, 1F, 0.5F + (float) Math.random() * 0.5F);
 
@@ -110,13 +111,13 @@ public class AgricarnationBlockEntity extends FunctionalFlowerBlockEntity {
 	private boolean isPlant(Level level, BlockPos pos, BlockState state, Block block) {
 		if (state.is(BotaniaTags.Blocks.AGRICARNATION_GROWTH_EXCLUDED)
 				// grass/mycelium/nylium-like spreading blocks are excluded unless tagged otherwise
-				|| (block instanceof SpreadingSnowyDirtBlock || block instanceof NyliumBlock)
+				|| (block instanceof SpreadingDirtBlock || block instanceof NyliumBlock)
 						&& !state.is(BotaniaTags.Blocks.AGRICARNATION_GROWTH_CANDIDATE)) {
 			return false;
 		}
 
 		boolean couldApplyBonemeal = block instanceof BonemealableBlock bonemealableBlock
-				&& bonemealableBlock.isValidBonemealTarget(level, pos, state, level.isClientSide());
+				&& bonemealableBlock.isValidBonemealTarget(level, pos, state);
 
 		boolean isTargetCandidate = couldApplyBonemeal
 				|| block instanceof BushBlock

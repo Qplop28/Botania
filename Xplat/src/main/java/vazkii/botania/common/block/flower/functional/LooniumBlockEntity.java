@@ -27,6 +27,7 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.util.RandomSource;
 import net.minecraft.util.random.Weighted;
 import net.minecraft.world.Difficulty;
@@ -43,6 +44,7 @@ import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.levelgen.structure.StructureSpawnOverride;
 import net.minecraft.world.level.levelgen.structure.StructureStart;
+import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
@@ -229,26 +231,27 @@ public class LooniumBlockEntity extends FunctionalFlowerBlockEntity {
 		double y = getEffectivePos().getY();
 		double z = getEffectivePos().getZ() + 0.5 - RANGE + 2 * RANGE * random.nextDouble();
 
-		while (!world.noCollision(pickedMobType.type.getAABB(x, y, z))) {
+		while (!world.noCollision(pickedMobType.type.getDimensions().makeBoundingBox(x, y, z))) {
 			y += 1.0;
-			if (y >= world.getMaxBuildHeight()) {
+			if (y >= world.getMaxY()) {
 				return;
 			}
 		}
 
-		Entity entity = pickedMobType.type.create(world);
+		Entity entity = pickedMobType.type.create(world, EntitySpawnReason.SPAWNER);
 		if (!(entity instanceof Mob mob)) {
 			return;
 		}
 
 		if (pickedMobType.nbt != null) {
-			mob.readAdditionalSaveData(pickedMobType.nbt);
+			mob.readAdditionalSaveData(TagValueInput.create(
+					ProblemReporter.DISCARDING, world.registryAccess(), pickedMobType.nbt));
 		}
 		if (pickedMobType.spawnAsBaby != null) {
 			mob.setBaby(pickedMobType.spawnAsBaby);
 		}
 
-		mob.absMoveTo(x, y, z, random.nextFloat() * 360F, 0);
+		mob.snapTo(x, y, z, random.nextFloat() * 360F, 0);
 		mob.setDeltaMovement(Vec3.ZERO);
 
 		applyAttributesAndEffects(pickedMobType, pickedConfig, mob);
@@ -260,7 +263,7 @@ public class LooniumBlockEntity extends FunctionalFlowerBlockEntity {
 			looniumComponent.setDrop(lootStack);
 		}
 
-		mob.finalizeSpawn(world, world.getCurrentDifficultyAt(mob.blockPosition()), MobSpawnType.SPAWNER, null, null);
+		mob.finalizeSpawn(world, world.getCurrentDifficultyAt(mob.blockPosition()), EntitySpawnReason.SPAWNER, null);
 		if (Boolean.FALSE.equals(pickedMobType.spawnAsBaby) && mob.isBaby()) {
 			// Note: might have already affected initial equipment/attribute selection, or even caused a special
 			// mob configuration (such as chicken jockey) to spawn, which may look weird when reverting to adult.
@@ -283,7 +286,7 @@ public class LooniumBlockEntity extends FunctionalFlowerBlockEntity {
 					EquipmentSlot slot =
 							equipmentStack.is(BotaniaTags.Items.LOONIUM_OFFHAND_EQUIPMENT)
 									? EquipmentSlot.OFFHAND
-									: LivingEntity.getEquipmentSlotForItem(equipmentStack);
+									: mob.getEquipmentSlotForItem(equipmentStack);
 
 					if (equippedSlots.contains(slot)) {
 						slot = equippedSlots.contains(EquipmentSlot.MAINHAND)
@@ -545,7 +548,7 @@ public class LooniumBlockEntity extends FunctionalFlowerBlockEntity {
 			StructureStart start = structureManager.getStructureAt(pos, structure);
 			if (start.isValid()) {
 				Identifier structureId =
-						world.registryAccess().registryOrThrow(Registries.STRUCTURE).getKey(structure);
+						world.registryAccess().lookupOrThrow(Registries.STRUCTURE).getKey(structure);
 				boolean insidePiece = structureManager.structureHasPieceAt(pos, start);
 				if (insidePiece || !structureMap.getBoolean(structureId)) {
 					structureMap.put(structureId, insidePiece);
@@ -685,7 +688,7 @@ public class LooniumBlockEntity extends FunctionalFlowerBlockEntity {
 			int centerY = mc.getWindow().getGuiScaledHeight() / 2;
 
 			super.renderHUD(gui, mc, halfMinWidth, halfMinWidth, 40);
-			gui.drawString(mc.font, lootTypeMessage, lootTypeTextStart, centerY + 30, flower.getColor());
+			gui.text(mc.font, lootTypeMessage, lootTypeTextStart, centerY + 30, flower.getColor());
 		}
 	}
 }

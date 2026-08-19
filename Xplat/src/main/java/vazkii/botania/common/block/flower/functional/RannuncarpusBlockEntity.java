@@ -239,7 +239,7 @@ public class RannuncarpusBlockEntity extends FunctionalFlowerBlockEntity impleme
 			int minWidth = Math.max(RenderHelper.itemWithNameWidth(mc, filterStack), modeWidth) + 4;
 
 			super.renderHUD(gui, mc, minWidth / 2, minWidth / 2, filterStack.isEmpty() ? 40 : 60);
-			gui.drawString(mc.font, mode, modeTextStart, centerY + 30, color);
+			gui.text(mc.font, mode, modeTextStart, centerY + 30, color);
 			RenderHelper.renderItemWithNameCentered(gui, mc, filterStack, centerY + 40, color);
 		}
 	}

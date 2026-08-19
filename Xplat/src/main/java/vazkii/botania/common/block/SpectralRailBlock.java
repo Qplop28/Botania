@@ -9,9 +9,13 @@
 package vazkii.botania.common.block;
 
 import com.google.common.base.Preconditions;
+import com.mojang.serialization.MapCodec;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.util.profiling.Profiler;
 import net.minecraft.world.entity.vehicle.minecart.AbstractMinecart;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseRailBlock;
@@ -31,6 +35,7 @@ import vazkii.botania.common.lib.BotaniaTags;
 import vazkii.botania.xplat.XplatAbstractions;
 
 public class SpectralRailBlock extends BaseRailBlock {
+	public static final MapCodec<SpectralRailBlock> CODEC = simpleCodec(SpectralRailBlock::new);
 
 	public static final String TAG_FLOAT_TICKS = "botania:float_ticks";
 
@@ -40,12 +45,18 @@ public class SpectralRailBlock extends BaseRailBlock {
 	}
 
 	@Override
+	public MapCodec<SpectralRailBlock> codec() {
+		return CODEC;
+	}
+
+	@Override
 	protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
 		builder.add(BlockStateProperties.RAIL_SHAPE_STRAIGHT, WATERLOGGED);
 	}
 
 	private void updateFloating(AbstractMinecart cart) {
-		cart.level().getProfiler().push("cartFloating");
+		var profiler = Profiler.get();
+		profiler.push("cartFloating");
 		SpectralRailComponent persistentData = XplatAbstractions.INSTANCE.ghostRailComponent(cart);
 		int floatTicks = persistentData.floatTicks;
 		Preconditions.checkState(floatTicks > 0);
@@ -67,22 +78,23 @@ public class SpectralRailBlock extends BaseRailBlock {
 			}
 			cart.setDeltaMovement(cart.getDeltaMovement().x() * 1.4, 0.2, cart.getDeltaMovement().z() * 1.4);
 			persistentData.floatTicks--;
-			cart.level().levelEvent(LevelEvent.PARTICLES_SHOOT, entPos, 0);
+			((ServerLevel) cart.level()).sendParticles(ParticleTypes.PORTAL,
+					cart.getX(), cart.getY(), cart.getZ(), 4, 0.15, 0.15, 0.15, 0.1);
 		}
 
-		cart.level().getProfiler().pop();
+		profiler.pop();
 	}
 
 	@SoftImplement("IForgeBaseRailBlock")
 	public void onMinecartPass(BlockState state, Level world, BlockPos pos, AbstractMinecart cart) {
-		if (!world.isClientSide) {
+		if (!world.isClientSide()) {
 			XplatAbstractions.INSTANCE.ghostRailComponent(cart).floatTicks = 20;
 			updateFloating(cart);
 		}
 	}
 
 	public void tickCart(AbstractMinecart c) {
-		if (c.level().isClientSide || c.isRemoved()) {
+		if (c.level().isClientSide() || c.isRemoved()) {
 			return;
 		}
 

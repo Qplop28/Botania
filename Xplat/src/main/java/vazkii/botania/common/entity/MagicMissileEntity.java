@@ -345,10 +345,7 @@ public class MagicMissileEntity
 
 		Predicate<Entity> vulnerableTo =
 				entity ->
-						!entity.isInvulnerableTo(
-								serverLevel,
-								source
-						);
+						!entity.isInvulnerableTo(source);
 
 		List<? extends LivingEntity> entities;
 
@@ -385,7 +382,7 @@ public class MagicMissileEntity
 		if (!entities.isEmpty()) {
 			target =
 					entities.get(
-							level().random.nextInt(
+							getRandom().nextInt(
 									entities.size()
 							)
 					);

@@ -13,6 +13,7 @@ import com.google.common.collect.HashBiMap;
 
 import net.minecraft.util.Util;
 import net.minecraft.core.UUIDUtil;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.saveddata.SavedDataType;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -28,7 +29,7 @@ import java.util.UUID;
 public class SkyblockSavedData extends SavedData {
 	private static final String NAME = "gog_skyblock_islands";
 	private static final SavedDataType<SkyblockSavedData> TYPE = new SavedDataType<>(
-			NAME, () -> new SkyblockSavedData(new CompoundTag()),
+			Identifier.parse(NAME), () -> new SkyblockSavedData(new CompoundTag()),
 			CompoundTag.CODEC.xmap(SkyblockSavedData::new, SkyblockSavedData::save), null);
 
 	/** The offset is chosen to put islands under default settings in the center of a chunk region. */

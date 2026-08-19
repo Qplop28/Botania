@@ -16,6 +16,7 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -50,43 +51,43 @@ public class ForceRelayBlock extends BotaniaBlock {
 	}
 
 	@Override
-	public void onRemove(@NotNull BlockState state, @NotNull Level world, @NotNull BlockPos pos, @NotNull BlockState newState, boolean isMoving) {
-		if (!world.isClientSide()) {
-			var data = WorldData.get(world);
+	protected void affectNeighborsAfterRemoval(@NotNull BlockState state, @NotNull ServerLevel world, @NotNull BlockPos pos, boolean isMoving) {
+		BlockState newState = world.getBlockState(pos);
+		var data = WorldData.get(world);
 
-			Direction movementContextDirection = ForcePushHelper.getMovementContextDirection();
-			if (isMoving && (movementContextDirection != null || newState.is(Blocks.MOVING_PISTON))) {
-				var pistonDirection = movementContextDirection != null
-						? movementContextDirection
-						: newState.getValue(MovingPistonBlock.FACING);
-				// if being moved as part of a retracting sticky piston's block structure, reverse movement direction
-				var moveDirection = ForcePushHelper.isExtendingMovementContext() ? pistonDirection : pistonDirection.getOpposite();
+		Direction movementContextDirection = ForcePushHelper.getMovementContextDirection();
+		if (isMoving && (movementContextDirection != null || newState.is(Blocks.MOVING_PISTON))) {
+			var pistonDirection = movementContextDirection != null
+					? movementContextDirection
+					: newState.getValue(MovingPistonBlock.FACING);
+			// if being moved as part of a retracting sticky piston's block structure, reverse movement direction
+			var moveDirection = ForcePushHelper.isExtendingMovementContext() ? pistonDirection : pistonDirection.getOpposite();
 
-				var destPos = data.mapping.get(pos);
-				if (destPos != null) {
-					BlockPos newSrcPos = pos.relative(moveDirection);
+			var destPos = data.mapping.get(pos);
+			if (destPos != null) {
+				BlockPos newSrcPos = pos.relative(moveDirection);
 
-					{
-						// Move source side of our binding along
-						data.mapping.remove(pos);
-						data.mapping.put(newSrcPos, destPos);
-						data.setDirty();
-					}
-
-					if (!newState.is(Blocks.MOVING_PISTON) || newState.getValue(MovingPistonBlock.TYPE) == PistonType.DEFAULT) {
-						// Move the actual bound blocks
-						if (ForceLens.moveBlocks(world, destPos.relative(moveDirection.getOpposite()), moveDirection, pos)) {
-							// Move dest side of our binding
-							data.mapping.put(newSrcPos, data.mapping.get(newSrcPos).relative(moveDirection));
-						}
-					}
-				}
-			} else {
-				if (data.mapping.remove(pos) != null) {
+				{
+					// Move source side of our binding along
+					data.mapping.remove(pos);
+					data.mapping.put(newSrcPos, destPos);
 					data.setDirty();
 				}
+
+				if (!newState.is(Blocks.MOVING_PISTON) || newState.getValue(MovingPistonBlock.TYPE) == PistonType.DEFAULT) {
+					// Move the actual bound blocks
+					if (ForceLens.moveBlocks(world, destPos.relative(moveDirection.getOpposite()), moveDirection, pos)) {
+						// Move dest side of our binding
+						data.mapping.put(newSrcPos, data.mapping.get(newSrcPos).relative(moveDirection));
+					}
+				}
+			}
+		} else {
+			if (data.mapping.remove(pos) != null) {
+				data.setDirty();
 			}
 		}
+		super.affectNeighborsAfterRemoval(state, world, pos, isMoving);
 	}
 
 	public boolean onUsedByWand(Player player, ItemStack stack, Level world, BlockPos pos) {
@@ -101,20 +102,20 @@ public class ForceRelayBlock extends BotaniaBlock {
 			if (WandOfTheForestItem.getBindMode(stack)) {
 				activeBindingAttempts.put(player.getUUID(), clicked);
 				world.playSound(null, pos, BotaniaSounds.ding, SoundSource.BLOCKS, 0.5F, 1F);
-			} else {
+		} else {
 				var data = WorldData.get(world);
 				if (XplatAbstractions.INSTANCE.isDevEnvironment()) {
 					BotaniaAPI.LOGGER.info("PistonRelay pairs");
 					for (var e : data.mapping.entrySet()) {
 						BotaniaAPI.LOGGER.info("{} -> {}", e.getKey(), e.getValue());
 					}
-				}
+			}
 				BlockPos dest = data.mapping.get(pos);
 				if (dest != null) {
 					XplatAbstractions.INSTANCE.sendToNear(world, pos, new BotaniaEffectPacket(EffectType.PARTICLE_BEAM,
 							pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5,
 							dest.getX(), dest.getY(), dest.getZ()));
-				}
+			}
 			}
 		}
 
@@ -125,7 +126,7 @@ public class ForceRelayBlock extends BotaniaBlock {
 
 		private static final String ID = "PistonRelayPairs";
 		private static final SavedDataType<WorldData> TYPE = new SavedDataType<>(
-				ID, () -> new WorldData(new CompoundTag()),
+				Identifier.parse(ID), () -> new WorldData(new CompoundTag()),
 				CompoundTag.CODEC.xmap(WorldData::new, WorldData::save), null);
 		public final Map<BlockPos, BlockPos> mapping = new HashMap<>();
 

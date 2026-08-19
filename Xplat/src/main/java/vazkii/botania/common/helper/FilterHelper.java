@@ -1,24 +1,17 @@
 package vazkii.botania.common.helper;
 
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.entity.decoration.GlowItemFrame;
 import net.minecraft.world.entity.decoration.ItemFrame;
-import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-
-import org.jetbrains.annotations.Nullable;
+import net.minecraft.world.item.component.ItemContainerContents;
 
 import vazkii.botania.mixin.BundleItemAccessor;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class FilterHelper {
-
-	public static final String ITEMS_TAG = "Items";
 
 	public static List<ItemStack> getFilterItems(ItemFrame filterFrame) {
 		ItemStack filterStack = filterFrame.getItem();
@@ -40,41 +33,16 @@ public class FilterHelper {
 				return bundledItems;
 			}
 		} else {
-			// BlockItems (especially shulker boxes) can contain BlockEntity data, which may include an inventory.
-			// Otherwise, items may represent an inventory themselves (e.g. Flower Pouch or Bauble Box)
-			CompoundTag tag = filterStack.getItem() instanceof BlockItem
-					? BlockItem.getBlockEntityData(filterStack)
-					: filterStack.getTag();
-			if (tag != null && tag.contains(ITEMS_TAG, Tag.TAG_LIST)) {
-				// item might contain an inventory
-				List<ItemStack> items = getItemStacks(tag);
-				if (items != null) {
+			// Vanilla block containers and Botania's item-backed inventories both use this component.
+			ItemContainerContents contents = filterStack.get(DataComponents.CONTAINER);
+			if (contents != null) {
+				List<ItemStack> items = contents.streamNonEmpty().toList();
+				if (!items.isEmpty()) {
 					return items;
 				}
 			}
 		}
 		return List.of(filterStack);
-	}
-
-	@Nullable
-	private static List<ItemStack> getItemStacks(CompoundTag tag) {
-		try {
-			ListTag contents = tag.getList(ITEMS_TAG, CompoundTag.TAG_COMPOUND);
-			List<ItemStack> items = new ArrayList<>(contents.size());
-			for (int i = 0; i < contents.size(); i++) {
-				CompoundTag entry = contents.getCompound(i);
-				ItemStack stack = ItemStack.of(entry);
-				if (!stack.isEmpty()) {
-					items.add(stack);
-				}
-			}
-			if (!items.isEmpty()) {
-				return items;
-			}
-		} catch (ClassCastException ce) {
-			// apparently not a typical container inventory
-		}
-		return null;
 	}
 
 	public record WeightedItemStack(ItemStack stack, int weight) {

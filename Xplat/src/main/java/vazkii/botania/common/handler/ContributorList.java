@@ -12,11 +12,12 @@ import com.google.common.collect.ImmutableMap;
 
 import net.minecraft.DefaultUncaughtExceptionHandler;
 import net.minecraft.core.Holder;
-import net.minecraft.core.Registry;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -54,6 +55,7 @@ public class ContributorList {
 			.put("orechidignem", LibBlockNames.SUBTILE_ORECHID_IGNEM.getPath())
 			.build();
 	private static volatile Map<String, ItemStack> flowerMap = Collections.emptyMap();
+	private static volatile HolderLookup.Provider registryLookup;
 	private static boolean startedLoading = false;
 
 	public static final String TAG_HEADFLOWER = "botania:headflower";
@@ -68,6 +70,11 @@ public class ContributorList {
 
 			startedLoading = true;
 		}
+	}
+
+	/** Supplies the dynamic registries used while constructing contributor stacks. */
+	public static void setRegistryLookup(HolderLookup.Provider lookup) {
+		registryLookup = lookup;
 	}
 
 	public static ItemStack getFlower(String name) {
@@ -109,12 +116,14 @@ public class ContributorList {
 
 	private static ItemStack configureStack(Item item) {
 		ItemStack stack = new ItemStack(item);
-		Registry<?> enchantments = BuiltInRegistries.REGISTRY.getValue(Registries.ENCHANTMENT.identifier());
-		if (enchantments != null) {
+		HolderLookup.Provider lookup = registryLookup;
+		if (lookup != null) {
+			var enchantments = lookup.lookupOrThrow(Registries.ENCHANTMENT);
 			EnchantmentHelper.updateEnchantments(stack, mutable -> {
-				enchantments.get(Enchantments.UNBREAKING).ifPresent(holder -> mutable.set((Holder) holder, 1));
-				enchantments.get(Identifier.fromNamespaceAndPath("charm", "tinted"))
-						.ifPresent(holder -> mutable.set((Holder) holder, 1));
+				enchantments.get(Enchantments.UNBREAKING).ifPresent(holder -> mutable.set(holder, 1));
+				enchantments.get(ResourceKey.create(Registries.ENCHANTMENT,
+						Identifier.fromNamespaceAndPath("charm", "tinted")))
+						.ifPresent(holder -> mutable.set(holder, 1));
 			});
 		}
 

@@ -33,7 +33,7 @@ public class ElementiumSwordItem extends ManasteelSwordItem {
 		Multimap<Attribute, AttributeModifier> ret = super.getDefaultAttributeModifiers(slot);
 		if (slot == EquipmentSlot.MAINHAND) {
 			ret = HashMultimap.create(ret);
-			ret.put(PixieHandler.PIXIE_SPAWN_CHANCE, PixieHandler.makeModifier(slot, "Sword modifier", 0.05));
+			ret.put(PixieHandler.pixieSpawnChance(), PixieHandler.makeModifier(slot, "Sword modifier", 0.05));
 		}
 		return ret;
 	}

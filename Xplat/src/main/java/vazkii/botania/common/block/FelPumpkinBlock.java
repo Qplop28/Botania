@@ -12,13 +12,13 @@ import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.monster.Blaze;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.Mirror;
@@ -50,16 +50,16 @@ public class FelPumpkinBlock extends BotaniaBlock {
 	public void onPlace(BlockState state, Level world, BlockPos pos, BlockState oldState, boolean isMoving) {
 		super.onPlace(state, world, pos, oldState, isMoving);
 
-		if (!world.isClientSide && world.getBlockState(pos.below()).is(Blocks.IRON_BARS) && world.getBlockState(pos.below(2)).is(Blocks.IRON_BARS)) {
+		if (world instanceof ServerLevel serverLevel && world.getBlockState(pos.below()).is(Blocks.IRON_BARS) && world.getBlockState(pos.below(2)).is(Blocks.IRON_BARS)) {
 			world.removeBlock(pos, false);
 			world.removeBlock(pos.below(), false);
 			world.removeBlock(pos.below(2), false);
-			Blaze blaze = EntityType.BLAZE.create(world);
-			blaze.moveTo(pos.getX() + 0.5D, pos.getY() - 1.95D, pos.getZ() + 0.5D, 0.0F, 0.0F);
+			Blaze blaze = EntityType.BLAZE.create(serverLevel, EntitySpawnReason.EVENT);
+			blaze.snapTo(pos.getX() + 0.5D, pos.getY() - 1.95D, pos.getZ() + 0.5D, 0.0F, 0.0F);
 			blaze.setPersistenceRequired();
 			((MobAccessor) blaze).setLootTable(LOOT_TABLE);
-			blaze.finalizeSpawn((ServerLevelAccessor) world, world.getCurrentDifficultyAt(pos), EntitySpawnReason.EVENT, null, null);
-			world.addFreshEntity(blaze);
+			blaze.finalizeSpawn(serverLevel, serverLevel.getCurrentDifficultyAt(pos), EntitySpawnReason.EVENT, null);
+			serverLevel.addFreshEntity(blaze);
 
 			for (ServerPlayer player : world.getEntitiesOfClass(ServerPlayer.class, blaze.getBoundingBox().inflate(5.0))) {
 				CriteriaTriggers.SUMMONED_ENTITY.trigger(player, blaze);

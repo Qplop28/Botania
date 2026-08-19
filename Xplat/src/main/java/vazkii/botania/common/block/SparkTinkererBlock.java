@@ -9,6 +9,8 @@
 package vazkii.botania.common.block;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -22,11 +24,13 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import vazkii.botania.common.block.block_entity.SimpleInventoryBlockEntity;
 import vazkii.botania.common.block.block_entity.SparkTinkererBlockEntity;
@@ -54,7 +58,8 @@ public class SparkTinkererBlock extends BotaniaWaterloggedBlock implements Entit
 	}
 
 	@Override
-	public void neighborChanged(BlockState state, Level world, BlockPos pos, Block block, BlockPos fromPos, boolean isMoving) {
+	public void neighborChanged(BlockState state, Level world, BlockPos pos, Block block,
+			@Nullable Orientation orientation, boolean isMoving) {
 		boolean power = world.getBestNeighborSignal(pos) > 0;
 		boolean powered = state.getValue(BlockStateProperties.POWERED);
 
@@ -67,33 +72,41 @@ public class SparkTinkererBlock extends BotaniaWaterloggedBlock implements Entit
 	}
 
 	@Override
-	public InteractionResult use(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+	protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level world, BlockPos pos, Player player,
+			InteractionHand hand, BlockHitResult hit) {
+		return interact(world, pos, player, stack);
+	}
+
+	@Override
+	protected InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player,
+			BlockHitResult hit) {
+		return interact(world, pos, player, ItemStack.EMPTY);
+	}
+
+	private InteractionResult interact(Level world, BlockPos pos, Player player, ItemStack pstack) {
 		SparkTinkererBlockEntity changer = (SparkTinkererBlockEntity) world.getBlockEntity(pos);
-		ItemStack pstack = player.getItemInHand(hand);
 		ItemStack cstack = changer.getItemHandler().getItem(0);
 		if (!cstack.isEmpty()) {
 			changer.getItemHandler().setItem(0, ItemStack.EMPTY);
 			player.getInventory().placeItemBackInInventory(cstack);
-			return InteractionResult.sidedSuccess(world.isClientSide());
+			return world.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
 		} else if (!pstack.isEmpty() && pstack.getItem() instanceof SparkAugmentItem) {
 			changer.getItemHandler().setItem(0, pstack.split(1));
 			changer.setChanged();
 
-			return InteractionResult.sidedSuccess(world.isClientSide());
+			return world.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
 		}
 
 		return InteractionResult.PASS;
 	}
 
 	@Override
-	public void onRemove(@NotNull BlockState state, @NotNull Level world, @NotNull BlockPos pos, @NotNull BlockState newState, boolean isMoving) {
-		if (!state.is(newState.getBlock())) {
-			BlockEntity be = world.getBlockEntity(pos);
-			if (be instanceof SimpleInventoryBlockEntity inventory) {
-				Containers.dropContents(world, pos, inventory.getItemHandler());
-			}
-			super.onRemove(state, world, pos, newState, isMoving);
+	protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel world, BlockPos pos, boolean isMoving) {
+		BlockEntity be = world.getBlockEntity(pos);
+		if (be instanceof SimpleInventoryBlockEntity inventory) {
+			Containers.dropContents(world, pos, inventory.getItemHandler());
 		}
+		super.affectNeighborsAfterRemoval(state, world, pos, isMoving);
 	}
 
 	@Override
@@ -102,7 +115,7 @@ public class SparkTinkererBlock extends BotaniaWaterloggedBlock implements Entit
 	}
 
 	@Override
-	public int getAnalogOutputSignal(BlockState state, Level world, BlockPos pos) {
+	public int getAnalogOutputSignal(BlockState state, Level world, BlockPos pos, Direction direction) {
 		SparkTinkererBlockEntity changer = (SparkTinkererBlockEntity) world.getBlockEntity(pos);
 		ItemStack stack = changer.getItemHandler().getItem(0);
 		if (!stack.isEmpty() && stack.getItem() instanceof SparkAugmentItem upgrade) {

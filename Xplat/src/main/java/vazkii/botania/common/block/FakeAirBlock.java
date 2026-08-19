@@ -11,6 +11,7 @@ package vazkii.botania.common.block;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
@@ -19,8 +20,10 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.redstone.Orientation;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import vazkii.botania.common.block.block_entity.FakeAirBlockEntity;
 
@@ -31,7 +34,8 @@ public class FakeAirBlock extends AirBlock implements EntityBlock, LiquidBlockCo
 	}
 
 	@Override
-	public void neighborChanged(BlockState state, Level world, BlockPos pos, Block block, BlockPos fromPos, boolean isMoving) {
+	public void neighborChanged(BlockState state, Level world, BlockPos pos, Block block,
+			@Nullable Orientation orientation, boolean isMoving) {
 		if (shouldRemove(world, pos)) {
 			world.scheduleTick(pos, this, 4);
 		}
@@ -55,7 +59,8 @@ public class FakeAirBlock extends AirBlock implements EntityBlock, LiquidBlockCo
 	}
 
 	@Override
-	public boolean canPlaceLiquid(BlockGetter blockGetter, BlockPos pos, BlockState state, Fluid fluid) {
+	public boolean canPlaceLiquid(@Nullable LivingEntity livingEntity, BlockGetter blockGetter, BlockPos pos,
+			BlockState state, Fluid fluid) {
 		return false;
 	}
 

@@ -9,6 +9,7 @@
 package vazkii.botania.common.block;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.EntityBlock;
@@ -45,7 +46,7 @@ public class EyeOfTheAncientsBlock extends BotaniaWaterloggedBlock implements En
 	}
 
 	@Override
-	public int getAnalogOutputSignal(BlockState state, Level world, BlockPos pos) {
+	public int getAnalogOutputSignal(BlockState state, Level world, BlockPos pos, Direction direction) {
 		EyeOfTheAncientsBlockEntity eye = (EyeOfTheAncientsBlockEntity) world.getBlockEntity(pos);
 		return eye == null ? 0 : Math.min(15, Math.max(0, eye.entities - 1));
 	}
@@ -59,7 +60,7 @@ public class EyeOfTheAncientsBlock extends BotaniaWaterloggedBlock implements En
 	@Nullable
 	@Override
 	public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-		if (!level.isClientSide) {
+		if (!level.isClientSide()) {
 			return createTickerHelper(type, BotaniaBlockEntities.FOREST_EYE, EyeOfTheAncientsBlockEntity::serverTick);
 		}
 		return null;

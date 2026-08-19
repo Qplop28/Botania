@@ -10,6 +10,7 @@ package vazkii.botania.common.block.decor;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Containers;
@@ -64,7 +65,7 @@ public class TinyPotatoBlock extends BotaniaWaterloggedBlock implements EntityBl
 	}
 
 	@Override
-	public int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos) {
+	public int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos, Direction direction) {
 		if (level.getBlockEntity(pos) instanceof TinyPotatoBlockEntity tater) {
 			return AbstractContainerMenu.getRedstoneSignalFromContainer(tater);
 		} else {
@@ -73,15 +74,13 @@ public class TinyPotatoBlock extends BotaniaWaterloggedBlock implements EntityBl
 	}
 
 	@Override
-	public void onRemove(@NotNull BlockState state, @NotNull Level world, @NotNull BlockPos pos, @NotNull BlockState newState, boolean isMoving) {
-		if (!state.is(newState.getBlock())) {
-			BlockEntity be = world.getBlockEntity(pos);
-			if (be instanceof SimpleInventoryBlockEntity inventory) {
-				Containers.dropContents(world, pos, inventory.getItemHandler());
-				world.updateNeighbourForOutputSignal(pos, this);
-			}
-			super.onRemove(state, world, pos, newState, isMoving);
+	protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel world, BlockPos pos, boolean isMoving) {
+		BlockEntity be = world.getBlockEntity(pos);
+		if (be instanceof SimpleInventoryBlockEntity inventory) {
+			Containers.dropContents(world, pos, inventory.getItemHandler());
+			world.updateNeighbourForOutputSignal(pos, this);
 		}
+		super.affectNeighborsAfterRemoval(state, world, pos, isMoving);
 	}
 
 	@NotNull
@@ -91,15 +90,27 @@ public class TinyPotatoBlock extends BotaniaWaterloggedBlock implements EntityBl
 	}
 
 	@Override
-	public InteractionResult use(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+	protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level world, BlockPos pos, Player player,
+			InteractionHand hand, BlockHitResult hit) {
+		return interact(world, pos, player, hand, stack, hit);
+	}
+
+	@Override
+	protected InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player,
+			BlockHitResult hit) {
+		return interact(world, pos, player, InteractionHand.MAIN_HAND, ItemStack.EMPTY, hit);
+	}
+
+	private InteractionResult interact(Level world, BlockPos pos, Player player, InteractionHand hand, ItemStack stack,
+			BlockHitResult hit) {
 		BlockEntity tile = world.getBlockEntity(pos);
 		if (tile instanceof TinyPotatoBlockEntity tater) {
-			tater.interact(player, hand, player.getItemInHand(hand), hit.getDirection());
-			if (!world.isClientSide) {
+			tater.interact(player, hand, stack, hit.getDirection());
+			if (!world.isClientSide()) {
 				spawnHearts((ServerLevel) world, pos);
 			}
 		}
-		return InteractionResult.sidedSuccess(world.isClientSide());
+		return world.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
 	}
 
 	public static void spawnHearts(ServerLevel level, BlockPos pos) {
@@ -127,15 +138,15 @@ public class TinyPotatoBlock extends BotaniaWaterloggedBlock implements EntityBl
 
 	@Override
 	public void setPlacedBy(Level world, BlockPos pos, BlockState state, @Nullable LivingEntity living, ItemStack stack) {
-		if (stack.hasCustomHoverName() && world.getBlockEntity(pos) instanceof TinyPotatoBlockEntity tater) {
-			tater.name = stack.getHoverName();
+		if (stack.has(DataComponents.CUSTOM_NAME) && world.getBlockEntity(pos) instanceof TinyPotatoBlockEntity tater) {
+			tater.name = stack.get(DataComponents.CUSTOM_NAME);
 		}
 	}
 
 	@NotNull
 	@Override
 	public RenderShape getRenderShape(BlockState state) {
-		return RenderShape.ENTITYBLOCK_ANIMATED;
+		return RenderShape.INVISIBLE;
 	}
 
 	@NotNull

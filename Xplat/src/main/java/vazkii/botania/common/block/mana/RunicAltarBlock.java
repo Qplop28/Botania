@@ -9,6 +9,8 @@
 package vazkii.botania.common.block.mana;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -55,11 +57,22 @@ public class RunicAltarBlock extends BotaniaWaterloggedBlock implements EntityBl
 	}
 
 	@Override
-	public InteractionResult use(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+	protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level world, BlockPos pos, Player player,
+			InteractionHand hand, BlockHitResult hit) {
+		return handleInteraction(state, world, pos, player, stack, hand);
+	}
+
+	@Override
+	protected InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player,
+			BlockHitResult hit) {
+		return handleInteraction(state, world, pos, player, ItemStack.EMPTY, InteractionHand.MAIN_HAND);
+	}
+
+	private InteractionResult handleInteraction(BlockState state, Level world, BlockPos pos, Player player,
+			ItemStack stack, InteractionHand hand) {
 		if (!(world.getBlockEntity(pos) instanceof RunicAltarBlockEntity altar)) {
 			return InteractionResult.PASS;
 		}
-		ItemStack stack = player.getItemInHand(hand);
 		boolean mainHandEmpty = player.getMainHandItem().isEmpty();
 
 		if (altar.canAddLastRecipe() && mainHandEmpty) {
@@ -67,12 +80,12 @@ public class RunicAltarBlock extends BotaniaWaterloggedBlock implements EntityBl
 		} else if (!altar.isEmpty() && altar.manaToGet == 0 && mainHandEmpty) {
 			InventoryHelper.withdrawFromInventory(altar, player);
 			VanillaPacketDispatcher.dispatchTEToNearbyPlayers(altar);
-			return InteractionResult.sidedSuccess(world.isClientSide());
+			return world.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
 		} else if (!stack.isEmpty()) {
 			boolean result = altar.addItem(player, stack, hand);
 			VanillaPacketDispatcher.dispatchTEToNearbyPlayers(altar);
 			if (result) {
-				return InteractionResult.sidedSuccess(world.isClientSide());
+				return world.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
 			}
 		}
 
@@ -80,14 +93,12 @@ public class RunicAltarBlock extends BotaniaWaterloggedBlock implements EntityBl
 	}
 
 	@Override
-	public void onRemove(@NotNull BlockState state, @NotNull Level world, @NotNull BlockPos pos, @NotNull BlockState newState, boolean isMoving) {
-		if (!state.is(newState.getBlock())) {
-			BlockEntity be = world.getBlockEntity(pos);
-			if (be instanceof SimpleInventoryBlockEntity inventory) {
-				Containers.dropContents(world, pos, inventory.getItemHandler());
-			}
-			super.onRemove(state, world, pos, newState, isMoving);
+	protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel world, BlockPos pos, boolean isMoving) {
+		BlockEntity be = world.getBlockEntity(pos);
+		if (be instanceof SimpleInventoryBlockEntity inventory) {
+			Containers.dropContents(world, pos, inventory.getItemHandler());
 		}
+		super.affectNeighborsAfterRemoval(state, world, pos, isMoving);
 	}
 
 	@NotNull
@@ -99,7 +110,7 @@ public class RunicAltarBlock extends BotaniaWaterloggedBlock implements EntityBl
 	@Nullable
 	@Override
 	public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-		if (level.isClientSide) {
+		if (level.isClientSide()) {
 			return createTickerHelper(type, BotaniaBlockEntities.RUNE_ALTAR, RunicAltarBlockEntity::clientTick);
 		} else {
 			return createTickerHelper(type, BotaniaBlockEntities.RUNE_ALTAR, RunicAltarBlockEntity::serverTick);
@@ -112,7 +123,7 @@ public class RunicAltarBlock extends BotaniaWaterloggedBlock implements EntityBl
 	}
 
 	@Override
-	public int getAnalogOutputSignal(BlockState state, Level world, BlockPos pos) {
+	public int getAnalogOutputSignal(BlockState state, Level world, BlockPos pos, Direction direction) {
 		RunicAltarBlockEntity altar = (RunicAltarBlockEntity) world.getBlockEntity(pos);
 		return altar.signal;
 	}

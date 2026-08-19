@@ -8,10 +8,8 @@
  */
 package vazkii.botania.common.block.mana;
 
-import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
@@ -19,7 +17,6 @@ import net.minecraft.world.entity.InsideBlockEffectApplier;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
-import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -49,7 +46,6 @@ import vazkii.botania.common.entity.ManaBurstEntity;
 import vazkii.botania.common.item.material.MysticalPetalItem;
 
 import java.util.Optional;
-import java.util.function.Consumer;
 
 import static vazkii.botania.api.state.BotaniaStateProperties.OPTIONAL_DYE_COLOR;
 
@@ -92,17 +88,6 @@ public class ManaPoolBlock extends BotaniaWaterloggedBlock implements EntityBloc
 	protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
 		super.createBlockStateDefinition(builder);
 		builder.add(OPTIONAL_DYE_COLOR);
-	}
-
-	@Override
-	public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display,
-			Consumer<Component> tooltip, TooltipFlag flag) {
-		super.appendHoverText(stack, context, display, tooltip, flag);
-		if (variant == ManaPoolBlock.Variant.CREATIVE) {
-			for (int i = 0; i < 2; i++) {
-				tooltip.accept(Component.translatable("botaniamisc.creativePool" + i).withStyle(ChatFormatting.GRAY));
-			}
-		}
 	}
 
 	@NotNull

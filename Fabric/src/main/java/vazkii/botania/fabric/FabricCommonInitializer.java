@@ -156,6 +156,11 @@ public class FabricCommonInitializer implements ModInitializer {
 	}
 
 	private void registryInit() {
+		// Attribute suppliers may initialize Player.createAttributes(), whose Fabric
+		// mixin resolves this registry holder. Register it before any entity attribute
+		// suppliers can be built so that the lookup always returns the real holder.
+		PixieHandler.registerAttribute(bind(BuiltInRegistries.ATTRIBUTE));
+
 		// Core item/block/BE
 		BotaniaSounds.init(bind(BuiltInRegistries.SOUND_EVENT));
 		BotaniaBlocks.registerBlocks(bind(BuiltInRegistries.BLOCK));
@@ -193,7 +198,6 @@ public class FabricCommonInitializer implements ModInitializer {
 		// Entities
 		BotaniaEntities.registerEntities(bind(BuiltInRegistries.ENTITY_TYPE));
 		BotaniaEntities.registerAttributes(FabricDefaultAttributeRegistry::register);
-		PixieHandler.registerAttribute(bind(BuiltInRegistries.ATTRIBUTE));
 		MinecartComparatorLogicRegistry.register(BotaniaEntities.POOL_MINECART, (minecart, state, pos) -> minecart.getComparatorLevel());
 
 		// Potions

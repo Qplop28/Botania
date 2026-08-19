@@ -716,8 +716,6 @@ import static vazkii.botania.integration.speedrunigt.BotaniaSpeedrunCategories.B
 				.register(prefix(name), setType);
 	}
 
-	private final boolean speedrunIGTLoaded = isModLoaded("speedrunigt");
-
 		@Override
 	public boolean isRunningCategory(BotaniaSpeedrunCategory category) {
 		// SpeedRunIGT integration is disabled during the Minecraft 26.1 bootstrap.

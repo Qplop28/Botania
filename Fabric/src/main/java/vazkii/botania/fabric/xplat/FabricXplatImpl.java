@@ -527,7 +527,7 @@ import static vazkii.botania.integration.speedrunigt.BotaniaSpeedrunCategories.B
 	}
 
 	@Override
-	public FlowerBlock createSpecialFlowerBlock(MobEffect effect, int effectDuration, BlockBehaviour.Properties props, Supplier<BlockEntityType<? extends SpecialFlowerBlockEntity>> beType, boolean hasComparatorOutput) {
+	public FlowerBlock createSpecialFlowerBlock(Holder<MobEffect> effect, int effectDuration, BlockBehaviour.Properties props, Supplier<BlockEntityType<? extends SpecialFlowerBlockEntity>> beType, boolean hasComparatorOutput) {
 		return new FabricSpecialFlowerBlock(effect, effectDuration, props, beType, hasComparatorOutput);
 	}
 

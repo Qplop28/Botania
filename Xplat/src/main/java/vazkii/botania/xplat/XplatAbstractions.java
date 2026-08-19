@@ -168,13 +168,13 @@ public interface XplatAbstractions {
 	// Registrations
 	boolean isSpecialFlowerBlock(Block b);
 
-	default FlowerBlock createSpecialFlowerBlock(MobEffect effect, int effectDuration,
+	default FlowerBlock createSpecialFlowerBlock(Holder<MobEffect> effect, int effectDuration,
 			BlockBehaviour.Properties props,
 			Supplier<BlockEntityType<? extends SpecialFlowerBlockEntity>> beType) {
 		return createSpecialFlowerBlock(effect, effectDuration, props, beType, false);
 	}
 
-	FlowerBlock createSpecialFlowerBlock(MobEffect effect, int effectDuration,
+	FlowerBlock createSpecialFlowerBlock(Holder<MobEffect> effect, int effectDuration,
 			BlockBehaviour.Properties props,
 			Supplier<BlockEntityType<? extends SpecialFlowerBlockEntity>> beType,
 			boolean hasComparatorOutput);

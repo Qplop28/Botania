@@ -53,7 +53,8 @@ public class OrechidManager implements ResourceManagerReloadListener {
 		final var byState = BY_TYPE.computeIfAbsent(type, t -> new IdentityHashMap<>());
 		final var list = byState.computeIfAbsent(state, s -> {
 			var builder = ImmutableList.<T>builder();
-			for (var recipe : manager.getAllRecipesFor(type)) {
+			for (var holder : manager.getRecipes().byType(type)) {
+				T recipe = holder.value();
 				if (recipe.getInput().test(state)) {
 					builder.add(recipe);
 				}
@@ -78,7 +79,10 @@ public class OrechidManager implements ResourceManagerReloadListener {
 	}
 
 	private static int calculateTotalDisplayWeightAtPosition(Level level, RecipeType<? extends OrechidRecipe> type, BlockState state, @Nullable BlockPos pos) {
-		final var recipeList = getMatchingRecipes(level.getRecipeManager(), type, state);
+		if (!(level.recipeAccess() instanceof RecipeManager recipeManager)) {
+			return 0;
+		}
+		final var recipeList = getMatchingRecipes(recipeManager, type, state);
 		if (recipeList.isEmpty()) {
 			return 0;
 		}

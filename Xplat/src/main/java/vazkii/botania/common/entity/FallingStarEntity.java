@@ -71,7 +71,7 @@ public class FallingStarEntity
 		if (!hasBeenInAir
 				&& !level().isClientSide()) {
 			BlockState feetState =
-					getFeetBlockState();
+					level().getBlockState(blockPosition());
 
 			hasBeenInAir =
 					feetState.isAir()

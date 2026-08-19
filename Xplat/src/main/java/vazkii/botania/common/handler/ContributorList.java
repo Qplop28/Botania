@@ -12,15 +12,18 @@ import com.google.common.collect.ImmutableMap;
 
 import net.minecraft.DefaultUncaughtExceptionHandler;
 import net.minecraft.core.Holder;
+import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.world.item.component.CustomData;
 
 import vazkii.botania.api.BotaniaAPI;
 import vazkii.botania.common.block.BotaniaBlocks;
@@ -93,7 +96,7 @@ public class ContributorList {
 				String flowerName = LEGACY_FLOWER_NAMES.getOrDefault(rawName, rawName);
 
 				var item = StreamSupport.stream(BuiltInRegistries.ITEM.getTagOrEmpty(BotaniaTags.Items.CONTRIBUTOR_HEADFLOWERS).spliterator(), false)
-						.filter(h -> h.is(resKey -> resKey.location().getPath().equals(flowerName)))
+						.filter(h -> h.is(resKey -> resKey.identifier().getPath().equals(flowerName)))
 						.findFirst()
 						.map(Holder::value)
 						.orElse(Items.POPPY);
@@ -106,13 +109,19 @@ public class ContributorList {
 
 	private static ItemStack configureStack(Item item) {
 		ItemStack stack = new ItemStack(item);
-		Map<Enchantment, Integer> ench = new HashMap<>();
-		ench.put(Enchantments.UNBREAKING, 1);
-		BuiltInRegistries.ENCHANTMENT.getOptional(new Identifier("charm", "tinted")).ifPresent(e -> ench.put(e, 1));
-		EnchantmentHelper.setEnchantments(ench, stack);
+		Registry<?> enchantments = BuiltInRegistries.REGISTRY.getValue(Registries.ENCHANTMENT.identifier());
+		if (enchantments != null) {
+			EnchantmentHelper.updateEnchantments(stack, mutable -> {
+				enchantments.get(Enchantments.UNBREAKING).ifPresent(holder -> mutable.set((Holder) holder, 1));
+				enchantments.get(Identifier.fromNamespaceAndPath("charm", "tinted"))
+						.ifPresent(holder -> mutable.set((Holder) holder, 1));
+			});
+		}
 
-		stack.getTag().putBoolean(TAG_HEADFLOWER, true);
-		stack.getTag().putString("charm_glint", DyeColor.YELLOW.getSerializedName());
+		CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> {
+			tag.putBoolean(TAG_HEADFLOWER, true);
+			tag.putString("charm_glint", DyeColor.YELLOW.getSerializedName());
+		});
 		return stack;
 	}
 

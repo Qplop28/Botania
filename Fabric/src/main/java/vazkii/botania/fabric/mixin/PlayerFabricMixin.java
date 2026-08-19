@@ -57,11 +57,7 @@ public abstract class PlayerFabricMixin extends LivingEntity {
 	 */
 	@Inject(at = @At("RETURN"), method = "createAttributes")
 	private static void addPixieAttribute(CallbackInfoReturnable<AttributeSupplier.Builder> cir) {
-		cir.getReturnValue().add(
-				BuiltInRegistries.ATTRIBUTE.wrapAsHolder(
-						PixieHandler.PIXIE_SPAWN_CHANCE
-				)
-		);
+		cir.getReturnValue().add(PixieHandler.PIXIE_SPAWN_CHANCE);
 	}
 
 	/**

@@ -38,8 +38,7 @@ public class ManaItemHandlerImpl implements ManaItemHandler {
 
 		List<ItemStack> toReturn = new ArrayList<>();
 
-		for (int slot = 0; slot < player.getInventory().getContainerSize(); slot++) {
-			ItemStack stackInSlot = player.getInventory().getItem(slot);
+		for (ItemStack stackInSlot : player.getInventory().getNonEquipmentItems()) {
 			if (!stackInSlot.isEmpty() && XplatAbstractions.INSTANCE.findManaItem(stackInSlot) != null) {
 				toReturn.add(stackInSlot);
 			}

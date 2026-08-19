@@ -28,6 +28,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
@@ -87,16 +88,16 @@ public class DrumBlock extends BotaniaWaterloggedBlock {
 				serverLevel.getEntitiesOfClass(
 						Mob.class,
 						new AABB(
-								pos.offset(
+								Vec3.atLowerCornerOf(pos.offset(
 										-GATHER_RANGE,
 										-GATHER_RANGE,
 										-GATHER_RANGE
-								),
-								pos.offset(
+								)),
+								Vec3.atLowerCornerOf(pos.offset(
 										GATHER_RANGE + 1,
 										GATHER_RANGE + 1,
 										GATHER_RANGE + 1
-								)
+								))
 						),
 						mob ->
 								mob.isAlive()
@@ -119,7 +120,7 @@ public class DrumBlock extends BotaniaWaterloggedBlock {
 				speedUpEggLaying(chicken);
 			}
 
-			if (mob.getType().is(
+			if (mob.getType().builtInRegistryHolder().is(
 					BotaniaTags.Entities.DRUM_MILKABLE)
 					&& !mob.isBaby()) {
 				convertNearby(
@@ -149,7 +150,7 @@ public class DrumBlock extends BotaniaWaterloggedBlock {
 			}
 
 			if (mob instanceof Shearable shearable
-					&& !mob.getType().is(
+					&& !mob.getType().builtInRegistryHolder().is(
 							BotaniaTags.Entities
 									.DRUM_NO_SHEARING
 					)
@@ -200,12 +201,12 @@ public class DrumBlock extends BotaniaWaterloggedBlock {
 	}
 
 	private static void spawnItem(Mob mob, ItemStack to) {
-		Level world = mob.level();
-		ItemEntity ent = mob.spawnAtLocation(to, 1.0F);
+		ServerLevel world = (ServerLevel) mob.level();
+		ItemEntity ent = mob.spawnAtLocation(world, to, 1.0F);
 		ent.setDeltaMovement(ent.getDeltaMovement().add(
-				world.random.nextFloat() * 0.05F,
-				(world.random.nextFloat() - world.random.nextFloat()) * 0.1F,
-				(world.random.nextFloat() - world.random.nextFloat()) * 0.1F
+				world.getRandom().nextFloat() * 0.05F,
+				(world.getRandom().nextFloat() - world.getRandom().nextFloat()) * 0.1F,
+				(world.getRandom().nextFloat() - world.getRandom().nextFloat()) * 0.1F
 		));
 	}
 

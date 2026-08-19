@@ -176,7 +176,9 @@ import java.util.function.Supplier;
 	@Nullable
 	@Override
 	public Registry<Brew> getBrewRegistry() {
-		return BuiltInRegistries.REGISTRY.get(BotaniaRegistries.BREWS.identifier());
+		@SuppressWarnings("unchecked")
+		Registry<Brew> registry = (Registry<Brew>) BuiltInRegistries.REGISTRY.getValue(BotaniaRegistries.BREWS.identifier());
+		return registry;
 	}
 
 	@Override

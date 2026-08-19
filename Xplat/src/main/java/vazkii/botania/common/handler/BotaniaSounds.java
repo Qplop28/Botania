@@ -129,7 +129,7 @@ public final class BotaniaSounds {
 
 	public static void init(BiConsumer<SoundEvent, Identifier> r) {
 		for (SoundEvent event : EVENTS) {
-			r.accept(event, event.getLocation());
+			r.accept(event, event.location());
 		}
 	}
 

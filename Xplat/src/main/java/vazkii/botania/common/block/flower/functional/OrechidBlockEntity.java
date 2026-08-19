@@ -90,7 +90,7 @@ public class OrechidBlockEntity extends FunctionalFlowerBlockEntity {
 				);
 
 		return WeightedRandom.getRandomItem(
-				getLevel().random,
+				getLevel().getRandom(),
 				recipes,
 				recipe ->
 						recipe.getWeight(
@@ -105,7 +105,7 @@ public class OrechidBlockEntity extends FunctionalFlowerBlockEntity {
 			return;
 		}
 
-		BlockState state = recipe.getOutput(level, coords).pick(level.random);
+		BlockState state = recipe.getOutput(level, coords).pick(level.getRandom());
 		if (getLevel().setBlockAndUpdate(coords, state)) {
 			if (BotaniaConfig.common().blockBreakParticles()) {
 				getLevel().levelEvent(LevelEvent.PARTICLES_DESTROY_BLOCK, coords, Block.getId(state));
@@ -144,7 +144,7 @@ public class OrechidBlockEntity extends FunctionalFlowerBlockEntity {
 		if (possibleCoords.isEmpty()) {
 			return null;
 		}
-		return possibleCoords.get(getLevel().random.nextInt(possibleCoords.size()));
+		return possibleCoords.get(getLevel().getRandom().nextInt(possibleCoords.size()));
 	}
 
 	public boolean canOperate() {

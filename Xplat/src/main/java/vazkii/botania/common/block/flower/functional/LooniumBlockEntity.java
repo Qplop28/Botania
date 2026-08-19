@@ -92,8 +92,8 @@ public class LooniumBlockEntity extends FunctionalFlowerBlockEntity {
 					.effectsToApply(
 							LooniumMobEffectToApply.effect(MobEffects.REGENERATION).build(),
 							LooniumMobEffectToApply.effect(MobEffects.FIRE_RESISTANCE).build(),
-							LooniumMobEffectToApply.effect(MobEffects.DAMAGE_RESISTANCE).build(),
-							LooniumMobEffectToApply.effect(MobEffects.DAMAGE_BOOST).build()
+							LooniumMobEffectToApply.effect(MobEffects.RESISTANCE).build(),
+							LooniumMobEffectToApply.effect(MobEffects.STRENGTH).build()
 					)
 					.build());
 
@@ -194,7 +194,7 @@ public class LooniumBlockEntity extends FunctionalFlowerBlockEntity {
 			return;
 		}
 
-		Pair<Identifier, LootTable> randomPick = lootTables.get(world.random.nextInt(lootTables.size()));
+		Pair<Identifier, LootTable> randomPick = lootTables.get(world.getRandom().nextInt(lootTables.size()));
 		LooniumStructureConfiguration pickedConfig = structureConfigs.getOrDefault(randomPick.key(),
 				structureConfigs.get(LooniumStructureConfiguration.DEFAULT_CONFIG_ID));
 		LootTable pickedLootTable = randomPick.value();
@@ -208,7 +208,7 @@ public class LooniumBlockEntity extends FunctionalFlowerBlockEntity {
 			return;
 		}
 
-		LooniumMobSpawnData pickedMobType = pickedConfig.spawnedMobs.getRandom(world.random).orElse(null);
+		LooniumMobSpawnData pickedMobType = pickedConfig.spawnedMobs.getRandom(world.getRandom()).orElse(null);
 		if (pickedMobType == null) {
 			return;
 		}
@@ -224,7 +224,7 @@ public class LooniumBlockEntity extends FunctionalFlowerBlockEntity {
 			return;
 		}
 
-		RandomSource random = world.random;
+		RandomSource random = world.getRandom();
 		double x = getEffectivePos().getX() + 0.5 - RANGE + 2 * RANGE * random.nextDouble();
 		double y = getEffectivePos().getY();
 		double z = getEffectivePos().getZ() + 0.5 - RANGE + 2 * RANGE * random.nextDouble();
@@ -409,7 +409,7 @@ public class LooniumBlockEntity extends FunctionalFlowerBlockEntity {
 				.create(LootContextParamSets.EMPTY);
 
 		List<ItemStack> stacks =
-				pickedLootTable.getRandomItems(params, world.random.nextLong());
+				pickedLootTable.getRandomItems(params, world.getRandom().nextLong());
 
 		stacks.removeIf(s ->
 				s.isEmpty() || s.is(BotaniaTags.Items.LOONIUM_BLACKLIST)
@@ -588,25 +588,25 @@ public class LooniumBlockEntity extends FunctionalFlowerBlockEntity {
 	public void readFromPacketNBT(CompoundTag cmp) {
 		super.readFromPacketNBT(cmp);
 		if (cmp.contains(TAG_LOOT_TABLE)) {
-			lootTableOverride = new Identifier(cmp.getString(TAG_LOOT_TABLE));
+			lootTableOverride = Identifier.parse(cmp.getString(TAG_LOOT_TABLE).orElse(""));
 		}
 		if (cmp.contains(TAG_CONFIG_OVERRIDE)) {
-			configOverride = new Identifier(cmp.getString(TAG_CONFIG_OVERRIDE));
+			configOverride = Identifier.parse(cmp.getString(TAG_CONFIG_OVERRIDE).orElse(""));
 		}
 		if (cmp.contains(TAG_ATTUNE_DISPLAY_OVERRIDE)) {
-			attuneDisplayOverride = cmp.getString(TAG_ATTUNE_DISPLAY_OVERRIDE);
+			attuneDisplayOverride = cmp.getString(TAG_ATTUNE_DISPLAY_OVERRIDE).orElse("");
 		}
 		if (cmp.contains(TAG_DETECTED_STRUCTURE)) {
-			String rawString = cmp.getString(TAG_DETECTED_STRUCTURE);
+			String rawString = cmp.getString(TAG_DETECTED_STRUCTURE).orElse("");
 			if (rawString.isEmpty()) {
 				detectedStructures = Object2BooleanMaps.emptyMap();
 			} else {
 				List<ObjectBooleanPair<Identifier>> structureList = Arrays.stream(rawString.split(",")).map(part -> {
 					if (part.contains("|")) {
 						String[] components = part.split("\\|", 2);
-						return ObjectBooleanPair.of(new Identifier(components[0]), Boolean.parseBoolean(components[1]));
+						return ObjectBooleanPair.of(Identifier.parse(components[0]), Boolean.parseBoolean(components[1]));
 					} else {
-						return ObjectBooleanPair.of(new Identifier(part), false);
+						return ObjectBooleanPair.of(Identifier.parse(part), false);
 					}
 				}).toList();
 				// list should never contain more than a few entries, so array is fine and retains entry order

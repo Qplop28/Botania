@@ -213,7 +213,7 @@ public class ForgeCommonInitializer {
 		bind(Registries.ENTITY_TYPE, BotaniaEntities::registerEntities);
 		modBus.addListener((EntityAttributeCreationEvent e) -> BotaniaEntities.registerAttributes((type, builder) -> e.put(type, builder.build())));
 		modBus.addListener((EntityAttributeModificationEvent e) -> {
-			e.add(EntityType.PLAYER, PixieHandler.PIXIE_SPAWN_CHANCE);
+			e.add(EntityType.PLAYER, PixieHandler.pixieSpawnChance());
 		});
 		bind(Registries.ATTRIBUTE, PixieHandler::registerAttribute);
 
@@ -662,6 +662,7 @@ public class ForgeCommonInitializer {
 	}
 
 	private void serverAboutToStart(MinecraftServer server) {
+		ContributorList.setRegistryLookup(server.registryAccess());
 		if (BotaniaAPI.instance().getClass() != BotaniaAPIImpl.class) {
 			String clname = BotaniaAPI.instance().getClass().getName();
 			throw new IllegalAccessError("The Botania API has been overriden. "

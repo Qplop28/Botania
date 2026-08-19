@@ -31,7 +31,7 @@ public class ElementiumBootsItem extends ElementiumArmorItem {
 		Multimap<Attribute, AttributeModifier> ret = super.getDefaultAttributeModifiers(slot);
 		if (slot == getEquipmentSlot()) {
 			ret = HashMultimap.create(ret);
-			ret.put(PixieHandler.PIXIE_SPAWN_CHANCE, PixieHandler.makeModifier(slot, "Armor modifier", 0.09));
+			ret.put(PixieHandler.pixieSpawnChance(), PixieHandler.makeModifier(slot, "Armor modifier", 0.09));
 		}
 		return ret;
 	}

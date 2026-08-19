@@ -62,11 +62,6 @@ public class SkyblockChunkGenerator extends NoiseBasedChunkGenerator {
 			@NotNull BiomeManager biomeManager, @NotNull Registry<Biome> biomes, @NotNull Blender blender) {}
 
 	@Override
-	public void applyCarvers(@NotNull WorldGenRegion worldGenRegion, long seed, @NotNull RandomState randomState,
-			@NotNull BiomeManager biomeManager, @NotNull StructureManager structureManager,
-			@NotNull ChunkAccess chunkAccess) {}
-
-	@Override
 	public @NotNull CompletableFuture<ChunkAccess> fillFromNoise(@NotNull Executor executor, @NotNull Blender blender,
 			@NotNull RandomState randomState, @NotNull StructureManager structureManager, @NotNull ChunkAccess chunk) {
 		return CompletableFuture.completedFuture(chunk);

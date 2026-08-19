@@ -34,7 +34,7 @@ public class ElementiumHelmItem extends ElementiumArmorItem implements ManaDisco
 		Multimap<Attribute, AttributeModifier> ret = super.getDefaultAttributeModifiers(slot);
 		if (slot == getEquipmentSlot()) {
 			ret = HashMultimap.create(ret);
-			ret.put(PixieHandler.PIXIE_SPAWN_CHANCE, PixieHandler.makeModifier(slot, "Armor modifier", 0.11));
+			ret.put(PixieHandler.pixieSpawnChance(), PixieHandler.makeModifier(slot, "Armor modifier", 0.11));
 		}
 		return ret;
 	}

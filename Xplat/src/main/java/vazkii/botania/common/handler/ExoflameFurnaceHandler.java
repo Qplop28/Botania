@@ -33,7 +33,7 @@ public class ExoflameFurnaceHandler {
 		try {
 			var qc = ((AbstractFurnaceBlockEntityAccessor) furnace).getQuickCheck();
 			var currentRecipe = qc.getRecipeFor(furnace, serverLevel);
-			return currentRecipe.isPresent() && ExoflameFurnaceHandler.canSmeltRecipe(furnace, currentRecipe.get());
+			return currentRecipe.isPresent() && ExoflameFurnaceHandler.canSmeltRecipe(furnace, currentRecipe.get().value());
 		} catch (Throwable t) {
 			BotaniaAPI.LOGGER.error("Failed to determine if furnace TE can smelt", t);
 			return false;

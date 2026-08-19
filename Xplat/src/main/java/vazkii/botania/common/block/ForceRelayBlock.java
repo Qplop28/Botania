@@ -26,6 +26,8 @@ import net.minecraft.world.level.block.piston.MovingPistonBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.PistonType;
 import net.minecraft.world.level.material.PushReaction;
+import net.minecraft.world.level.dimension.DimensionType;
+import net.minecraft.world.level.storage.LevelResource;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.world.level.saveddata.SavedDataType;
 
@@ -40,6 +42,8 @@ import vazkii.botania.network.EffectType;
 import vazkii.botania.network.clientbound.BotaniaEffectPacket;
 import vazkii.botania.xplat.XplatAbstractions;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.*;
 
 public class ForceRelayBlock extends BotaniaBlock {
@@ -124,9 +128,10 @@ public class ForceRelayBlock extends BotaniaBlock {
 
 	public static class WorldData extends SavedData {
 
-		private static final String ID = "PistonRelayPairs";
+		private static final Identifier ID = Identifier.fromNamespaceAndPath(BotaniaAPI.MODID, "piston_relay_pairs");
+		private static final String LEGACY_ID = "PistonRelayPairs";
 		private static final SavedDataType<WorldData> TYPE = new SavedDataType<>(
-				Identifier.parse(ID), () -> new WorldData(new CompoundTag()),
+				ID, () -> new WorldData(new CompoundTag()),
 				CompoundTag.CODEC.xmap(WorldData::new, WorldData::save), null);
 		public final Map<BlockPos, BlockPos> mapping = new HashMap<>();
 
@@ -156,7 +161,24 @@ public class ForceRelayBlock extends BotaniaBlock {
 		}
 
 		public static WorldData get(Level world) {
-			return ((ServerLevel) world).getDataStorage().computeIfAbsent(TYPE);
+			ServerLevel level = (ServerLevel) world;
+			migrateLegacyFile(level);
+			return level.getDataStorage().computeIfAbsent(TYPE);
+		}
+
+		private static void migrateLegacyFile(ServerLevel level) {
+			var dimensionFolder = DimensionType.getStorageFolder(level.dimension(),
+					level.getServer().getWorldPath(LevelResource.ROOT));
+			var dataFolder = dimensionFolder.resolve("data");
+			var legacyFile = dataFolder.resolve(LEGACY_ID + ".dat");
+			var currentFile = dataFolder.resolve(ID.toDebugFileName() + ".dat");
+			if (Files.exists(legacyFile) && Files.notExists(currentFile)) {
+				try {
+					Files.move(legacyFile, currentFile);
+				} catch (IOException e) {
+					BotaniaAPI.LOGGER.error("Could not migrate legacy Force Relay data {} to {}", legacyFile, currentFile, e);
+				}
+			}
 		}
 	}
 }

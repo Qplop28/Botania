@@ -345,7 +345,7 @@ public class MagicMissileEntity
 
 		Predicate<Entity> vulnerableTo =
 				entity ->
-						!entity.isInvulnerableTo(source);
+						!entity.isInvulnerableToBase(source);
 
 		List<? extends LivingEntity> entities;
 

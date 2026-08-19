@@ -67,7 +67,7 @@ public final class SkyblockWorldEvents {
 			SkyblockSavedData data = SkyblockSavedData.get(world);
 			if (!data.skyblocks.containsValue(Util.NIL_UUID)) {
 				IslandPos islandPos = data.getSpawn();
-				world.getLevelData().setSpawn(islandPos.getCenter(), 0);
+				world.setDefaultSpawnPos(islandPos.getCenter(), 0);
 				spawnPlayer(player, islandPos);
 				BotaniaAPI.LOGGER.info("Created the spawn GoG island");
 			}
@@ -132,8 +132,7 @@ public final class SkyblockWorldEvents {
 		if (player instanceof ServerPlayer pmp) {
 			createSkyblock(pmp.level(), pos);
 			pmp.teleportTo(pos.getX() + 0.5, pos.getY() + 1.6, pos.getZ() + 0.5);
-			var respawnData = new ServerPlayer.RespawnData(pmp.level().dimension(), pos, 0);
-			pmp.setRespawnPosition(new ServerPlayer.RespawnConfig(respawnData, true), false);
+			pmp.setRespawnPosition(new ServerPlayer.RespawnConfig(pmp.level().dimension(), pos, 0, true), false);
 			if (BotaniaConfig.common().gogSpawnWithLexicon()) {
 				player.getInventory().add(new ItemStack(BotaniaItems.lexicon));
 			}

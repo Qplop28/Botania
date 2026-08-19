@@ -152,7 +152,7 @@ public class PetalApothecaryBlock extends BotaniaBlock implements EntityBlock {
 	}
 
 	@Override
-	protected void handlePrecipitation(BlockState state, ServerLevel world, BlockPos pos, Biome.Precipitation precipitation) {
+	public void handlePrecipitation(BlockState state, ServerLevel world, BlockPos pos, Biome.Precipitation precipitation) {
 		if (world.getRandom().nextInt(20) == 1) {
 			if (state.getValue(FLUID) == State.EMPTY) {
 				world.setBlockAndUpdate(pos, state.setValue(FLUID, State.WATER));
@@ -169,6 +169,10 @@ public class PetalApothecaryBlock extends BotaniaBlock implements EntityBlock {
 
 		boolean success = XplatAbstractions.INSTANCE.insertFluidIntoPlayerItem(player, hand, fluid);
 		if (success) {
+			if (!player.level().isClientSide() && !altar.isEmpty()) {
+				Containers.dropContents(player.level(), pos, altar.getItemHandler());
+				VanillaPacketDispatcher.dispatchTEToNearbyPlayers(altar);
+			}
 			altar.setFluid(PetalApothecary.State.EMPTY);
 			// Usage of vanilla sound events: Subtitle is "Bucket fills"
 			if (fluid == Fluids.WATER) {

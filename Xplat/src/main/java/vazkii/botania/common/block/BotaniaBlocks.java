@@ -1190,7 +1190,17 @@ public final class BotaniaBlocks {
 		r.accept(new BlockItem(elvenSpreader, props), BuiltInRegistries.BLOCK.getKey(elvenSpreader));
 		r.accept(new BlockItem(gaiaSpreader, props), BuiltInRegistries.BLOCK.getKey(gaiaSpreader));
 		r.accept(new BlockItem(manaPool, props), BuiltInRegistries.BLOCK.getKey(manaPool));
-		r.accept(new BlockItem(creativePool, BotaniaItems.defaultBuilder().rarity(Rarity.EPIC)), BuiltInRegistries.BLOCK.getKey(creativePool));
+		r.accept(new BlockItem(creativePool, BotaniaItems.defaultBuilder().rarity(Rarity.EPIC)) {
+			@Override
+			public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display,
+					Consumer<Component> tooltip, TooltipFlag flag) {
+				super.appendHoverText(stack, context, display, tooltip, flag);
+				for (int i = 0; i < 2; i++) {
+					tooltip.accept(Component.translatable("botaniamisc.creativePool" + i)
+							.withStyle(ChatFormatting.GRAY));
+				}
+			}
+		}, BuiltInRegistries.BLOCK.getKey(creativePool));
 		r.accept(new BlockItem(dilutedPool, props), BuiltInRegistries.BLOCK.getKey(dilutedPool));
 		r.accept(new BlockItem(fabulousPool, props), BuiltInRegistries.BLOCK.getKey(fabulousPool));
 		r.accept(new BlockItem(alchemyCatalyst, props), BuiltInRegistries.BLOCK.getKey(alchemyCatalyst));

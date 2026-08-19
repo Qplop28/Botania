@@ -9,6 +9,8 @@
 package vazkii.botania.common.block.mana;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -60,32 +62,41 @@ public class BotanicalBreweryBlock extends BotaniaWaterloggedBlock implements En
 	}
 
 	@Override
-	public InteractionResult use(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+	protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level world, BlockPos pos, Player player,
+			InteractionHand hand, BlockHitResult hit) {
+		return handleInteraction(stack, state, world, pos, player, hand);
+	}
+
+	@Override
+	protected InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player,
+			BlockHitResult hit) {
+		return handleInteraction(ItemStack.EMPTY, state, world, pos, player, InteractionHand.MAIN_HAND);
+	}
+
+	private InteractionResult handleInteraction(ItemStack stack, BlockState state, Level world, BlockPos pos,
+			Player player, InteractionHand hand) {
 		BreweryBlockEntity brew = (BreweryBlockEntity) world.getBlockEntity(pos);
 
-		ItemStack stack = player.getItemInHand(hand);
 		if (stack.isEmpty()) {
 			if (!state.getValue(BlockStateProperties.POWERED)) {
 				InventoryHelper.withdrawFromInventory(brew, player);
-				return InteractionResult.sidedSuccess(world.isClientSide());
+				return world.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
 			}
 		} else {
 			return brew.addItem(player, stack, hand)
-					? InteractionResult.sidedSuccess(world.isClientSide())
+					? world.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER
 					: InteractionResult.PASS;
 		}
 		return InteractionResult.PASS;
 	}
 
 	@Override
-	public void onRemove(@NotNull BlockState state, @NotNull Level world, @NotNull BlockPos pos, @NotNull BlockState newState, boolean isMoving) {
-		if (!state.is(newState.getBlock())) {
-			BlockEntity be = world.getBlockEntity(pos);
-			if (be instanceof SimpleInventoryBlockEntity inventory) {
-				Containers.dropContents(world, pos, inventory.getItemHandler());
-			}
-			super.onRemove(state, world, pos, newState, isMoving);
+	protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel world, BlockPos pos, boolean isMoving) {
+		BlockEntity be = world.getBlockEntity(pos);
+		if (be instanceof SimpleInventoryBlockEntity inventory) {
+			Containers.dropContents(world, pos, inventory.getItemHandler());
 		}
+		super.affectNeighborsAfterRemoval(state, world, pos, isMoving);
 	}
 
 	@Override
@@ -94,7 +105,7 @@ public class BotanicalBreweryBlock extends BotaniaWaterloggedBlock implements En
 	}
 
 	@Override
-	public int getAnalogOutputSignal(BlockState state, Level world, BlockPos pos) {
+	public int getAnalogOutputSignal(BlockState state, Level world, BlockPos pos, Direction direction) {
 		BreweryBlockEntity brew = (BreweryBlockEntity) world.getBlockEntity(pos);
 		return brew.signal;
 	}
@@ -102,7 +113,7 @@ public class BotanicalBreweryBlock extends BotaniaWaterloggedBlock implements En
 	@NotNull
 	@Override
 	public RenderShape getRenderShape(BlockState state) {
-		return RenderShape.ENTITYBLOCK_ANIMATED;
+		return RenderShape.INVISIBLE;
 	}
 
 	@NotNull

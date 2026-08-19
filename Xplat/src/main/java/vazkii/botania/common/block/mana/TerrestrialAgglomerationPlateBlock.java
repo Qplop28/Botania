@@ -9,6 +9,7 @@
 package vazkii.botania.common.block.mana;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -65,7 +66,8 @@ public class TerrestrialAgglomerationPlateBlock
 	}
 
 	@Override
-	public InteractionResult use(
+	protected InteractionResult useItemOn(
+			ItemStack stack,
 			BlockState state,
 			Level world,
 			BlockPos pos,
@@ -73,8 +75,6 @@ public class TerrestrialAgglomerationPlateBlock
 			InteractionHand hand,
 			BlockHitResult hit
 	) {
-		ItemStack stack = player.getItemInHand(hand);
-
 		if (!stack.isEmpty() && usesItem(stack, world)) {
 			if (!world.isClientSide()) {
 				ItemStack target = stack.split(1);
@@ -91,9 +91,7 @@ public class TerrestrialAgglomerationPlateBlock
 				world.addFreshEntity(item);
 			}
 
-			return InteractionResult.sidedSuccess(
-					world.isClientSide()
-			);
+			return world.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
 		}
 
 		return InteractionResult.PASS;
@@ -139,12 +137,7 @@ public class TerrestrialAgglomerationPlateBlock
 	}
 
 	@Override
-	public boolean isPathfindable(
-			@NotNull BlockState state,
-			@NotNull BlockGetter world,
-			@NotNull BlockPos pos,
-			PathComputationType type
-	) {
+	protected boolean isPathfindable(BlockState state, PathComputationType type) {
 		return false;
 	}
 
@@ -187,7 +180,8 @@ public class TerrestrialAgglomerationPlateBlock
 	public int getAnalogOutputSignal(
 			BlockState state,
 			Level world,
-			BlockPos pos
+			BlockPos pos,
+			Direction direction
 	) {
 		TerrestrialAgglomerationPlateBlockEntity plate =
 				(TerrestrialAgglomerationPlateBlockEntity)

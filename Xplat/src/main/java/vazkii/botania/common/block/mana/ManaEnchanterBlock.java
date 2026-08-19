@@ -10,6 +10,7 @@ package vazkii.botania.common.block.mana;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -60,9 +61,20 @@ public class ManaEnchanterBlock extends BotaniaBlock implements EntityBlock {
 	}
 
 	@Override
-	public InteractionResult use(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+	protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level world, BlockPos pos, Player player,
+			InteractionHand hand, BlockHitResult hit) {
+		return handleInteraction(stack, world, pos, player, hand);
+	}
+
+	@Override
+	protected InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player,
+			BlockHitResult hit) {
+		return handleInteraction(ItemStack.EMPTY, world, pos, player, InteractionHand.MAIN_HAND);
+	}
+
+	private InteractionResult handleInteraction(ItemStack stack, Level world, BlockPos pos, Player player,
+			InteractionHand hand) {
 		ManaEnchanterBlockEntity enchanter = (ManaEnchanterBlockEntity) world.getBlockEntity(pos);
-		ItemStack stack = player.getItemInHand(hand);
 		if (!stack.isEmpty() && stack.getItem() instanceof WandOfTheForestItem) {
 			return InteractionResult.PASS;
 		}
@@ -86,22 +98,17 @@ public class ManaEnchanterBlock extends BotaniaBlock implements EntityBlock {
 			enchanter.sync();
 		}
 
-		return InteractionResult.sidedSuccess(world.isClientSide());
+		return world.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
 	}
 
 	@Override
-	public void onRemove(@NotNull BlockState state, @NotNull Level world, @NotNull BlockPos pos, @NotNull BlockState newState, boolean isMoving) {
-		if (!state.is(newState.getBlock())) {
-			BlockEntity tile = world.getBlockEntity(pos);
-
-			if (tile instanceof ManaEnchanterBlockEntity enchanter) {
-
-				if (!enchanter.itemToEnchant.isEmpty()) {
-					Containers.dropItemStack(world, pos.getX(), pos.getY(), pos.getZ(), enchanter.itemToEnchant);
-				}
+	protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel world, BlockPos pos, boolean isMoving) {
+		BlockEntity tile = world.getBlockEntity(pos);
+		if (tile instanceof ManaEnchanterBlockEntity enchanter) {
+			if (!enchanter.itemToEnchant.isEmpty()) {
+				Containers.dropItemStack(world, pos.getX(), pos.getY(), pos.getZ(), enchanter.itemToEnchant);
 			}
-
-			super.onRemove(state, world, pos, newState, isMoving);
 		}
+		super.affectNeighborsAfterRemoval(state, world, pos, isMoving);
 	}
 }

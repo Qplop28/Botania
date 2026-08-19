@@ -19,6 +19,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec3;
 
 import vazkii.botania.common.item.equipment.tool.ToolCommons;
 
@@ -32,7 +33,9 @@ public class EnderOverseerBlockEntity extends BotaniaBlockEntity {
 	public static void serverTick(Level level, BlockPos worldPosition, BlockState state, EnderOverseerBlockEntity self) {
 		boolean wasLooking = state.getValue(BlockStateProperties.POWERED);
 		int range = 80;
-		List<Player> players = level.getEntitiesOfClass(Player.class, new AABB(worldPosition.offset(-range, -range, -range), worldPosition.offset(range, range, range)));
+		List<Player> players = level.getEntitiesOfClass(Player.class, new AABB(
+				Vec3.atLowerCornerOf(worldPosition.offset(-range, -range, -range)),
+				Vec3.atLowerCornerOf(worldPosition.offset(range + 1, range + 1, range + 1))));
 
 		boolean looking = false;
 		for (Player player : players) {

@@ -184,7 +184,7 @@ public class MagicMissileEntity
 					0.0
 			);
 
-			if (level().random.nextInt(steps) <= 1) {
+			if (getRandom().nextInt(steps) <= 1) {
 				level().addParticle(
 						data,
 						particlePosition.x

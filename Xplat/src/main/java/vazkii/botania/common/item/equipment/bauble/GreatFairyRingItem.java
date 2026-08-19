@@ -26,7 +26,7 @@ public class GreatFairyRingItem extends BaubleItem {
 	@Override
 	public Multimap<Holder<Attribute>, AttributeModifier> getEquippedAttributeModifiers(ItemStack stack) {
 		Multimap<Holder<Attribute>, AttributeModifier> ret = super.getEquippedAttributeModifiers(stack);
-		ret.put(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(PixieHandler.PIXIE_SPAWN_CHANCE), new AttributeModifier(getBaubleModifierId(stack), 0.25, AttributeModifier.Operation.ADD_VALUE));
+		ret.put(PixieHandler.PIXIE_SPAWN_CHANCE, new AttributeModifier(getBaubleModifierId(stack), 0.25, AttributeModifier.Operation.ADD_VALUE));
 		return ret;
 	}
 }

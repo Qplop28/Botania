@@ -9,6 +9,7 @@
 package vazkii.botania.common.handler;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity;
@@ -26,12 +27,12 @@ public class ExoflameFurnaceHandler {
 	}
 
 	public static boolean canSmelt(AbstractFurnaceBlockEntity furnace) {
-		if (furnace.getItem(0).isEmpty()) {
+		if (furnace.getItem(0).isEmpty() || !(furnace.getLevel() instanceof ServerLevel serverLevel)) {
 			return false;
 		}
 		try {
 			var qc = ((AbstractFurnaceBlockEntityAccessor) furnace).getQuickCheck();
-			var currentRecipe = qc.getRecipeFor(furnace, furnace.getLevel());
+			var currentRecipe = qc.getRecipeFor(furnace, serverLevel);
 			return currentRecipe.isPresent() && ExoflameFurnaceHandler.canSmeltRecipe(furnace, currentRecipe.get());
 		} catch (Throwable t) {
 			BotaniaAPI.LOGGER.error("Failed to determine if furnace TE can smelt", t);

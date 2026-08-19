@@ -61,9 +61,14 @@ public class SpectrolusBlockEntity extends GeneratingFlowerBlockEntity {
 		}
 
 		// sheep need to enter the actual block space
-		var sheeps = getLevel().getEntitiesOfClass(Sheep.class, new AABB(getEffectivePos()), Entity::isAlive);
+		BlockPos effectivePos = getEffectivePos();
+		var sheeps = getLevel().getEntitiesOfClass(Sheep.class,
+				new AABB(effectivePos.getX(), effectivePos.getY(), effectivePos.getZ(),
+						effectivePos.getX() + 1, effectivePos.getY() + 1, effectivePos.getZ() + 1), Entity::isAlive);
 
-		AABB itemAABB = new AABB(getEffectivePos().offset(-RANGE, -RANGE, -RANGE), getEffectivePos().offset(RANGE + 1, RANGE + 1, RANGE + 1));
+		AABB itemAABB = new AABB(effectivePos.getX() - RANGE, effectivePos.getY() - RANGE,
+				effectivePos.getZ() - RANGE, effectivePos.getX() + RANGE + 1,
+				effectivePos.getY() + RANGE + 1, effectivePos.getZ() + RANGE + 1);
 		Predicate<ItemEntity> selector = e -> DelayHelper.canInteractWithImmediate(this, e);
 		var items = getLevel().getEntitiesOfClass(ItemEntity.class, itemAABB, selector);
 
@@ -71,10 +76,10 @@ public class SpectrolusBlockEntity extends GeneratingFlowerBlockEntity {
 			if (target instanceof Sheep sheep) {
 				if (!sheep.isSheared() && sheep.getColor() == nextColor) {
 					addManaAndCycle(sheep.isBaby() ? BABY_SHEEP_GEN : SHEEP_GEN);
-					float pitch = sheep.isBaby() ? (level.random.nextFloat() - level.random.nextFloat()) * 0.2F + 1.5F : (level.random.nextFloat() - level.random.nextFloat()) * 0.2F + 1.0F;
+					float pitch = sheep.isBaby() ? (level.getRandom().nextFloat() - level.getRandom().nextFloat()) * 0.2F + 1.5F : (level.getRandom().nextFloat() - level.getRandom().nextFloat()) * 0.2F + 1.0F;
 					//Usage of vanilla sound event: this sheep do be dying though. And generic sounds are meant to be reused.
 					sheep.playSound(SoundEvents.SHEEP_DEATH, 0.9F, pitch);
-					sheep.playSound(SoundEvents.GENERIC_EAT, 1, 1);
+					sheep.playSound(SoundEvents.GENERIC_EAT.value(), 1, 1);
 
 					ItemStack morbid = new ItemStack(sheep.isOnFire() ? Items.COOKED_MUTTON : Items.MUTTON);
 					((ServerLevel) getLevel()).sendParticles(

@@ -8,8 +8,6 @@
  */
 package vazkii.botania.common.block.block_entity;
 
-import com.google.common.base.Suppliers;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.WorldlyContainer;
@@ -21,14 +19,13 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
 /**
  * Version of {@link SimpleInventoryBlockEntity} where the backing inventory is exposed to automation
  */
 public abstract class ExposedSimpleInventoryBlockEntity extends SimpleInventoryBlockEntity implements WorldlyContainer {
-	private final Supplier<int[]> slots = Suppliers.memoize(() -> IntStream.range(0, getContainerSize()).toArray());
+	private int[] slots;
 
 	protected ExposedSimpleInventoryBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
 		super(type, pos, state);
@@ -84,7 +81,10 @@ public abstract class ExposedSimpleInventoryBlockEntity extends SimpleInventoryB
 	@NotNull
 	@Override
 	public int[] getSlotsForFace(@NotNull Direction side) {
-		return slots.get();
+		if (slots == null) {
+			slots = IntStream.range(0, getContainerSize()).toArray();
+		}
+		return slots;
 	}
 
 	@Override

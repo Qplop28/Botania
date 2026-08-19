@@ -71,22 +71,15 @@ public class EndoflameBlockEntity extends GeneratingFlowerBlockEntity {
 				for (ItemEntity item : getLevel().getEntitiesOfClass(ItemEntity.class, bounds)) {
 					if (DelayHelper.canInteractWith(this, item)) {
 						ItemStack stack = item.getItem();
+						if (stack.getItem().getCraftingRemainder() != null) {
+							continue;
+						}
+
 						int burnTime = getBurnTime(stack);
 						if (burnTime > 0 && stack.getCount() > 0) {
 							this.burnTime = Math.min(FUEL_CAP, burnTime) / 2;
 
-							var remainderTemplate = stack.getItem().getCraftingRemainder();
 							EntityHelper.shrinkItem(item);
-							if (remainderTemplate != null) {
-								ItemStack remainder = remainderTemplate.create();
-								if (item.getItem().isEmpty()) {
-									item.setItem(remainder);
-								} else {
-									ItemEntity remainderEntity = new ItemEntity(getLevel(), item.getX(), item.getY(), item.getZ(), remainder);
-									remainderEntity.setDeltaMovement(item.getDeltaMovement());
-									getLevel().addFreshEntity(remainderEntity);
-								}
-							}
 							getLevel().playSound(null, getEffectivePos(), BotaniaSounds.endoflame, SoundSource.BLOCKS, 1F, 1F);
 							getLevel().blockEvent(getBlockPos(), getBlockState().getBlock(), START_BURN_EVENT, item.getId());
 							getLevel().gameEvent(null, GameEvent.BLOCK_ACTIVATE, getBlockPos());

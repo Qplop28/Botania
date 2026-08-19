@@ -60,7 +60,7 @@ public class ManaBarTooltipComponent implements ClientTooltipComponent {
 	}
 
 	@Override
-	public void renderText(GuiGraphicsExtractor gui, Font font, int x, int y) {
+	public void extractText(GuiGraphicsExtractor gui, Font font, int x, int y) {
 		int level = pickLevel;
 		if (level < 0) {
 			return;
@@ -77,7 +77,7 @@ public class ManaBarTooltipComponent implements ClientTooltipComponent {
 	}
 
 	@Override
-	public void renderImage(Font font, int x, int y, int width, int height, GuiGraphicsExtractor gui) {
+	public void extractImage(Font font, int x, int y, int width, int height, GuiGraphicsExtractor gui) {
 		int barHeight = 3;
 		int offsetFromBox = 4;
 

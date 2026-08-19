@@ -16,9 +16,7 @@ import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipPositione
 import org.joml.Vector2ic;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
+import org.spongepowered.asm.mixin.injection.Redirect;
 
 import vazkii.botania.client.gui.ManaBarTooltipComponent;
 
@@ -26,12 +24,22 @@ import java.util.List;
 
 @Mixin(GuiGraphicsExtractor.class)
 public class GuiGraphicsFabricMixin {
-	@Inject(method = "renderTooltipInternal", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;pushPose()V"), locals = LocalCapture.CAPTURE_FAILHARD)
-	private void renderManaBar(Font font, List<ClientTooltipComponent> components, int oldX, int oldY, ClientTooltipPositioner positioner, CallbackInfo ci, int width, int height, int i, int j, Vector2ic vector2ic, int x, int y) {
+	@Redirect(
+			method = "renderTooltipInternal",
+			at = @At(
+					value = "INVOKE",
+					target = "Lnet/minecraft/client/gui/screens/inventory/tooltip/ClientTooltipPositioner;positionTooltip(IIIIII)Lorg/joml/Vector2ic;"
+			)
+	)
+	private Vector2ic positionManaBarTooltip(ClientTooltipPositioner positioner,
+			int screenWidth, int screenHeight, int oldX, int oldY, int width, int height,
+			Font font, List<ClientTooltipComponent> components) {
+		Vector2ic position = positioner.positionTooltip(screenWidth, screenHeight, oldX, oldY, width, height);
 		for (ClientTooltipComponent component : components) {
 			if (component instanceof ManaBarTooltipComponent manaBar) {
-				manaBar.setContext(x, y, width);
+				manaBar.setContext(position.x(), position.y(), width);
 			}
 		}
+		return position;
 	}
 }

@@ -31,7 +31,7 @@ public class BaubleBoxGui extends AbstractContainerScreen<BaubleBoxContainer> {
 	}
 
 	@Override
-	protected void extractBackground(GuiGraphicsExtractor gui, float partialTick, int mouseX, int mouseY) {
+	protected void extractBackground(GuiGraphicsExtractor gui, int mouseX, int mouseY, float partialTick) {
 		gui.blit(RenderPipelines.GUI_TEXTURED, texture, leftPos, topPos, 0, 0,
 				imageWidth, imageHeight, imageWidth, imageHeight, 256, 256, 0xFFFFFFFF);
 		InventoryScreen.extractEntityInInventoryFollowsMouse(gui,

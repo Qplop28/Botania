@@ -28,7 +28,7 @@ public class FlowerPouchGui extends AbstractContainerScreen<FlowerPouchContainer
 	}
 
 	@Override
-	protected void extractBackground(GuiGraphicsExtractor gui, float partialTick, int mouseX, int mouseY) {
+	protected void extractBackground(GuiGraphicsExtractor gui, int mouseX, int mouseY, float partialTick) {
 		int k = (width - imageWidth) / 2;
 		int l = (height - imageHeight) / 2;
 		gui.blit(RenderPipelines.GUI_TEXTURED, texture, k, l, 0, 0,
@@ -36,10 +36,9 @@ public class FlowerPouchGui extends AbstractContainerScreen<FlowerPouchContainer
 	}
 
 	@Override
-	public void extractRenderState(GuiGraphicsExtractor gui, int mouseX, int mouseY, float partialTick) {
-		super.extractRenderState(gui, mouseX, mouseY, partialTick);
+	protected void extractLabels(GuiGraphicsExtractor gui, int mouseX, int mouseY) {
+		super.extractLabels(gui, mouseX, mouseY);
 		Minecraft mc = Minecraft.getInstance();
-		gui.nextStratum();
 
 		for (Slot slot : menu.slots) {
 			if (slot.container == menu.flowerBagInv

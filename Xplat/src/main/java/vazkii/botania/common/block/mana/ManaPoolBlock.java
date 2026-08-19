@@ -10,13 +10,16 @@ package vazkii.botania.common.block.mana;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.InsideBlockEffectApplier;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -45,8 +48,8 @@ import vazkii.botania.common.block.decor.BotaniaMushroomBlock;
 import vazkii.botania.common.entity.ManaBurstEntity;
 import vazkii.botania.common.item.material.MysticalPetalItem;
 
-import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 import static vazkii.botania.api.state.BotaniaStateProperties.OPTIONAL_DYE_COLOR;
 
@@ -92,11 +95,12 @@ public class ManaPoolBlock extends BotaniaWaterloggedBlock implements EntityBloc
 	}
 
 	@Override
-	public void appendHoverText(ItemStack stack, @Nullable BlockGetter world, List<Component> tooltip, TooltipFlag flag) {
-		super.appendHoverText(stack, world, tooltip, flag);
+	public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display,
+			Consumer<Component> tooltip, TooltipFlag flag) {
+		super.appendHoverText(stack, context, display, tooltip, flag);
 		if (variant == ManaPoolBlock.Variant.CREATIVE) {
 			for (int i = 0; i < 2; i++) {
-				tooltip.add(Component.translatable("botaniamisc.creativePool" + i).withStyle(ChatFormatting.GRAY));
+				tooltip.accept(Component.translatable("botaniamisc.creativePool" + i).withStyle(ChatFormatting.GRAY));
 			}
 		}
 	}
@@ -138,9 +142,9 @@ public class ManaPoolBlock extends BotaniaWaterloggedBlock implements EntityBloc
 
 	@NotNull
 	@Override
-	public InteractionResult use(@NotNull BlockState state, Level world, @NotNull BlockPos pos, Player player, @NotNull InteractionHand hand, @NotNull BlockHitResult hit) {
+	protected InteractionResult useItemOn(ItemStack stack, @NotNull BlockState state, Level world, @NotNull BlockPos pos,
+			Player player, @NotNull InteractionHand hand, @NotNull BlockHitResult hit) {
 		BlockEntity be = world.getBlockEntity(pos);
-		ItemStack stack = player.getItemInHand(hand);
 		Optional<DyeColor> itemColor = Optional.empty();
 		if (stack.getItem() instanceof MysticalPetalItem petalItem) {
 			itemColor = Optional.of(petalItem.color);
@@ -154,7 +158,7 @@ public class ManaPoolBlock extends BotaniaWaterloggedBlock implements EntityBloc
 				if (!player.getAbilities().instabuild) {
 					stack.shrink(1);
 				}
-				return InteractionResult.sidedSuccess(world.isClientSide());
+				return world.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
 			}
 		}
 		if (stack.is(Items.CLAY_BALL) && be instanceof ManaPoolBlockEntity pool && pool.getColor().isPresent()) {
@@ -162,9 +166,9 @@ public class ManaPoolBlock extends BotaniaWaterloggedBlock implements EntityBloc
 			if (!player.getAbilities().instabuild) {
 				stack.shrink(1);
 			}
-			return InteractionResult.sidedSuccess(world.isClientSide());
+			return world.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
 		}
-		return super.use(state, world, pos, player, hand, hit);
+		return InteractionResult.PASS;
 	}
 
 	@NotNull
@@ -176,11 +180,12 @@ public class ManaPoolBlock extends BotaniaWaterloggedBlock implements EntityBloc
 	@Nullable
 	@Override
 	public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-		return createTickerHelper(type, BotaniaBlockEntities.POOL, level.isClientSide ? ManaPoolBlockEntity::clientTick : ManaPoolBlockEntity::serverTick);
+		return createTickerHelper(type, BotaniaBlockEntities.POOL, level.isClientSide() ? ManaPoolBlockEntity::clientTick : ManaPoolBlockEntity::serverTick);
 	}
 
 	@Override
-	public void entityInside(BlockState state, Level world, BlockPos pos, Entity entity) {
+	protected void entityInside(BlockState state, Level world, BlockPos pos, Entity entity,
+			InsideBlockEffectApplier effectApplier, boolean entityIsAbove) {
 		if (entity instanceof ItemEntity item) {
 			ManaPoolBlockEntity tile = (ManaPoolBlockEntity) world.getBlockEntity(pos);
 			tile.collideEntityItem(item);
@@ -191,7 +196,7 @@ public class ManaPoolBlock extends BotaniaWaterloggedBlock implements EntityBloc
 	@Override
 	public RenderShape getRenderShape(BlockState state) {
 		if (variant == Variant.FABULOUS) {
-			return RenderShape.ENTITYBLOCK_ANIMATED;
+			return RenderShape.INVISIBLE;
 		} else {
 			return RenderShape.MODEL;
 		}
@@ -203,7 +208,7 @@ public class ManaPoolBlock extends BotaniaWaterloggedBlock implements EntityBloc
 	}
 
 	@Override
-	public int getAnalogOutputSignal(BlockState state, Level world, BlockPos pos) {
+	public int getAnalogOutputSignal(BlockState state, Level world, BlockPos pos, Direction direction) {
 		ManaPoolBlockEntity pool = (ManaPoolBlockEntity) world.getBlockEntity(pos);
 		return ManaPoolBlockEntity.calculateComparatorLevel(pool.getCurrentMana(), pool.getMaxMana());
 	}

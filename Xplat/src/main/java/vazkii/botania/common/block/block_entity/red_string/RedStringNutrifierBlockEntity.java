@@ -24,7 +24,7 @@ public class RedStringNutrifierBlockEntity extends RedStringBlockEntity {
 		super(BotaniaBlockEntities.RED_STRING_FERTILIZER, pos, state);
 	}
 
-	public boolean canGrow(LevelReader world, boolean isClient) {
+	public boolean canGrow(LevelReader world) {
 		BlockPos binding = getBinding();
 		Block block = getBlockAtBinding();
 

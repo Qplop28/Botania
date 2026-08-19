@@ -14,6 +14,7 @@ import net.minecraft.core.dispenser.BlockSource;
 import net.minecraft.core.dispenser.DefaultDispenseItemBehavior;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.BaseRailBlock;
 import net.minecraft.world.level.block.DispenserBlock;
@@ -110,9 +111,9 @@ public class ManaPoolMinecartBehavior
 						spawnZ
 				);
 
-		if (stack.hasCustomHoverName()) {
+		if (stack.has(DataComponents.CUSTOM_NAME)) {
 			minecart.setCustomName(
-					stack.getHoverName()
+					stack.get(DataComponents.CUSTOM_NAME)
 			);
 		}
 

@@ -22,11 +22,13 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import vazkii.botania.common.block.block_entity.LuminizerBlockEntity;
 
@@ -55,7 +57,8 @@ public class LuminizerLauncherBlock extends BotaniaWaterloggedBlock {
 	}
 
 	@Override
-	public void neighborChanged(BlockState state, Level world, BlockPos pos, Block block, BlockPos fromPos, boolean isMoving) {
+	public void neighborChanged(BlockState state, Level world, BlockPos pos, Block block,
+			@Nullable Orientation orientation, boolean isMoving) {
 		boolean power = world.getBestNeighborSignal(pos) > 0;
 		boolean powered = state.getValue(BlockStateProperties.POWERED);
 
@@ -79,12 +82,13 @@ public class LuminizerLauncherBlock extends BotaniaWaterloggedBlock {
 		}
 
 		if (!relays.isEmpty()) {
-			AABB aabb = new AABB(pos, pos.offset(1, 1, 1));
+			AABB aabb = new AABB(pos.getX(), pos.getY(), pos.getZ(),
+					pos.getX() + 1, pos.getY() + 1, pos.getZ() + 1);
 			var living = world.getEntitiesOfClass(LivingEntity.class, aabb);
 			var items = world.getEntitiesOfClass(ItemEntity.class, aabb);
 
 			for (Entity entity : Iterables.concat(living, items)) {
-				LuminizerBlockEntity relay = relays.get(world.random.nextInt(relays.size()));
+				LuminizerBlockEntity relay = relays.get(world.getRandom().nextInt(relays.size()));
 				relay.mountEntity(entity);
 			}
 		}

@@ -25,7 +25,6 @@ import net.minecraft.world.level.levelgen.blending.Blender;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 import java.util.function.BiConsumer;
 
 import static vazkii.botania.common.lib.ResourceLocationHelper.prefix;
@@ -62,7 +61,7 @@ public class SkyblockChunkGenerator extends NoiseBasedChunkGenerator {
 			@NotNull BiomeManager biomeManager, @NotNull Registry<Biome> biomes, @NotNull Blender blender) {}
 
 	@Override
-	public @NotNull CompletableFuture<ChunkAccess> fillFromNoise(@NotNull Executor executor, @NotNull Blender blender,
+	public @NotNull CompletableFuture<ChunkAccess> fillFromNoise(@NotNull Blender blender,
 			@NotNull RandomState randomState, @NotNull StructureManager structureManager, @NotNull ChunkAccess chunk) {
 		return CompletableFuture.completedFuture(chunk);
 	}

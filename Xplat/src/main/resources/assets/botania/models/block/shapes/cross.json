@@ -1,4 +1,5 @@
 {
+  "render_type": "cutout",
   "__comment": "Same as minecraft:block/cross, but with a proper parent defined so display transforms are set",
   "parent": "minecraft:block/block",
   "ambientocclusion": false,

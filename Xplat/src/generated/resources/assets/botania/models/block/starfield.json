@@ -1,4 +1,5 @@
 {
+  "render_type": "cutout",
   "parent": "botania:block/shapes/four_high_bottom_top",
   "textures": {
     "bottom": "botania:block/starfield_bottom",

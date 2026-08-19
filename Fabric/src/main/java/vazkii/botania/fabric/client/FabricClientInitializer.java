@@ -1,7 +1,6 @@
 package vazkii.botania.fabric.client;
 
 import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
@@ -52,7 +51,6 @@ import vazkii.botania.client.model.BotaniaLayerDefinitions;
 import vazkii.botania.client.model.TinyPotatoModel;
 import vazkii.botania.client.model.ManaBlasterItemModel;
 import vazkii.botania.client.model.armor.ArmorModels;
-import vazkii.botania.client.render.BlockRenderLayers;
 import vazkii.botania.client.render.BotaniaItemTintSource;
 import vazkii.botania.client.render.ColorHandler;
 import vazkii.botania.client.render.entity.*;
@@ -79,7 +77,6 @@ public class FabricClientInitializer implements ClientModInitializer {
 		FabricPacketHandler.initClient();
 
 		ColorHandler.submitBlocks(BlockColorRegistry::register);
-		BlockRenderLayers.init((block, layer) -> BlockRenderLayerMap.INSTANCE.putBlock(block, layer));
 		ColorHandler.initItemTints();
 		ItemTintSources.ID_MAPPER.put(Identifier.fromNamespaceAndPath(LibMisc.MOD_ID, "dynamic_item_color"), BotaniaItemTintSource.MAP_CODEC);
 		ItemModels.ID_MAPPER.put(ClientXplatAbstractions.MANA_GUN_MODEL_LOADER_ID, ManaBlasterItemModel.Unbaked.MAP_CODEC);

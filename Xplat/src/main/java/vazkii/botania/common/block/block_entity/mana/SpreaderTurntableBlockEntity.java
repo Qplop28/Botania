@@ -48,7 +48,7 @@ public class SpreaderTurntableBlockEntity extends BotaniaBlockEntity implements 
 				if (spreader.rotationX >= 360F) {
 					spreader.rotationX -= 360F;
 				}
-				if (!level.isClientSide) {
+				if (!level.isClientSide()) {
 					spreader.checkForReceiver();
 				}
 			}
@@ -63,8 +63,8 @@ public class SpreaderTurntableBlockEntity extends BotaniaBlockEntity implements 
 
 	@Override
 	public void readPacketNBT(CompoundTag cmp) {
-		speed = cmp.getInt(TAG_SPEED);
-		backwards = cmp.getBoolean(TAG_BACKWARDS);
+		speed = cmp.getInt(TAG_SPEED).orElse(1);
+		backwards = cmp.getBoolean(TAG_BACKWARDS).orElse(false);
 	}
 
 	@Override
@@ -98,7 +98,7 @@ public class SpreaderTurntableBlockEntity extends BotaniaBlockEntity implements 
 			int y = mc.getWindow().getGuiScaledHeight() / 2 + 8;
 
 			RenderHelper.renderHUDBox(gui, x - 2, y, x + strWidth + 2, y + 12);
-			gui.drawString(mc.font, speed, x, y + 2, ChatFormatting.WHITE.getColor());
+			gui.text(mc.font, speed, x, y + 2, ChatFormatting.WHITE.getColor());
 		}
 	}
 

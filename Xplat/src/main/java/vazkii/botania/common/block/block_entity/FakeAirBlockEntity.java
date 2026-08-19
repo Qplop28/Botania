@@ -9,11 +9,10 @@
 package vazkii.botania.common.block.block_entity;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-
-import org.jetbrains.annotations.NotNull;
 
 import vazkii.botania.api.internal.ManaBurst;
 import vazkii.botania.common.block.flower.functional.BubbellBlockEntity;
@@ -39,21 +38,22 @@ public class FakeAirBlockEntity extends BotaniaBlockEntity {
 	}
 
 	@Override
-	public void saveAdditional(CompoundTag tag) {
-		super.saveAdditional(tag);
-		tag.putInt(TAG_FLOWER_X, flowerPos.getX());
-		tag.putInt(TAG_FLOWER_Y, flowerPos.getY());
-		tag.putInt(TAG_FLOWER_Z, flowerPos.getZ());
+	protected void writePersistentData(ValueOutput output) {
+		output.putInt(TAG_FLOWER_X, flowerPos.getX());
+		output.putInt(TAG_FLOWER_Y, flowerPos.getY());
+		output.putInt(TAG_FLOWER_Z, flowerPos.getZ());
 	}
 
 	@Override
-	public void load(@NotNull CompoundTag tag) {
-		super.load(tag);
-		flowerPos = new BlockPos(
-				tag.getInt(TAG_FLOWER_X),
-				tag.getInt(TAG_FLOWER_Y),
-				tag.getInt(TAG_FLOWER_Z)
-		);
+	protected void readPersistentData(ValueInput input) {
+		if (input.getInt(TAG_FLOWER_X).isPresent()
+				&& input.getInt(TAG_FLOWER_Y).isPresent()
+				&& input.getInt(TAG_FLOWER_Z).isPresent()) {
+			flowerPos = new BlockPos(input.getIntOr(TAG_FLOWER_X, 0),
+					input.getIntOr(TAG_FLOWER_Y, 0), input.getIntOr(TAG_FLOWER_Z, 0));
+		} else {
+			flowerPos = ManaBurst.NO_SOURCE;
+		}
 	}
 
 }

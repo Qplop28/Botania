@@ -58,7 +58,7 @@ public class DandelifeonBlockEntity extends GeneratingFlowerBlockEntity {
 	public void tickFlower() {
 		super.tickFlower();
 
-		if (!getLevel().isClientSide) {
+		if (!getLevel().isClientSide()) {
 			if (shouldTick(getLevel().getGameTime())) {
 				runSimulation();
 			} else if (shouldTick(getLevel().getGameTime() + 1)) {
@@ -268,7 +268,7 @@ public class DandelifeonBlockEntity extends GeneratingFlowerBlockEntity {
 	@Override
 	public void readFromPacketNBT(CompoundTag cmp) {
 		super.readFromPacketNBT(cmp);
-		radius = cmp.contains(TAG_RADIUS) ? cmp.getInt(TAG_RADIUS) : RANGE;
+		radius = cmp.getInt(TAG_RADIUS).orElse(RANGE);
 	}
 
 }

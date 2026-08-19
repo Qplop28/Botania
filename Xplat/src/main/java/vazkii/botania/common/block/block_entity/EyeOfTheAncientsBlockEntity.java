@@ -13,6 +13,7 @@ import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 
 public class EyeOfTheAncientsBlockEntity extends BotaniaBlockEntity {
 	public int entities = 0;
@@ -23,7 +24,7 @@ public class EyeOfTheAncientsBlockEntity extends BotaniaBlockEntity {
 
 	public static void serverTick(Level level, BlockPos worldPosition, BlockState state, EyeOfTheAncientsBlockEntity self) {
 		int range = 6;
-		int entityCount = level.getEntitiesOfClass(Animal.class, new AABB(worldPosition.offset(-range, -range, -range), worldPosition.offset(range + 1, range + 1, range + 1))).size();
+		int entityCount = level.getEntitiesOfClass(Animal.class, new AABB(Vec3.atLowerCornerOf(worldPosition.offset(-range, -range, -range)), Vec3.atLowerCornerOf(worldPosition.offset(range + 1, range + 1, range + 1)))).size();
 		if (entityCount != self.entities) {
 			self.entities = entityCount;
 			level.updateNeighbourForOutputSignal(worldPosition, state.getBlock());

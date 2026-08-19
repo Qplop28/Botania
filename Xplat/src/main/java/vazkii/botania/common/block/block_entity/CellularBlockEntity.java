@@ -91,25 +91,20 @@ public class CellularBlockEntity extends BotaniaBlockEntity {
 
 	@Override
 	public void readPacketNBT(CompoundTag cmp) {
-		generation = cmp.getInt(TAG_GENERATION);
-		ticked = cmp.getBoolean(TAG_TICKED);
+		generation = cmp.getInt(TAG_GENERATION).orElse(0);
+		ticked = cmp.getBoolean(TAG_TICKED).orElse(false);
 		if (ticked) {
 			flowerCoords = new BlockPos(
-					cmp.getInt(TAG_FLOWER_X),
-					cmp.getInt(TAG_FLOWER_Y),
-					cmp.getInt(TAG_FLOWER_Z)
+					cmp.getInt(TAG_FLOWER_X).orElse(0),
+					cmp.getInt(TAG_FLOWER_Y).orElse(0),
+					cmp.getInt(TAG_FLOWER_Z).orElse(0)
 			);
 			validCoords = new BlockPos(
-					cmp.getInt(TAG_VALID_X),
-					cmp.getInt(TAG_VALID_Y),
-					cmp.getInt(TAG_VALID_Z)
+					cmp.getInt(TAG_VALID_X).orElse(0),
+					cmp.getInt(TAG_VALID_Y).orElse(0),
+					cmp.getInt(TAG_VALID_Z).orElse(0)
 			);
 		}
 	}
 
-	@Override
-	public boolean onlyOpCanSetNbt() {
-		// targeting Create here, sorry about any instances of https://xkcd.com/1172/
-		return true;
-	}
 }

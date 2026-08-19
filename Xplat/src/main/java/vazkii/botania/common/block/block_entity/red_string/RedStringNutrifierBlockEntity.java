@@ -28,7 +28,7 @@ public class RedStringNutrifierBlockEntity extends RedStringBlockEntity {
 		BlockPos binding = getBinding();
 		Block block = getBlockAtBinding();
 
-		return block instanceof BonemealableBlock mealable && mealable.isValidBonemealTarget(world, binding, world.getBlockState(binding), isClient);
+		return block instanceof BonemealableBlock mealable && mealable.isValidBonemealTarget(world, binding, world.getBlockState(binding));
 	}
 
 	public boolean canUseBonemeal(Level world, RandomSource rand) {

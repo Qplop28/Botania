@@ -25,7 +25,7 @@ import java.util.List;
 @Mixin(GuiGraphicsExtractor.class)
 public class GuiGraphicsFabricMixin {
 	@Redirect(
-			method = "renderTooltipInternal",
+			method = "renderTooltipInternal(Lnet/minecraft/client/gui/Font;Ljava/util/List;IILnet/minecraft/client/gui/screens/inventory/tooltip/ClientTooltipPositioner;)V",
 			at = @At(
 					value = "INVOKE",
 					target = "Lnet/minecraft/client/gui/screens/inventory/tooltip/ClientTooltipPositioner;positionTooltip(IIIIII)Lorg/joml/Vector2ic;"
@@ -33,7 +33,8 @@ public class GuiGraphicsFabricMixin {
 	)
 	private Vector2ic positionManaBarTooltip(ClientTooltipPositioner positioner,
 			int screenWidth, int screenHeight, int oldX, int oldY, int width, int height,
-			Font font, List<ClientTooltipComponent> components) {
+			Font font, List<ClientTooltipComponent> components, int tooltipX, int tooltipY,
+			ClientTooltipPositioner enclosingPositioner) {
 		Vector2ic position = positioner.positionTooltip(screenWidth, screenHeight, oldX, oldY, width, height);
 		for (ClientTooltipComponent component : components) {
 			if (component instanceof ManaBarTooltipComponent manaBar) {

@@ -8,8 +8,10 @@
  */
 package vazkii.botania.client.gui;
 
+import com.mojang.blaze3d.platform.InputConstants;
+
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
@@ -17,6 +19,8 @@ import net.minecraft.world.item.TooltipFlag;
 import vazkii.botania.common.item.ResoluteIvyItem;
 
 import java.util.List;
+
+import org.lwjgl.glfw.GLFW;
 
 public final class TooltipHandler {
 
@@ -32,7 +36,9 @@ public final class TooltipHandler {
 	}
 
 	public static void addOnShift(List<Component> tooltip, Runnable lambda) {
-		if (Screen.hasShiftDown()) {
+		Minecraft minecraft = Minecraft.getInstance();
+		if (InputConstants.isKeyDown(minecraft.getWindow(), GLFW.GLFW_KEY_LEFT_SHIFT)
+				|| InputConstants.isKeyDown(minecraft.getWindow(), GLFW.GLFW_KEY_RIGHT_SHIFT)) {
 			lambda.run();
 		} else {
 			tooltip.add(getShiftInfoTooltip());

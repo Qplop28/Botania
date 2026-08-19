@@ -28,7 +28,7 @@ public class FlowerPouchGui extends AbstractContainerScreen<FlowerPouchContainer
 	}
 
 	@Override
-	protected void extractBackground(GuiGraphicsExtractor gui, int mouseX, int mouseY, float partialTick) {
+	public void extractBackground(GuiGraphicsExtractor gui, int mouseX, int mouseY, float partialTick) {
 		int k = (width - imageWidth) / 2;
 		int l = (height - imageHeight) / 2;
 		gui.blit(RenderPipelines.GUI_TEXTURED, texture, k, l, 0, 0,
@@ -44,8 +44,8 @@ public class FlowerPouchGui extends AbstractContainerScreen<FlowerPouchContainer
 			if (slot.container == menu.flowerBagInv
 					&& slot.hasItem()
 					&& slot.getItem().getCount() == 1) {
-				int x = this.leftPos + slot.x;
-				int y = this.topPos + slot.y;
+				int x = slot.x;
+				int y = slot.y;
 
 				// Always draw the count even at 1
 				gui.text(

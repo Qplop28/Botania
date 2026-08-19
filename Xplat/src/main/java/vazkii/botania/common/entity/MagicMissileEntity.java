@@ -343,7 +343,7 @@ public class MagicMissileEntity
 
 		DamageSource source = getDamageSource();
 
-		Predicate<Entity> vulnerableTo =
+		Predicate<LivingEntity> vulnerableTo =
 				entity ->
 						!entity.isInvulnerableTo(serverLevel, source);
 

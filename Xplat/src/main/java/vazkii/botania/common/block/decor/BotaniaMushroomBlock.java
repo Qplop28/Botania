@@ -56,7 +56,7 @@ public class BotaniaMushroomBlock extends MushroomBlock implements CustomApothec
 	public boolean canSurvive(BlockState state, LevelReader worldIn, BlockPos pos) {
 		BlockPos blockpos = pos.below();
 		BlockState blockstate = worldIn.getBlockState(blockpos);
-		if (!blockstate.is(BlockTags.MUSHROOM_GROW_BLOCKS)) {
+		if (!blockstate.is(BlockTags.OVERRIDES_MUSHROOM_LIGHT_REQUIREMENT)) {
 			return this.mayPlaceOn(blockstate, worldIn, blockpos);
 		} else {
 			return true;

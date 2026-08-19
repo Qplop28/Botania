@@ -59,12 +59,9 @@ public class FloatingFlowerBlock extends BotaniaWaterloggedBlock implements Enti
 	@NotNull
 	@Override
 	public RenderShape getRenderShape(BlockState state) {
-		if (!XplatAbstractions.INSTANCE.isPhysicalClient()) {
-			return RenderShape.SPECIAL;
-		}
-		return BotaniaConfig.client().staticFloaters()
+		return XplatAbstractions.INSTANCE.isPhysicalClient() && BotaniaConfig.client().staticFloaters()
 		? RenderShape.MODEL
-		: RenderShape.SPECIAL;
+		: RenderShape.INVISIBLE;
 	}
 
 	@Override

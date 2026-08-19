@@ -52,7 +52,10 @@ public class BotaniaBlockEntity extends BlockEntity {
 	@Override
 	protected void loadAdditional(ValueInput input) {
 		super.loadAdditional(input);
-		input.read(TAG_DATA, CompoundTag.CODEC).ifPresent(tag -> readPacketNBT(tag, input.lookup()));
+		input.read(TAG_DATA, CompoundTag.CODEC).ifPresent(tag -> {
+			readPacketNBT(tag, input.lookup());
+			readNestedLegacyPersistentData(tag, input.lookup());
+		});
 		readPersistentData(input);
 		readLegacyPersistentData(input);
 	}
@@ -62,6 +65,9 @@ public class BotaniaBlockEntity extends BlockEntity {
 
 	/** Reads data written by {@link #writePersistentData(ValueOutput)}. */
 	protected void readPersistentData(ValueInput input) {}
+
+	/** Reads persistent data briefly stored inside {@value #TAG_DATA}. */
+	protected void readNestedLegacyPersistentData(CompoundTag tag, HolderLookup.Provider registryLookup) {}
 
 	/** Reads data that older versions stored outside {@value #TAG_DATA}. */
 	protected void readLegacyPersistentData(ValueInput input) {}

@@ -25,7 +25,7 @@ public final class IslandPos {
 	}
 
 	public static IslandPos fromTag(CompoundTag tag) {
-		return new IslandPos(tag.getInt("IslandX"), tag.getInt("IslandZ"));
+		return new IslandPos(tag.getInt("IslandX").orElse(0), tag.getInt("IslandZ").orElse(0));
 	}
 
 	public CompoundTag toTag() {

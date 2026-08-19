@@ -12,13 +12,13 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 
 import net.minecraft.util.Util;
+import net.minecraft.core.UUIDUtil;
+import net.minecraft.world.level.saveddata.SavedDataType;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.saveddata.SavedData;
-
-import org.jetbrains.annotations.NotNull;
 
 import vazkii.botania.xplat.BotaniaConfig;
 
@@ -27,6 +27,9 @@ import java.util.UUID;
 
 public class SkyblockSavedData extends SavedData {
 	private static final String NAME = "gog_skyblock_islands";
+	private static final SavedDataType<SkyblockSavedData> TYPE = new SavedDataType<>(
+			NAME, () -> new SkyblockSavedData(new CompoundTag()),
+			CompoundTag.CODEC.xmap(SkyblockSavedData::new, SkyblockSavedData::save), null);
 
 	/** The offset is chosen to put islands under default settings in the center of a chunk region. */
 	private static final int OFFSET = 1;
@@ -36,21 +39,21 @@ public class SkyblockSavedData extends SavedData {
 
 	public SkyblockSavedData(CompoundTag nbt) {
 		HashBiMap<IslandPos, UUID> map = HashBiMap.create();
-		for (Tag inbt : nbt.getList("Islands", Tag.TAG_COMPOUND)) {
+		for (Tag inbt : nbt.getList("Islands").orElseGet(ListTag::new)) {
 			CompoundTag tag = (CompoundTag) inbt;
-			map.put(IslandPos.fromTag(tag), tag.getUUID("Player"));
+			tag.read("Player", UUIDUtil.CODEC).ifPresent(player -> map.put(IslandPos.fromTag(tag), player));
 		}
 		this.skyblocks = map;
-		if (nbt.contains("SpiralState", Tag.TAG_INT_ARRAY)) {
-			this.spiral = Spiral.fromArray(nbt.getIntArray("SpiralState"));
+		var spiralState = nbt.getIntArray("SpiralState");
+		if (spiralState.isPresent() && spiralState.get().length >= 4) {
+			this.spiral = Spiral.fromArray(spiralState.get());
 		} else {
 			this.spiral = new Spiral();
 		}
 	}
 
 	public static SkyblockSavedData get(ServerLevel world) {
-		return world.getDataStorage().computeIfAbsent(SkyblockSavedData::new,
-				() -> new SkyblockSavedData(new CompoundTag()), NAME);
+		return world.getDataStorage().computeIfAbsent(TYPE);
 	}
 
 	public IslandPos getSpawn() {
@@ -76,13 +79,12 @@ public class SkyblockSavedData extends SavedData {
 		return islandPos;
 	}
 
-	@NotNull
-	@Override
-	public CompoundTag save(@NotNull CompoundTag nbt) {
+	private CompoundTag save() {
+		CompoundTag nbt = new CompoundTag();
 		ListTag list = new ListTag();
 		for (Map.Entry<IslandPos, UUID> entry : skyblocks.entrySet()) {
 			CompoundTag entryTag = entry.getKey().toTag();
-			entryTag.putUUID("Player", entry.getValue());
+			entryTag.store("Player", UUIDUtil.CODEC, entry.getValue());
 			list.add(entryTag);
 		}
 		nbt.putIntArray("SpiralState", spiral.toIntArray());

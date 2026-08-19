@@ -15,6 +15,9 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.resources.RegistryOps;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -115,6 +118,7 @@ public class AlfheimPortalBlockEntity extends BotaniaBlockEntity implements Wand
 	private static final String TAG_STACK = "portalStack";
 
 	private final List<ItemStack> stacksIn = new ArrayList<>();
+	private boolean hasCurrentPersistentStacks;
 	private final List<BlockPos> cachedPylonPositions = new ArrayList<>();
 
 	public int ticksOpen = 0;
@@ -316,17 +320,34 @@ public class AlfheimPortalBlockEntity extends BotaniaBlockEntity implements Wand
 
 	@Override
 	protected void readPersistentData(ValueInput input) {
+		input.read(TAG_STACK, ItemStack.CODEC.listOf()).ifPresent(stacks -> {
+			hasCurrentPersistentStacks = true;
+			stacksIn.clear();
+			for (ItemStack stack : stacks) {
+				if (!stack.isEmpty()) {
+					stacksIn.add(stack);
+				}
+			}
+		});
+	}
+
+	@Override
+	protected void readNestedLegacyPersistentData(CompoundTag tag, HolderLookup.Provider registryLookup) {
+		hasCurrentPersistentStacks = false;
 		stacksIn.clear();
-		for (ItemStack stack : input.listOrEmpty(TAG_STACK, ItemStack.CODEC)) {
-			if (!stack.isEmpty()) {
-				stacksIn.add(stack);
+		int count = tag.getInt(TAG_STACK_COUNT).orElse(0);
+		for (int i = 0; i < count; i++) {
+			var encoded = tag.get(TAG_STACK + i);
+			if (encoded != null) {
+				ItemStack.CODEC.parse(RegistryOps.create(NbtOps.INSTANCE, registryLookup), encoded).result()
+						.filter(stack -> !stack.isEmpty()).ifPresent(stacksIn::add);
 			}
 		}
 	}
 
 	@Override
 	protected void readLegacyPersistentData(ValueInput input) {
-		if (!stacksIn.isEmpty()) {
+		if (hasCurrentPersistentStacks || !stacksIn.isEmpty()) {
 			return;
 		}
 		int count = input.getIntOr(TAG_STACK_COUNT, 0);

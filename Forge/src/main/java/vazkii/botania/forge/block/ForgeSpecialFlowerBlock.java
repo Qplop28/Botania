@@ -34,11 +34,11 @@ public class ForgeSpecialFlowerBlock extends FlowerBlock implements EntityBlock 
 	private final Supplier<BlockEntityType<? extends SpecialFlowerBlockEntity>> blockEntityType;
 	private final boolean hasComparatorOutput;
 
-	public ForgeSpecialFlowerBlock(MobEffect stewEffect, int stewDuration, Properties props, Supplier<BlockEntityType<? extends SpecialFlowerBlockEntity>> blockEntityType) {
+	public ForgeSpecialFlowerBlock(Holder<MobEffect> stewEffect, int stewDuration, Properties props, Supplier<BlockEntityType<? extends SpecialFlowerBlockEntity>> blockEntityType) {
 		this(stewEffect, stewDuration, props, blockEntityType, false);
 	}
 
-	public ForgeSpecialFlowerBlock(MobEffect stewEffect, int stewDuration, Properties props, Supplier<BlockEntityType<? extends SpecialFlowerBlockEntity>> blockEntityType, boolean hasComparatorOutput) {
+	public ForgeSpecialFlowerBlock(Holder<MobEffect> stewEffect, int stewDuration, Properties props, Supplier<BlockEntityType<? extends SpecialFlowerBlockEntity>> blockEntityType, boolean hasComparatorOutput) {
 		super(/* the only godforsaken reason why this class needs to be duplicated for each loader
 				is so that we can add a "() ->" here. Amazing. */
 				() -> stewEffect, stewDuration, props);

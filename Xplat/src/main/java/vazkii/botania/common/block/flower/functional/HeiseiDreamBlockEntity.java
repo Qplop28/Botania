@@ -19,6 +19,7 @@ import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 
 import vazkii.botania.api.block_entity.FunctionalFlowerBlockEntity;
 import vazkii.botania.api.block_entity.RadiusDescriptor;
@@ -41,11 +42,11 @@ public class HeiseiDreamBlockEntity extends FunctionalFlowerBlockEntity {
 	public void tickFlower() {
 		super.tickFlower();
 
-		if (getLevel().isClientSide) {
+		if (getLevel().isClientSide()) {
 			return;
 		}
 
-		List<Mob> mobs = getLevel().getEntitiesOfClass(Mob.class, new AABB(getEffectivePos().offset(-RANGE, -RANGE, -RANGE), getEffectivePos().offset(RANGE + 1, RANGE + 1, RANGE + 1)), Predicates.instanceOf(Enemy.class));
+		List<Mob> mobs = getLevel().getEntitiesOfClass(Mob.class, new AABB(Vec3.atLowerCornerOf(getEffectivePos().offset(-RANGE, -RANGE, -RANGE)), Vec3.atLowerCornerOf(getEffectivePos().offset(RANGE + 1, RANGE + 1, RANGE + 1))), Predicates.instanceOf(Enemy.class));
 
 		if (mobs.size() > 1 && getMana() >= COST) {
 			for (Mob mob : mobs) {
@@ -65,7 +66,7 @@ public class HeiseiDreamBlockEntity extends FunctionalFlowerBlockEntity {
 		if (!(target instanceof Enemy)) {
 			Mob newTarget;
 			do {
-				newTarget = mobs.get(entity.level().random.nextInt(mobs.size()));
+				newTarget = mobs.get(entity.level().getRandom().nextInt(mobs.size()));
 			} while (newTarget == entity);
 
 			entity.setTarget(null);

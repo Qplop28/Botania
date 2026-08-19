@@ -77,12 +77,12 @@ public class RannuncarpusBlockEntity extends FunctionalFlowerBlockEntity impleme
 	public void tickFlower() {
 		super.tickFlower();
 
-		if (getLevel().isClientSide || redstoneSignal > 0) {
+		if (getLevel().isClientSide() || redstoneSignal > 0) {
 			return;
 		}
 
 		if (ticksExisted % PLACE_INTERVAL_TICKS == 0) {
-			List<ItemEntity> items = getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(getBlockPos().offset(-PICKUP_RANGE, -PICKUP_RANGE_Y, -PICKUP_RANGE), getBlockPos().offset(PICKUP_RANGE + 1, PICKUP_RANGE_Y + 1, PICKUP_RANGE + 1)));
+			List<ItemEntity> items = getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(Vec3.atLowerCornerOf(getBlockPos().offset(-PICKUP_RANGE, -PICKUP_RANGE_Y, -PICKUP_RANGE)), Vec3.atLowerCornerOf(getBlockPos().offset(PICKUP_RANGE + 1, PICKUP_RANGE_Y + 1, PICKUP_RANGE + 1))));
 
 			List<ItemStack> filter = HopperhockBlockEntity.getFilterForInventory(getLevel(), getFilterPos(), false);
 
@@ -104,7 +104,7 @@ public class RannuncarpusBlockEntity extends FunctionalFlowerBlockEntity impleme
 				}
 
 				if (stackItem instanceof BlockItem || stackItem instanceof FlowerPlaceable) {
-					BlockPos coords = getCandidatePosition(getLevel().random, stack);
+					BlockPos coords = getCandidatePosition(getLevel().getRandom(), stack);
 					if (coords == null) {
 						continue;
 					}
@@ -199,7 +199,7 @@ public class RannuncarpusBlockEntity extends FunctionalFlowerBlockEntity impleme
 	public void readFromPacketNBT(CompoundTag cmp) {
 		super.readFromPacketNBT(cmp);
 		if (cmp.contains(TAG_STATE_SENSITIVE)) {
-			stateSensitive = cmp.getBoolean(TAG_STATE_SENSITIVE);
+			stateSensitive = cmp.getBoolean(TAG_STATE_SENSITIVE).orElse(false);
 		} else {
 			// old flowers stay state sensitive, new flowers are state insensitive
 			stateSensitive = true;

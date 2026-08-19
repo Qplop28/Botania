@@ -50,12 +50,12 @@ public class SpectranthemumBlockEntity extends FunctionalFlowerBlockEntity {
 	public void tickFlower() {
 		super.tickFlower();
 
-		if (!getLevel().isClientSide && redstoneSignal == 0 && getLevel().hasChunkAt(bindPos)) {
+		if (!getLevel().isClientSide() && redstoneSignal == 0 && getLevel().hasChunkAt(bindPos)) {
 			BlockPos pos = getEffectivePos();
 
 			boolean did = false;
 
-			List<ItemEntity> items = getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(pos.offset(-RANGE, -RANGE, -RANGE), pos.offset(RANGE + 1, RANGE + 1, RANGE + 1)));
+			List<ItemEntity> items = getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(Vec3.atLowerCornerOf(pos.offset(-RANGE, -RANGE, -RANGE)), Vec3.atLowerCornerOf(pos.offset(RANGE + 1, RANGE + 1, RANGE + 1))));
 
 			for (ItemEntity item : items) {
 				if (!DelayHelper.canInteractWith(this, item)) {
@@ -108,9 +108,9 @@ public class SpectranthemumBlockEntity extends FunctionalFlowerBlockEntity {
 	public void readFromPacketNBT(CompoundTag cmp) {
 		super.readFromPacketNBT(cmp);
 		bindPos = new BlockPos(
-				cmp.getInt(TAG_BIND_X),
-				cmp.getInt(TAG_BIND_Y),
-				cmp.getInt(TAG_BIND_Z)
+				cmp.getInt(TAG_BIND_X).orElse(0),
+				cmp.getInt(TAG_BIND_Y).orElse(0),
+				cmp.getInt(TAG_BIND_Z).orElse(0)
 		);
 	}
 

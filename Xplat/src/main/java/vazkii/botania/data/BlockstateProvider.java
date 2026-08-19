@@ -9,6 +9,7 @@
 package vazkii.botania.data;
 
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -63,10 +64,39 @@ public class BlockstateProvider implements DataProvider {
 	protected final List<BlockStateGenerator> blockstates = new ArrayList<>();
 
 	protected final Map<Identifier, Supplier<JsonElement>> models = new HashMap<>();
-	protected final BiConsumer<Identifier, Supplier<JsonElement>> modelOutput = models::put;
+	protected final BiConsumer<Identifier, Supplier<JsonElement>> modelOutput = (id, model) -> models.put(id, () -> {
+		JsonElement generated = model.get();
+		String renderType = renderTypeFor(id);
+		if (renderType == null) {
+			return generated;
+		}
+
+		JsonObject result = new JsonObject();
+		result.addProperty("render_type", renderType);
+		generated.getAsJsonObject().entrySet().forEach(entry -> result.add(entry.getKey(), entry.getValue()));
+		return result;
+	});
 
 	public BlockstateProvider(PackOutput packOutput) {
 		this.packOutput = packOutput;
+	}
+
+	private static String renderTypeFor(Identifier id) {
+		String path = id.getPath();
+		if (path.equals("block/starfield")) {
+			return "cutout";
+		}
+		if (path.equals("block/mana_glass")
+				|| path.equals("block/bifrost")
+				|| path.equals("block/bifrost_perm")
+				|| path.matches("block/elf_glass_[0-3]")
+				|| path.equals("block/abstruse_platform")
+				|| path.equals("block/spectral_platform")
+				|| path.equals("block/infrangible_platform")
+				|| path.matches("block/(mana_glass|elf_glass|bifrost)_pane_(post|side|side_alt|noside|noside_alt)")) {
+			return "translucent";
+		}
+		return null;
 	}
 
 	protected Logger getLogger() {

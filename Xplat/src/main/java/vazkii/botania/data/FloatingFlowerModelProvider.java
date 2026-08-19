@@ -54,6 +54,7 @@ public class FloatingFlowerModelProvider implements DataProvider {
 				}
 
 				JsonObject obj = new JsonObject();
+				obj.addProperty("render_type", "cutout");
 				obj.addProperty("parent", "minecraft:block/block");
 				obj.addProperty("loader", ClientXplatAbstractions.FLOATING_FLOWER_MODEL_LOADER_ID.toString());
 				JsonObject flower = new JsonObject();

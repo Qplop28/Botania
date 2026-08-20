@@ -8,8 +8,7 @@ import com.mojang.serialization.JsonOps;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.ResourceManager;
-import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
-import net.minecraft.util.profiling.ProfilerFiller;
+import net.minecraft.server.packs.resources.FileToIdConverter;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -19,6 +18,8 @@ import vazkii.botania.api.configdata.ConfigDataManager;
 import vazkii.botania.api.configdata.LooniumStructureConfiguration;
 import vazkii.botania.xplat.XplatAbstractions;
 
+import java.io.IOException;
+import java.io.Reader;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -32,7 +33,7 @@ public class ConfigDataManagerImpl implements ConfigDataManager {
 		XplatAbstractions.INSTANCE.registerReloadListener(PackType.SERVER_DATA, prefix("configdata"), new ConfigDataManagerImpl());
 	}
 
-	private final Map<Identifier, LooniumStructureConfiguration> looniumConfigs = new HashMap<>();
+	private volatile Map<Identifier, LooniumStructureConfiguration> looniumConfigs = Map.of();
 
 	@Override
 	public @Nullable LooniumStructureConfiguration getEffectiveLooniumStructureConfiguration(Identifier id) {
@@ -83,15 +84,15 @@ public class ConfigDataManagerImpl implements ConfigDataManager {
 
 	private void applyLooniumConfig(Map<Identifier, LooniumStructureConfiguration> looniumConfigs) {
 		BotaniaAPI.LOGGER.info("Loaded {} Loonium configurations", looniumConfigs.size());
-		this.looniumConfigs.putAll(looniumConfigs);
+		this.looniumConfigs = Map.copyOf(looniumConfigs);
 	}
 
 	@NotNull
 	@Override
-	public CompletableFuture<Void> reload(@NotNull PreparationBarrier barrier, @NotNull ResourceManager manager,
-			@NotNull ProfilerFiller prepProfiler, @NotNull ProfilerFiller reloadProfiler,
-			@NotNull Executor backgroundExecutor, @NotNull Executor gameExecutor) {
-		var looniumTask = scheduleConfigParse(barrier, manager, backgroundExecutor, gameExecutor, ConfigDataType.LOONUIM);
+	public CompletableFuture<Void> reload(@NotNull SharedState state, @NotNull Executor backgroundExecutor,
+			@NotNull PreparationBarrier barrier, @NotNull Executor gameExecutor) {
+		var looniumTask = scheduleConfigParse(barrier, state.resourceManager(), backgroundExecutor, gameExecutor,
+				ConfigDataType.LOONUIM);
 
 		return CompletableFuture.allOf(looniumTask).thenRun(() -> BotaniaAPI.instance().setConfigData(this));
 	}
@@ -99,12 +100,21 @@ public class ConfigDataManagerImpl implements ConfigDataManager {
 	private <T> CompletableFuture<Void> scheduleConfigParse(PreparationBarrier barrier, ResourceManager manager,
 			Executor backgroundExecutor, Executor gameExecutor, ConfigDataType<T> type) {
 		return CompletableFuture.supplyAsync(() -> {
-			Map<Identifier, JsonElement> resourceMap = new HashMap<>();
-			SimpleJsonResourceReloadListener.scanDirectory(manager, type.directory, new Gson(), resourceMap);
-			Map<Identifier, T> configs = new HashMap<>(resourceMap.size());
-			resourceMap.forEach((id, jsonElement) -> {
+			FileToIdConverter converter = FileToIdConverter.json(type.directory);
+			var resources = converter.listMatchingResources(manager);
+			Map<Identifier, T> configs = new HashMap<>(resources.size());
+			resources.forEach((fileId, resource) -> {
+				Identifier id = converter.fileToId(fileId);
 				BotaniaAPI.LOGGER.debug("Parsing {} config '{}'", type.directory, id);
-				type.codec.parse(JsonOps.INSTANCE, jsonElement).result().ifPresent(c -> configs.put(id, c));
+				try (Reader reader = resource.openAsReader()) {
+					JsonElement json = new Gson().fromJson(reader, JsonElement.class);
+					type.codec.parse(JsonOps.INSTANCE, json)
+							.resultOrPartial(error -> BotaniaAPI.LOGGER.error(
+									"Couldn't parse {} config '{}': {}", type.directory, id, error))
+							.ifPresent(config -> configs.put(id, config));
+				} catch (IOException | RuntimeException e) {
+					BotaniaAPI.LOGGER.error("Couldn't read {} config '{}'", type.directory, id, e);
+				}
 			});
 			type.validateFunction.accept(configs);
 			return configs;

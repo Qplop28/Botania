@@ -8,19 +8,32 @@
  */
 package vazkii.botania.common.crafting;
 
+import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
+import com.mojang.serialization.Decoder;
 import com.mojang.serialization.DynamicOps;
+import com.mojang.serialization.Encoder;
 
 import net.minecraft.world.item.ItemStackTemplate;
 
 public final class RecipeCodecs {
 	/** Botania-compatible item stack template codec. */
 	public static final Codec<ItemStackTemplate> ITEM_STACK_TEMPLATE = Codec.of(
-			(input, ops, prefix) -> ItemStackTemplate.CODEC.encode(input, ops, prefix)
-					.flatMap(encoded -> renameField(ops, encoded, "id", "item")),
-			(ops, input) -> renameField(ops, input, "item", "id")
-					.flatMap(normalized -> ItemStackTemplate.CODEC.decode(ops, normalized))
+			new Encoder<>() {
+				@Override
+				public <T> DataResult<T> encode(ItemStackTemplate input, DynamicOps<T> ops, T prefix) {
+					return ItemStackTemplate.CODEC.encode(input, ops, prefix)
+							.flatMap(encoded -> renameField(ops, encoded, "id", "item"));
+				}
+			},
+			new Decoder<>() {
+				@Override
+				public <T> DataResult<Pair<ItemStackTemplate, T>> decode(DynamicOps<T> ops, T input) {
+					return renameField(ops, input, "item", "id")
+							.flatMap(normalized -> ItemStackTemplate.CODEC.decode(ops, normalized));
+				}
+			}
 	);
 
 	private RecipeCodecs() {}

@@ -160,7 +160,7 @@ public class PureDaisyRecipe
 			BlockPos pos,
 			SpecialFlowerBlockEntity pureDaisy
 	) {
-		if (level.isClientSide) {
+		if (level.isClientSide()) {
 			return true;
 		}
 
@@ -212,7 +212,7 @@ public class PureDaisyRecipe
 	}
 
 	@Override
-	public RecipeSerializer<PureDaisyRecipe> getSerializer() {
+	public RecipeSerializer<? extends PureDaisyRecipe> getSerializer() {
 		return SERIALIZER;
 	}
 

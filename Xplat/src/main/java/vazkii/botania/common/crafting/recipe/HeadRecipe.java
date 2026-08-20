@@ -24,21 +24,17 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.NbtUtils;
-import net.minecraft.nbt.Tag;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.FormattedText;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.WrittenBookItem;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.component.ResolvableProfile;
+import net.minecraft.world.item.component.WrittenBookContent;
 import net.minecraft.world.item.crafting.RecipeInput;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
@@ -47,7 +43,6 @@ import org.jetbrains.annotations.NotNull;
 
 import vazkii.botania.common.crafting.RunicAltarRecipe;
 import vazkii.botania.common.crafting.RecipeCodecs;
-import vazkii.botania.common.helper.ItemNBTHelper;
 
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -119,13 +114,12 @@ public class HeadRecipe extends RunicAltarRecipe {
 
 				// either exactly one name tag or exactly one written book among ingredients
 				if (stack.is(Items.NAME_TAG)) {
-					if (foundName || !stack.hasCustomHoverName() || stack.getHoverName().getString().isBlank()) {
+					if (foundName || !stack.has(DataComponents.CUSTOM_NAME) || stack.getHoverName().getString().isBlank()) {
 						return false;
 					}
 					foundName = true;
 				} else if (stack.is(Items.WRITTEN_BOOK)) {
-					if (foundName || !WrittenBookItem.makeSureTagIsValid(stack.getTag())
-							|| parseProfileFromBook(stack, true) == null) {
+					if (foundName || parseProfileFromBook(stack, true) == null) {
 						return false;
 					}
 					foundName = true;
@@ -133,7 +127,7 @@ public class HeadRecipe extends RunicAltarRecipe {
 			}
 		}
 
-		return matches;
+		return matches && foundName;
 	}
 
 	@Override
@@ -142,12 +136,15 @@ public class HeadRecipe extends RunicAltarRecipe {
 		for (int slot = 0; slot < input.size(); slot++) {
 			ItemStack ingr = input.getItem(slot);
 			if (ingr.is(Items.NAME_TAG)) {
-				ItemNBTHelper.setString(stack, "SkullOwner", ingr.getHoverName().getString());
+				stack.set(DataComponents.PROFILE,
+						new ResolvableProfile(new GameProfile(null, ingr.getHoverName().getString())));
 				break;
 			}
 			if (ingr.is(Items.WRITTEN_BOOK)) {
 				GameProfile profile = parseProfileFromBook(ingr, false);
-				ItemNBTHelper.setCompound(stack, "SkullOwner", NbtUtils.writeGameProfile(new CompoundTag(), profile));
+				if (profile != null) {
+					stack.set(DataComponents.PROFILE, new ResolvableProfile(profile));
+				}
 				break;
 			}
 		}
@@ -155,20 +152,19 @@ public class HeadRecipe extends RunicAltarRecipe {
 	}
 
 	private GameProfile parseProfileFromBook(ItemStack stack, boolean validateOnly) {
-		// tag has been validated, so we know all relevant elements exist
-		CompoundTag tag = stack.getTag();
-		String name = tag.getString(WrittenBookItem.TAG_TITLE);
+		WrittenBookContent content = stack.get(DataComponents.WRITTEN_BOOK_CONTENT);
+		if (content == null) {
+			return null;
+		}
+		String name = content.title().raw();
 		if (name.isBlank()) {
 			return null;
 		}
 
-		ListTag pages = tag.getList(WrittenBookItem.TAG_PAGES, Tag.TAG_STRING);
-
-		// no-nonsense check; at most the first two pages are scanned, and the check fails at the first error
-		int maxPages = Math.min(2, pages.size());
+		// At most the first two pages are scanned.
+		int maxPages = Math.min(2, content.pages().size());
 		for (int i = 0; i < maxPages; ++i) {
-			String pageJson = pages.getString(i);
-			String pageText = parsePage(pageJson);
+			String pageText = content.pages().get(i).raw().getString();
 
 			Matcher matcher = PROFILE_PATTERN.matcher(pageText);
 			if (matcher.matches()) {
@@ -192,7 +188,7 @@ public class HeadRecipe extends RunicAltarRecipe {
 					try {
 						final String json = new String(Base64.getDecoder().decode(base64), StandardCharsets.UTF_8);
 						MinecraftTexturesPayload result = gson.get().fromJson(json, MinecraftTexturesPayload.class);
-						MinecraftProfileTexture skinTexture = result.getTextures().get(MinecraftProfileTexture.Type.SKIN);
+						MinecraftProfileTexture skinTexture = result.textures().get(MinecraftProfileTexture.Type.SKIN);
 						String skinTextureUrl = skinTexture.getUrl();
 						if (!PROFILE_PATTERN.matcher(skinTextureUrl).matches()) {
 							return null;
@@ -212,20 +208,11 @@ public class HeadRecipe extends RunicAltarRecipe {
 				String profileTextureJson = "{textures:{SKIN:{url:\"%s\"}}}".formatted(textureUrl);
 				String propertyBase64 = Base64.getEncoder().encodeToString(profileTextureJson.getBytes(StandardCharsets.UTF_8));
 				var profile = new GameProfile(GENERATED_UUID_CACHE.getUnchecked(propertyBase64), name);
-				profile.getProperties().put("textures", new Property("Value", propertyBase64));
+				profile.properties().put("textures", new Property("textures", propertyBase64));
 				return profile;
 			}
 		}
 		return null;
-	}
-
-	private static String parsePage(String pageJson) {
-		try {
-			FormattedText formattedtext = Component.Serializer.fromJson(pageJson);
-			return formattedtext != null ? formattedtext.getString() : pageJson;
-		} catch (Exception exception) {
-			return pageJson;
-		}
 	}
 
 	@Override

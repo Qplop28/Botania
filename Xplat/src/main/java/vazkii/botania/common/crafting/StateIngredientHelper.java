@@ -123,7 +123,7 @@ public final class StateIngredientHelper {
 		switch (type) {
 			case "tag":
 				return new TagStateIngredient(
-						new Identifier(
+						Identifier.parse(
 								GsonHelper.getAsString(object, "tag")
 						)
 				);
@@ -131,7 +131,7 @@ public final class StateIngredientHelper {
 			case "block":
 				return new BlockStateIngredient(
 						getBlock(
-								new Identifier(
+								Identifier.parse(
 										GsonHelper.getAsString(
 												object,
 												"block"
@@ -155,7 +155,7 @@ public final class StateIngredientHelper {
 						)) {
 					blocks.add(
 							getBlock(
-									new Identifier(
+									Identifier.parse(
 											element.getAsString()
 									)
 							)
@@ -165,7 +165,7 @@ public final class StateIngredientHelper {
 				return new BlocksStateIngredient(blocks);
 
 			case "tag_excluding":
-				Identifier tag = new Identifier(
+				Identifier tag = Identifier.parse(
 						GsonHelper.getAsString(object, "tag")
 				);
 

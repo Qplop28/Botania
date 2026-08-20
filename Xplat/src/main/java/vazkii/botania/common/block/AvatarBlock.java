@@ -10,6 +10,7 @@ package vazkii.botania.common.block;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
@@ -70,31 +71,40 @@ public class AvatarBlock extends BotaniaWaterloggedBlock implements EntityBlock 
 	}
 
 	@Override
-	public InteractionResult use(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+	protected InteractionResult useItemOn(ItemStack stackOnPlayer, BlockState state, Level world, BlockPos pos, Player player,
+			InteractionHand hand, BlockHitResult hit) {
+		return interact(world, pos, player, stackOnPlayer);
+	}
+
+	@Override
+	protected InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player,
+			BlockHitResult hit) {
+		return interact(world, pos, player, ItemStack.EMPTY);
+	}
+
+	private InteractionResult interact(Level world, BlockPos pos, Player player, ItemStack stackOnPlayer) {
 		AvatarBlockEntity avatar = (AvatarBlockEntity) world.getBlockEntity(pos);
 		ItemStack stackOnAvatar = avatar.getItemHandler().getItem(0);
-		ItemStack stackOnPlayer = player.getItemInHand(hand);
 		if (!stackOnAvatar.isEmpty()) {
 			avatar.getItemHandler().setItem(0, ItemStack.EMPTY);
 			player.getInventory().placeItemBackInInventory(stackOnAvatar);
-			return InteractionResult.sidedSuccess(world.isClientSide());
+			return world.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
 		} else if (!stackOnPlayer.isEmpty() && XplatAbstractions.INSTANCE.findAvatarWieldable(stackOnPlayer) != null) {
 			avatar.getItemHandler().setItem(0, stackOnPlayer.split(1));
-			return InteractionResult.sidedSuccess(world.isClientSide());
+			return world.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
 		}
 
 		return InteractionResult.PASS;
 	}
 
 	@Override
-	public void onRemove(@NotNull BlockState state, @NotNull Level world, @NotNull BlockPos pos, @NotNull BlockState newstate, boolean isMoving) {
-		if (!state.is(newstate.getBlock())) {
-			BlockEntity be = world.getBlockEntity(pos);
-			if (be instanceof SimpleInventoryBlockEntity inventory) {
-				Containers.dropContents(world, pos, inventory.getItemHandler());
-			}
-			super.onRemove(state, world, pos, newstate, isMoving);
+	protected void affectNeighborsAfterRemoval(@NotNull BlockState state, @NotNull ServerLevel world,
+			@NotNull BlockPos pos, boolean isMoving) {
+		BlockEntity be = world.getBlockEntity(pos);
+		if (be instanceof SimpleInventoryBlockEntity inventory) {
+			Containers.dropContents(world, pos, inventory.getItemHandler());
 		}
+		super.affectNeighborsAfterRemoval(state, world, pos, isMoving);
 	}
 
 	@NotNull
@@ -106,7 +116,7 @@ public class AvatarBlock extends BotaniaWaterloggedBlock implements EntityBlock 
 	@NotNull
 	@Override
 	public RenderShape getRenderShape(BlockState state) {
-		return RenderShape.ENTITYBLOCK_ANIMATED;
+		return RenderShape.INVISIBLE;
 	}
 
 	@NotNull

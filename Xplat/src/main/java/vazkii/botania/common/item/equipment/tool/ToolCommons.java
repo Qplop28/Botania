@@ -10,6 +10,7 @@ package vazkii.botania.common.item.equipment.tool;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.protocol.game.ClientboundLevelEventPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.ItemTags;
@@ -44,7 +45,9 @@ public final class ToolCommons {
 			return amount;
 		}
 
-		final int unbreaking = EnchantmentHelper.getItemEnchantmentLevel(Enchantments.UNBREAKING, stack);
+		var unbreakingEnchantment = entity.registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
+				.getOrThrow(Enchantments.UNBREAKING);
+		final int unbreaking = EnchantmentHelper.getItemEnchantmentLevel(unbreakingEnchantment, stack);
 
 		while (amount > 0) {
 			if (ManaItemHandler.instance().requestManaExactForTool(stack, player, manaPerDamage, false)) {
@@ -96,7 +99,7 @@ public final class ToolCommons {
 		BlockState blockstate = world.getBlockState(pos);
 		boolean unminable = blockstate.getDestroyProgress(player, world, pos) == 0;
 
-		if (!world.isClientSide && !unminable && filter.test(blockstate) && !blockstate.isAir()) {
+		if (!world.isClientSide() && !unminable && filter.test(blockstate) && !blockstate.isAir()) {
 			ItemStack save = player.getMainHandItem();
 			player.setItemInHand(InteractionHand.MAIN_HAND, stack);
 			((ServerPlayer) player).connection.send(
@@ -137,10 +140,13 @@ public final class ToolCommons {
 			modifier = TerraShattererItem.getLevel(stack);
 		}
 
-		int efficiency = EnchantmentHelper.getItemEnchantmentLevel(
-				Enchantments.BLOCK_EFFICIENCY,
-				stack
-		);
+		int efficiency = 0;
+		for (var entry : EnchantmentHelper.getEnchantmentsForCrafting(stack).entrySet()) {
+			if (entry.getKey().is(Enchantments.EFFICIENCY)) {
+				efficiency = entry.getIntValue();
+				break;
+			}
+		}
 
 		return materialLevel * 100 + modifier * 10 + efficiency;
 	}

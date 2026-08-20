@@ -9,23 +9,26 @@
 package vazkii.botania.common.item.equipment.tool;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ToolMaterial;
-import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
-import net.minecraft.world.level.Level;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.block.state.BlockState;
+
+import org.jetbrains.annotations.Nullable;
 
 import vazkii.botania.common.annotations.SoftImplement;
 import vazkii.botania.common.item.equipment.tool.manasteel.ManasteelPickaxeItem;
 import vazkii.botania.common.lib.BotaniaTags;
 import vazkii.botania.xplat.XplatAbstractions;
-
-import java.util.Map;
 
 public class VitreousPickaxeItem extends ManasteelPickaxeItem {
 	private static final String TAG_SILK_HACK = "botania:silk_hack";
@@ -52,25 +55,28 @@ public class VitreousPickaxeItem extends ManasteelPickaxeItem {
 	@SoftImplement("IForgeItem")
 	public boolean onBlockStartBreak(ItemStack itemstack, BlockPos pos, Player player) {
 		BlockState state = player.level().getBlockState(pos);
-		boolean hasSilk = EnchantmentHelper.getItemEnchantmentLevel(Enchantments.SILK_TOUCH, itemstack) > 0;
+		var silkTouch = player.registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
+				.getOrThrow(Enchantments.SILK_TOUCH);
+		boolean hasSilk = EnchantmentHelper.getItemEnchantmentLevel(silkTouch, itemstack) > 0;
 		if (hasSilk || !isGlass(state)) {
 			return false;
 		}
 
-		itemstack.enchant(Enchantments.SILK_TOUCH, 1);
-		itemstack.getTag().putBoolean(TAG_SILK_HACK, true);
+		itemstack.enchant(silkTouch, 1);
+		CustomData.update(DataComponents.CUSTOM_DATA, itemstack, tag -> tag.putBoolean(TAG_SILK_HACK, true));
 
 		return false;
 	}
 
 	@Override
-	public void inventoryTick(ItemStack stack, Level world, Entity player, int slot, boolean selected) {
-		super.inventoryTick(stack, world, player, slot, selected);
-		if (stack.getOrCreateTag().getBoolean(TAG_SILK_HACK)) {
-			stack.getTag().remove(TAG_SILK_HACK);
-			Map<Enchantment, Integer> ench = EnchantmentHelper.deserializeEnchantments(stack.getEnchantmentTags());
-			ench.remove(Enchantments.SILK_TOUCH);
-			EnchantmentHelper.setEnchantments(ench, stack);
+	public void inventoryTick(ItemStack stack, ServerLevel world, Entity entity, @Nullable EquipmentSlot slot) {
+		super.inventoryTick(stack, world, entity, slot);
+		CustomData customData = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
+		if (customData.contains(TAG_SILK_HACK)) {
+			CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> tag.remove(TAG_SILK_HACK));
+			var silkTouch = world.registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
+					.getOrThrow(Enchantments.SILK_TOUCH);
+			EnchantmentHelper.updateEnchantments(stack, enchantments -> enchantments.removeIf(silkTouch::equals));
 		}
 	}
 

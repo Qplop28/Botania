@@ -296,7 +296,7 @@ public class PollidisiacBlockEntity extends FunctionalFlowerBlockEntity implemen
 			int centerY = mc.getWindow().getGuiScaledHeight() / 2;
 
 			super.renderHUD(gui, mc, halfMinWidth, halfMinWidth, 40);
-			gui.drawString(mc.font, filter, filterTextStart, centerY + 30, flower.getColor());
+			gui.text(mc.font, filter, filterTextStart, centerY + 30, flower.getColor());
 		}
 	}
 }

@@ -19,16 +19,21 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 public final class ColorHelper {
-	public static final Function<DyeColor, Block> STAINED_GLASS_MAP = color -> BuiltInRegistries.BLOCK.get(new Identifier(color.getSerializedName() + "_stained_glass"));
-	public static final Function<DyeColor, Block> STAINED_GLASS_PANE_MAP = color -> BuiltInRegistries.BLOCK.get(new Identifier(color.getSerializedName() + "_stained_glass_pane"));
-	public static final Function<DyeColor, Block> TERRACOTTA_MAP = color -> BuiltInRegistries.BLOCK.get(new Identifier(color.getSerializedName() + "_terracotta"));
-	public static final Function<DyeColor, Block> GLAZED_TERRACOTTA_MAP = color -> BuiltInRegistries.BLOCK.get(new Identifier(color.getSerializedName() + "_glazed_terracotta"));
-	public static final Function<DyeColor, Block> WOOL_MAP = color -> BuiltInRegistries.BLOCK.get(new Identifier(color.getSerializedName() + "_wool"));
-	public static final Function<DyeColor, Block> CARPET_MAP = color -> BuiltInRegistries.BLOCK.get(new Identifier(color.getSerializedName() + "_carpet"));
-	public static final Function<DyeColor, Block> CONCRETE_MAP = color -> BuiltInRegistries.BLOCK.get(new Identifier(color.getSerializedName() + "_concrete"));
-	public static final Function<DyeColor, Block> CONCRETE_POWDER_MAP = color -> BuiltInRegistries.BLOCK.get(new Identifier(color.getSerializedName() + "_concrete_powder"));
-	public static final Function<DyeColor, Block> CANDLE_MAP = color -> BuiltInRegistries.BLOCK.get(new Identifier(color.getSerializedName() + "_candle"));
-	public static final Function<DyeColor, Block> CANDLE_CAKE_MAP = color -> BuiltInRegistries.BLOCK.get(new Identifier(color.getSerializedName() + "_candle_cake"));
+	public static final Function<DyeColor, Block> STAINED_GLASS_MAP = dyedVanillaBlock("stained_glass");
+	public static final Function<DyeColor, Block> STAINED_GLASS_PANE_MAP = dyedVanillaBlock("stained_glass_pane");
+	public static final Function<DyeColor, Block> TERRACOTTA_MAP = dyedVanillaBlock("terracotta");
+	public static final Function<DyeColor, Block> GLAZED_TERRACOTTA_MAP = dyedVanillaBlock("glazed_terracotta");
+	public static final Function<DyeColor, Block> WOOL_MAP = dyedVanillaBlock("wool");
+	public static final Function<DyeColor, Block> CARPET_MAP = dyedVanillaBlock("carpet");
+	public static final Function<DyeColor, Block> CONCRETE_MAP = dyedVanillaBlock("concrete");
+	public static final Function<DyeColor, Block> CONCRETE_POWDER_MAP = dyedVanillaBlock("concrete_powder");
+	public static final Function<DyeColor, Block> CANDLE_MAP = dyedVanillaBlock("candle");
+	public static final Function<DyeColor, Block> CANDLE_CAKE_MAP = dyedVanillaBlock("candle_cake");
+
+	private static Function<DyeColor, Block> dyedVanillaBlock(String suffix) {
+		return color -> BuiltInRegistries.BLOCK.get(
+				Identifier.parse(color.getSerializedName() + "_" + suffix));
+	}
 
 	@Nullable
 	public static DyeColor getWoolColor(Block b) {
@@ -45,11 +50,7 @@ public final class ColorHelper {
 	}
 
 	public static int getColorValue(DyeColor color) {
-		float[] colors = color.getTextureDiffuseColors();
-		int r = (int) (colors[0] * 255.0F);
-		int g = (int) (colors[1] * 255.0F);
-		int b = (int) (colors[2] * 255.0F);
-		return (r << 16) | (g << 8) | b;
+		return color.getTextureDiffuseColor() & 0xFFFFFF;
 	}
 
 	public static int getColorLegibleOnGrayBackground(DyeColor color) {

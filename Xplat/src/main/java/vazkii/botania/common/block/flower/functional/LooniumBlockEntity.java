@@ -244,7 +244,7 @@ public class LooniumBlockEntity extends FunctionalFlowerBlockEntity {
 		}
 
 		if (pickedMobType.nbt != null) {
-			mob.readAdditionalSaveData(TagValueInput.create(
+			mob.load(TagValueInput.create(
 					ProblemReporter.DISCARDING, world.registryAccess(), pickedMobType.nbt));
 		}
 		if (pickedMobType.spawnAsBaby != null) {

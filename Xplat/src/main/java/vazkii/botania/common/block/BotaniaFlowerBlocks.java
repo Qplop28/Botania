@@ -96,7 +96,7 @@ public class BotaniaFlowerBlocks {
 	public static final Block dandelifeonFloating = new FloatingSpecialFlowerBlock(FLOATING_PROPS, () -> BotaniaFlowerBlocks.DANDELIFEON);
 	public static final Block dandelifeonPotted = BotaniaBlocks.flowerPot(dandelifeon, 0);
 
-	public static final Block rafflowsia = createSpecialFlowerBlock(MobEffects.INSTANT_HEALTHTH_BOOST, 18, FLOWER_PROPS, () -> BotaniaFlowerBlocks.RAFFLOWSIA);
+	public static final Block rafflowsia = createSpecialFlowerBlock(MobEffects.HEALTH_BOOST, 18, FLOWER_PROPS, () -> BotaniaFlowerBlocks.RAFFLOWSIA);
 	public static final Block rafflowsiaFloating = new FloatingSpecialFlowerBlock(FLOATING_PROPS, () -> BotaniaFlowerBlocks.RAFFLOWSIA);
 	public static final Block rafflowsiaPotted = BotaniaBlocks.flowerPot(rafflowsia, 0);
 
@@ -754,7 +754,7 @@ public class BotaniaFlowerBlocks {
 	}
 
 	public static void registerFlowerPotPlants(BiConsumer<Identifier, Supplier<? extends Block>> consumer) {
-		registerBlocks((block, Identifier) -> {
+		registerBlocks((block, ignoredId) -> {
 			if (block instanceof FlowerPotBlock) {
 				var id = getId(block);
 				consumer.accept(Identifier.fromNamespaceAndPath(id.getNamespace(), id.getPath().substring(LibBlockNames.POTTED_PREFIX.length())), () -> block);

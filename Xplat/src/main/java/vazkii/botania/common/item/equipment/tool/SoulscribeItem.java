@@ -8,15 +8,16 @@
  */
 package vazkii.botania.common.item.equipment.tool;
 
-import net.minecraft.world.InteractionHand;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.monster.EnderMan;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import vazkii.botania.api.BotaniaAPI;
 import vazkii.botania.common.item.equipment.tool.manasteel.ManasteelSwordItem;
@@ -30,19 +31,18 @@ public class SoulscribeItem extends ManasteelSwordItem {
 	}
 
 	@Override
-	public boolean hurtEnemy(ItemStack stack, LivingEntity target, @NotNull LivingEntity attacker) {
-		if (!target.level().isClientSide
+	public void hurtEnemy(ItemStack stack, LivingEntity target, @NotNull LivingEntity attacker) {
+		if (!target.level().isClientSide()
 				&& target instanceof EnderMan
 				&& attacker instanceof Player player) {
 			target.hurt(player.damageSources().playerAttack(player), 20);
 		}
 
-		stack.hurtAndBreak(1, attacker, e -> e.broadcastBreakEvent(InteractionHand.MAIN_HAND));
-		return true;
+		super.hurtEnemy(stack, target, attacker);
 	}
 
 	@Override
-	public void inventoryTick(ItemStack stack, Level world, Entity player, int slot, boolean selected) {}
+	public void inventoryTick(ItemStack stack, ServerLevel world, Entity entity, @Nullable EquipmentSlot slot) {}
 
 	@Override
 	public <T extends LivingEntity> int damageItem(ItemStack stack, int amount, T entity, Consumer<T> onBroken) {

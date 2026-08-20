@@ -9,6 +9,7 @@
 package vazkii.botania.common.block;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Containers;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -17,8 +18,10 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.redstone.Orientation;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import vazkii.botania.common.block.block_entity.CacophoniumBlockEntity;
 
@@ -34,7 +37,8 @@ public class CacophoniumBlock extends BotaniaBlock implements EntityBlock {
 	}
 
 	@Override
-	public void neighborChanged(BlockState state, Level world, BlockPos pos, Block block, BlockPos fromPos, boolean isMoving) {
+	public void neighborChanged(BlockState state, Level world, BlockPos pos, Block block,
+			@Nullable Orientation orientation, boolean isMoving) {
 		boolean power = world.getBestNeighborSignal(pos) > 0;
 		boolean powered = state.getValue(BlockStateProperties.POWERED);
 
@@ -50,14 +54,12 @@ public class CacophoniumBlock extends BotaniaBlock implements EntityBlock {
 	}
 
 	@Override
-	public void onRemove(BlockState state, Level world, BlockPos pos, BlockState newState, boolean isMoving) {
-		if (!state.is(newState.getBlock())) {
-			BlockEntity te = world.getBlockEntity(pos);
-			if (te instanceof CacophoniumBlockEntity cacophonium) {
-				Containers.dropItemStack(world, pos.getX(), pos.getY(), pos.getZ(), cacophonium.stack);
-			}
-			super.onRemove(state, world, pos, newState, isMoving);
+	protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel world, BlockPos pos, boolean isMoving) {
+		BlockEntity te = world.getBlockEntity(pos);
+		if (te instanceof CacophoniumBlockEntity cacophonium) {
+			Containers.dropItemStack(world, pos.getX(), pos.getY(), pos.getZ(), cacophonium.stack);
 		}
+		super.affectNeighborsAfterRemoval(state, world, pos, isMoving);
 	}
 
 	@NotNull

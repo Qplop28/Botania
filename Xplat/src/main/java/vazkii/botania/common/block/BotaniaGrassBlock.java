@@ -9,10 +9,12 @@
 package vazkii.botania.common.block;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LightEngine;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -38,12 +40,17 @@ public class BotaniaGrassBlock extends BotaniaBlock {
 
 	@Override
 	public void tick(BlockState state, ServerLevel world, BlockPos pos, RandomSource rand) {
-		if (!world.isClientSide && state.is(this) && world.getMaxLocalRawBrightness(pos.above()) >= 9) {
+		if (!world.isClientSide() && state.is(this) && world.getMaxLocalRawBrightness(pos.above()) >= 9) {
 			for (int l = 0; l < 4; ++l) {
 				BlockPos pos1 = pos.offset(rand.nextInt(3) - 1, rand.nextInt(5) - 3, rand.nextInt(3) - 1);
 				BlockPos pos1up = pos1.above();
 
-				if (world.getBlockState(pos1).is(Blocks.DIRT) && world.getMaxLocalRawBrightness(pos1up) >= 4 && world.getBlockState(pos1up).getLightBlock(world, pos1up) <= 2) {
+				BlockState spreadState = world.getBlockState(pos1);
+				BlockState aboveState = world.getBlockState(pos1up);
+				int lightBlock = LightEngine.getLightBlockInto(world, spreadState, pos1,
+						aboveState, pos1up, Direction.UP, aboveState.getLightBlock());
+				if (spreadState.is(Blocks.DIRT)
+						&& world.getMaxLocalRawBrightness(pos1up) >= 4 && lightBlock <= 2) {
 					world.setBlockAndUpdate(pos1, defaultBlockState());
 				}
 			}

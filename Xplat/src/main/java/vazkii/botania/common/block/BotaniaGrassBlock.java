@@ -14,9 +14,9 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LightEngine;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.lighting.LightEngine;
 
 import vazkii.botania.client.fx.SparkleParticleData;
 
@@ -48,7 +48,7 @@ public class BotaniaGrassBlock extends BotaniaBlock {
 				BlockState spreadState = world.getBlockState(pos1);
 				BlockState aboveState = world.getBlockState(pos1up);
 				int lightBlock = LightEngine.getLightBlockInto(world, spreadState, pos1,
-						aboveState, pos1up, Direction.UP, aboveState.getLightBlock());
+						aboveState, pos1up, Direction.UP, aboveState.getLightBlock(world, pos1up));
 				if (spreadState.is(Blocks.DIRT)
 						&& world.getMaxLocalRawBrightness(pos1up) >= 4 && lightBlock <= 2) {
 					world.setBlockAndUpdate(pos1, defaultBlockState());

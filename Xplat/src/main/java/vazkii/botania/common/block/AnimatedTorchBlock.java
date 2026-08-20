@@ -25,6 +25,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -44,10 +45,21 @@ public class AnimatedTorchBlock extends BotaniaWaterloggedBlock implements Entit
 	}
 
 	@Override
-	public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player playerIn, InteractionHand hand, BlockHitResult hit) {
+	protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level worldIn, BlockPos pos, Player playerIn,
+			InteractionHand hand, BlockHitResult hit) {
+		return rotate(worldIn, pos, playerIn);
+	}
+
+	@Override
+	protected InteractionResult useWithoutItem(BlockState state, Level worldIn, BlockPos pos, Player playerIn,
+			BlockHitResult hit) {
+		return rotate(worldIn, pos, playerIn);
+	}
+
+	private InteractionResult rotate(Level worldIn, BlockPos pos, Player playerIn) {
 		if (playerIn.isSecondaryUseActive()) {
 			((AnimatedTorchBlockEntity) worldIn.getBlockEntity(pos)).handRotate();
-			return InteractionResult.sidedSuccess(worldIn.isClientSide());
+			return worldIn.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
 		}
 
 		return InteractionResult.PASS;
@@ -86,7 +98,7 @@ public class AnimatedTorchBlock extends BotaniaWaterloggedBlock implements Entit
 	@NotNull
 	@Override
 	public RenderShape getRenderShape(BlockState state) {
-		return RenderShape.ENTITYBLOCK_ANIMATED;
+		return RenderShape.INVISIBLE;
 	}
 
 	@NotNull
@@ -109,10 +121,11 @@ public class AnimatedTorchBlock extends BotaniaWaterloggedBlock implements Entit
 	@Override
 	public void destroy(LevelAccessor world, BlockPos pos, BlockState state) {
 		// Block entity is already gone so best we can do is just notify everyone
-		world.blockUpdated(pos, this);
 		if (world instanceof ServerLevel level) {
+			level.updateNeighborsAt(pos, this);
 			for (Direction e : AnimatedTorchBlockEntity.SIDES) {
-				level.updateNeighborsAtExceptFromFacing(pos.relative(e), state.getBlock(), e.getOpposite());
+				Orientation orientation = Orientation.initialOrientation(level, e.getOpposite(), Direction.UP);
+				level.updateNeighborsAtExceptFromFacing(pos.relative(e), state.getBlock(), e.getOpposite(), orientation);
 			}
 		}
 		super.destroy(world, pos, state);

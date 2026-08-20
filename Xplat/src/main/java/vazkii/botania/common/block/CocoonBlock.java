@@ -14,6 +14,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.InsideBlockEffectApplier;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -55,12 +56,13 @@ public class CocoonBlock extends BotaniaWaterloggedBlock implements EntityBlock 
 	@NotNull
 	@Override
 	public RenderShape getRenderShape(BlockState state) {
-		return RenderShape.ENTITYBLOCK_ANIMATED;
+		return RenderShape.INVISIBLE;
 	}
 
 	@Override
-	public void entityInside(BlockState state, Level world, BlockPos pos, Entity e) {
-		if (!world.isClientSide && e instanceof ItemEntity item) {
+	protected void entityInside(BlockState state, Level world, BlockPos pos, Entity e,
+			InsideBlockEffectApplier effectApplier, boolean entityIsAbove) {
+		if (!world.isClientSide() && e instanceof ItemEntity item) {
 			ItemStack stack = item.getItem();
 			addStack(world, pos, stack, false);
 
@@ -71,8 +73,8 @@ public class CocoonBlock extends BotaniaWaterloggedBlock implements EntityBlock 
 	}
 
 	@Override
-	public InteractionResult use(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
-		ItemStack stack = player.getItemInHand(hand);
+	protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level world, BlockPos pos, Player player,
+			InteractionHand hand, BlockHitResult hit) {
 		return addStack(world, pos, stack, player.getAbilities().instabuild);
 	}
 
@@ -80,7 +82,7 @@ public class CocoonBlock extends BotaniaWaterloggedBlock implements EntityBlock 
 		CocoonBlockEntity cocoon = (CocoonBlockEntity) world.getBlockEntity(pos);
 
 		if (cocoon != null && (stack.is(Items.EMERALD) || stack.is(Items.CHORUS_FRUIT) || stack.is(BotaniaItems.lifeEssence))) {
-			if (!world.isClientSide) {
+			if (!world.isClientSide()) {
 				if (stack.is(Items.EMERALD) && cocoon.emeraldsGiven < CocoonBlockEntity.MAX_EMERALDS) {
 					if (!creative) {
 						stack.shrink(1);
@@ -103,7 +105,7 @@ public class CocoonBlock extends BotaniaWaterloggedBlock implements EntityBlock 
 				}
 			}
 
-			return InteractionResult.sidedSuccess(world.isClientSide());
+			return world.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
 		}
 
 		return InteractionResult.PASS;

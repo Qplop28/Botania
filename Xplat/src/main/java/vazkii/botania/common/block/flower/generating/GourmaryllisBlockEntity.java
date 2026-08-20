@@ -31,6 +31,7 @@ import vazkii.botania.api.block_entity.GeneratingFlowerBlockEntity;
 import vazkii.botania.api.block_entity.RadiusDescriptor;
 import vazkii.botania.common.block.BotaniaFlowerBlocks;
 import vazkii.botania.common.helper.DelayHelper;
+import vazkii.botania.common.helper.ItemNBTHelper;
 import vazkii.botania.xplat.XplatAbstractions;
 
 import java.util.LinkedList;
@@ -196,8 +197,10 @@ public class GourmaryllisBlockEntity extends GeneratingFlowerBlockEntity {
 		lastFoods.clear();
 		ListTag foodList = cmp.getListOrEmpty(TAG_LAST_FOODS);
 		for (Tag foodTag : foodList) {
-			ItemStack.CODEC.parse(NbtOps.INSTANCE, foodTag).result()
-					.filter(food -> !food.isEmpty()).ifPresent(lastFoods::add);
+			if (foodTag instanceof CompoundTag foodCompound) {
+				ItemNBTHelper.decodeStoredStack(foodCompound).result()
+						.filter(food -> !food.isEmpty()).ifPresent(lastFoods::add);
+			}
 		}
 		lastFoodCount = cmp.getIntOr(TAG_LAST_FOOD_COUNT, 0);
 		streakLength = cmp.getIntOr(TAG_STREAK_LENGTH, -1);

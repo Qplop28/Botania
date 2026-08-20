@@ -21,6 +21,8 @@ import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.EntityJoinLevelEvent;
+import net.minecraftforge.event.entity.EntityLeaveLevelEvent;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -51,6 +53,7 @@ import vazkii.botania.common.block.BotaniaFlowerBlocks;
 import vazkii.botania.common.block.block_entity.BotaniaBlockEntities;
 import vazkii.botania.common.block.block_entity.corporea.CorporeaIndexBlockEntity;
 import vazkii.botania.common.entity.BotaniaEntities;
+import vazkii.botania.common.entity.GaiaGuardianEntity;
 import vazkii.botania.common.item.BotaniaItems;
 import vazkii.botania.common.item.equipment.bauble.RingOfDexterousMotionItem;
 import vazkii.botania.forge.CapabilityUtil;
@@ -101,6 +104,16 @@ public class ForgeClientInitializer {
 		});
 		bus.addListener((ItemTooltipEvent e) -> TooltipHandler.onTooltipEvent(e.getItemStack(), e.getFlags(), e.getToolTip()));
 		bus.addListener((ScreenEvent.KeyPressed.Post e) -> CorporeaInputHandler.buttonPressed(e.getKeyCode(), e.getScanCode()));
+		bus.addListener((EntityJoinLevelEvent e) -> {
+			if (e.getLevel().isClientSide() && e.getEntity() instanceof GaiaGuardianEntity gaia) {
+				gaia.onClientEntityLoad();
+			}
+		});
+		bus.addListener((EntityLeaveLevelEvent e) -> {
+			if (e.getLevel().isClientSide() && e.getEntity() instanceof GaiaGuardianEntity gaia) {
+				gaia.onClientEntityUnload();
+			}
+		});
 
 		// Forge bus events done with Mixins on Fabric
 		bus.addListener(EventPriority.HIGH, (ClientChatEvent e) -> {

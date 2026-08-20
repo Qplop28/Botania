@@ -8,7 +8,6 @@
  */
 package vazkii.botania.common.crafting;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
 
 import net.minecraft.ChatFormatting;
@@ -28,7 +27,6 @@ import vazkii.botania.api.recipe.StateIngredient;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 public class BlockStateStateIngredient implements StateIngredient {
 	private final BlockState state;
@@ -72,19 +70,20 @@ public class BlockStateStateIngredient implements StateIngredient {
 	@Nullable
 	@Override
 	public List<Component> descriptionTooltip() {
-		ImmutableMap<Property<?>, Comparable<?>> map = state.getValues();
-		if (map.isEmpty()) {
+		List<Property.Value<?>> values = state.getValues().toList();
+		if (values.isEmpty()) {
 			return StateIngredient.super.descriptionTooltip();
 		}
-		List<Component> tooltip = new ArrayList<>(map.size());
-		for (Map.Entry<Property<?>, Comparable<?>> entry : map.entrySet()) {
-			Property<?> key = entry.getKey();
-			@SuppressWarnings({ "unchecked", "rawtypes" })
-			String name = ((Property) key).getName(entry.getValue());
-
-			tooltip.add(Component.literal(key.getName() + " = " + name).withStyle(ChatFormatting.GRAY));
+		List<Component> tooltip = new ArrayList<>(values.size());
+		for (Property.Value<?> value : values) {
+			tooltip.add(Component.literal(value.property().getName() + " = " + getValueName(value))
+					.withStyle(ChatFormatting.GRAY));
 		}
 		return tooltip;
+	}
+
+	private static <T extends Comparable<T>> String getValueName(Property.Value<T> value) {
+		return value.property().getName(value.value());
 	}
 
 	@Override

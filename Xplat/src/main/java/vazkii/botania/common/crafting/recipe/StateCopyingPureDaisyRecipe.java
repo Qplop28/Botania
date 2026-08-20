@@ -136,7 +136,7 @@ public class StateCopyingPureDaisyRecipe
 			BlockPos pos,
 			SpecialFlowerBlockEntity pureDaisy
 	) {
-		if (!level.isClientSide) {
+		if (!level.isClientSide()) {
 			Block outputBlock =
 					getOutputState().getBlock();
 

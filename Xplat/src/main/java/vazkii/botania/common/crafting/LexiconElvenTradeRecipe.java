@@ -9,10 +9,12 @@
 package vazkii.botania.common.crafting;
 
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.component.CustomData;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -57,7 +59,8 @@ public class LexiconElvenTradeRecipe implements ElvenTradeRecipe {
 	@Override
 	public List<ItemStack> getOutputs() {
 		ItemStack stack = new ItemStack(BotaniaItems.lexicon);
-		stack.getOrCreateTag().putBoolean(LexicaBotaniaItem.TAG_ELVEN_UNLOCK, true);
+		CustomData.update(DataComponents.CUSTOM_DATA, stack,
+				tag -> tag.putBoolean(LexicaBotaniaItem.TAG_ELVEN_UNLOCK, true));
 		return Collections.singletonList(stack);
 	}
 
@@ -74,7 +77,8 @@ public class LexiconElvenTradeRecipe implements ElvenTradeRecipe {
 	@Override
 	public List<ItemStack> getOutputs(List<ItemStack> inputs) {
 		ItemStack stack = inputs.get(0).copy();
-		stack.getOrCreateTag().putBoolean(LexicaBotaniaItem.TAG_ELVEN_UNLOCK, true);
+		CustomData.update(DataComponents.CUSTOM_DATA, stack,
+				tag -> tag.putBoolean(LexicaBotaniaItem.TAG_ELVEN_UNLOCK, true));
 		return Collections.singletonList(stack);
 	}
 

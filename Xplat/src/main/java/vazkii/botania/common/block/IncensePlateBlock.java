@@ -175,11 +175,12 @@ public class IncensePlateBlock extends BotaniaWaterloggedBlock implements Entity
 	}
 
 	@Override
-	protected void onProjectileHit(@NotNull ServerLevel level, @NotNull BlockState blockState,
+	protected void onProjectileHit(@NotNull Level level, @NotNull BlockState blockState,
 			@NotNull BlockHitResult hit, @NotNull Projectile projectile) {
-		if (projectile.mayInteract(level, hit.getBlockPos())
+		if (level instanceof ServerLevel serverLevel
+				&& projectile.mayInteract(serverLevel, hit.getBlockPos())
 				&& projectile.isOnFire()) {
-			if (level.getBlockEntity(hit.getBlockPos()) instanceof IncensePlateBlockEntity plate) {
+			if (serverLevel.getBlockEntity(hit.getBlockPos()) instanceof IncensePlateBlockEntity plate) {
 				plate.ignite();
 				VanillaPacketDispatcher.dispatchTEToNearbyPlayers(plate);
 			}

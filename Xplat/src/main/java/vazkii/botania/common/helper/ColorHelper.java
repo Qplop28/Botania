@@ -31,8 +31,8 @@ public final class ColorHelper {
 	public static final Function<DyeColor, Block> CANDLE_CAKE_MAP = dyedVanillaBlock("candle_cake");
 
 	private static Function<DyeColor, Block> dyedVanillaBlock(String suffix) {
-		return color -> BuiltInRegistries.BLOCK.get(
-				Identifier.parse(color.getSerializedName() + "_" + suffix));
+		return color -> BuiltInRegistries.BLOCK.getValue(
+				Identifier.withDefaultNamespace(color.getSerializedName() + "_" + suffix));
 	}
 
 	@Nullable

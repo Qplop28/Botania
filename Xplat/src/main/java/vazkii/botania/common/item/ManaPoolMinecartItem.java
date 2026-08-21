@@ -9,6 +9,7 @@
 package vazkii.botania.common.item;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.vehicle.minecart.AbstractMinecart;
@@ -41,15 +42,15 @@ public class ManaPoolMinecartItem extends Item {
 			return InteractionResult.FAIL;
 		} else {
 			ItemStack itemStack = context.getItemInHand();
-			if (!world.isClientSide) {
+			if (!world.isClientSide()) {
 				RailShape railShape = blockState.getBlock() instanceof BaseRailBlock ? blockState.getValue(((BaseRailBlock) blockState.getBlock()).getShapeProperty()) : RailShape.NORTH_SOUTH;
 				double d = 0.0D;
-				if (railShape.isAscending()) {
+				if (railShape.isSlope()) {
 					d = 0.5D;
 				}
 
 				AbstractMinecart abstractMinecartEntity = new ManaPoolMinecartEntity(world, (double) blockPos.getX() + 0.5D, (double) blockPos.getY() + 0.0625D + d, (double) blockPos.getZ() + 0.5D);
-				if (itemStack.hasCustomHoverName()) {
+				if (itemStack.has(DataComponents.CUSTOM_NAME)) {
 					abstractMinecartEntity.setCustomName(itemStack.getHoverName());
 				}
 
@@ -57,7 +58,7 @@ public class ManaPoolMinecartItem extends Item {
 			}
 
 			itemStack.shrink(1);
-			return InteractionResult.sidedSuccess(world.isClientSide);
+			return world.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
 		}
 	}
 

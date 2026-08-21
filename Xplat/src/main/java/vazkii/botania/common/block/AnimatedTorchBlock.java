@@ -25,6 +25,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.redstone.ExperimentalRedstoneUtils;
 import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -124,7 +125,7 @@ public class AnimatedTorchBlock extends BotaniaWaterloggedBlock implements Entit
 		if (world instanceof ServerLevel level) {
 			level.updateNeighborsAt(pos, this);
 			for (Direction e : AnimatedTorchBlockEntity.SIDES) {
-				Orientation orientation = Orientation.initialOrientation(level, e.getOpposite(), Direction.UP);
+				Orientation orientation = ExperimentalRedstoneUtils.initialOrientation(level, e.getOpposite(), Direction.UP);
 				level.updateNeighborsAtExceptFromFacing(pos.relative(e), state.getBlock(), e.getOpposite(), orientation);
 			}
 		}

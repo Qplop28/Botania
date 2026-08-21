@@ -137,13 +137,13 @@ public class HeadRecipe extends RunicAltarRecipe {
 			ItemStack ingr = input.getItem(slot);
 			if (ingr.is(Items.NAME_TAG)) {
 				stack.set(DataComponents.PROFILE,
-						new ResolvableProfile(new GameProfile(null, ingr.getHoverName().getString())));
+						ResolvableProfile.createResolved(new GameProfile(null, ingr.getHoverName().getString())));
 				break;
 			}
 			if (ingr.is(Items.WRITTEN_BOOK)) {
 				GameProfile profile = parseProfileFromBook(ingr, false);
 				if (profile != null) {
-					stack.set(DataComponents.PROFILE, new ResolvableProfile(profile));
+					stack.set(DataComponents.PROFILE, ResolvableProfile.createResolved(profile));
 				}
 				break;
 			}

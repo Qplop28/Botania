@@ -8,32 +8,10 @@
  */
 package vazkii.botania.common.item.equipment.armor.elementium;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
-
-import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.ai.attributes.Attribute;
-import net.minecraft.world.entity.ai.attributes.AttributeModifier;
-
-import org.jetbrains.annotations.NotNull;
-
-import vazkii.botania.common.handler.PixieHandler;
-
 public class ElementiumChestItem extends ElementiumArmorItem {
 
 	public ElementiumChestItem(Properties props) {
 		super(Type.CHESTPLATE, props);
-	}
-
-	@NotNull
-	@Override
-	public Multimap<Attribute, AttributeModifier> getDefaultAttributeModifiers(@NotNull EquipmentSlot slot) {
-		Multimap<Attribute, AttributeModifier> ret = super.getDefaultAttributeModifiers(slot);
-		if (slot == getEquipmentSlot()) {
-			ret = HashMultimap.create(ret);
-			ret.put(PixieHandler.pixieSpawnChance(), PixieHandler.makeModifier(slot, "Armor modifier", 0.17));
-		}
-		return ret;
 	}
 
 }

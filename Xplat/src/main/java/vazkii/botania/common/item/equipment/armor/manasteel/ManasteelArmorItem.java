@@ -16,6 +16,7 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.component.TooltipDisplay;
@@ -35,6 +36,7 @@ import vazkii.botania.client.gui.TooltipHandler;
 import vazkii.botania.client.lib.ResourcesLib;
 import vazkii.botania.common.annotations.SoftImplement;
 import vazkii.botania.common.helper.ItemNBTHelper;
+import vazkii.botania.common.handler.PixieHandler;
 import vazkii.botania.common.item.BotaniaItems;
 import vazkii.botania.common.item.equipment.CustomDamageItem;
 import vazkii.botania.common.item.equipment.tool.ToolCommons;
@@ -64,9 +66,27 @@ public class ManasteelArmorItem extends Item implements CustomDamageItem, Phanto
 			Type type,
 			ArmorMaterial material,
 			Properties props) {
-		super(props.humanoidArmor(material, type.vanillaType()));
+		super(withAttributes(type, material, props));
 		this.type = type;
 		this.material = material;
+	}
+
+	private static Properties withAttributes(Type type, ArmorMaterial material, Properties props) {
+		props.humanoidArmor(material, type.vanillaType());
+		if (material == BotaniaAPI.instance().getElementiumArmorMaterial()) {
+			double chance = switch (type) {
+				case HELMET -> 0.11;
+				case CHESTPLATE -> 0.17;
+				case LEGGINGS -> 0.15;
+				case BOOTS -> 0.09;
+			};
+			EquipmentSlot slot = type.getSlot();
+			props.attributes(material.createAttributes(type.vanillaType()).withModifierAdded(
+					PixieHandler.pixieSpawnChance(),
+					PixieHandler.makeModifier(slot, "Armor modifier", chance),
+					EquipmentSlotGroup.bySlot(slot)));
+		}
+		return props;
 	}
 
 	public Type getType() {
@@ -208,7 +228,7 @@ public class ManasteelArmorItem extends Item implements CustomDamageItem, Phanto
 	}
 
 	public boolean hasArmorSetItem(Player player, EquipmentSlot slot) {
-		if (player == null || player.getInventory() == null || player.getInventory().armor == null) {
+		if (player == null) {
 			return false;
 		}
 

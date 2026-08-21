@@ -72,7 +72,7 @@ public class VitreousPickaxeItem extends ManasteelPickaxeItem {
 	public void inventoryTick(ItemStack stack, ServerLevel world, Entity entity, @Nullable EquipmentSlot slot) {
 		super.inventoryTick(stack, world, entity, slot);
 		CustomData customData = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
-		if (customData.contains(TAG_SILK_HACK)) {
+		if (customData.copyTag().contains(TAG_SILK_HACK)) {
 			CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> tag.remove(TAG_SILK_HACK));
 			var silkTouch = world.registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
 					.getOrThrow(Enchantments.SILK_TOUCH);

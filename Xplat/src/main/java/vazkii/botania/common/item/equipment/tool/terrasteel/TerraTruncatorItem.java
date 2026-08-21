@@ -127,7 +127,7 @@ public class TerraTruncatorItem extends ManasteelAxeItem implements SequentialBr
 	 */
 	private static void addBlockSwapper(Level world, Player player, ItemStack stack, BlockPos origCoords) {
 		// Block swapper registration should only occur on the server
-		if (world.isClientSide) {
+		if (world.isClientSide()) {
 			return;
 		}
 

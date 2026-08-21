@@ -8,14 +8,17 @@
  */
 package vazkii.botania.common.item.equipment.tool.manasteel;
 
+import net.minecraft.core.HolderSet;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ShearsItem;
-import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
-import net.minecraft.world.level.Level;
+import net.minecraft.world.item.enchantment.Repairable;
 import net.minecraft.world.level.block.state.BlockState;
 
 import vazkii.botania.api.item.SortableTool;
@@ -31,7 +34,12 @@ public class ManasteelShearsItem extends ShearsItem implements CustomDamageItem,
 	public static final int MANA_PER_DAMAGE = 30;
 
 	public ManasteelShearsItem(Properties props) {
-		super(props);
+		this(props, BotaniaItems.manaSteel);
+	}
+
+	protected ManasteelShearsItem(Properties props, net.minecraft.world.item.Item... repairItems) {
+		super(props.component(DataComponents.REPAIRABLE,
+				new Repairable(HolderSet.direct(item -> item.builtInRegistryHolder(), repairItems))));
 	}
 
 	@Override
@@ -40,19 +48,18 @@ public class ManasteelShearsItem extends ShearsItem implements CustomDamageItem,
 	}
 
 	@Override
-	public void inventoryTick(ItemStack stack, Level world, Entity entity, int slot, boolean selected) {
-		if (!world.isClientSide && entity instanceof Player player && stack.getDamageValue() > 0 && ManaItemHandler.instance().requestManaExactForTool(stack, player, MANA_PER_DAMAGE * 2, true)) {
+	public void inventoryTick(ItemStack stack, ServerLevel world, Entity entity, EquipmentSlot slot) {
+		if (entity instanceof Player player && stack.getDamageValue() > 0 && ManaItemHandler.instance().requestManaExactForTool(stack, player, MANA_PER_DAMAGE * 2, true)) {
 			stack.setDamageValue(stack.getDamageValue() - 1);
 		}
 	}
 
 	@Override
-	public boolean isValidRepairItem(ItemStack shears, ItemStack material) {
-		return material.is(BotaniaItems.manaSteel) || super.isValidRepairItem(shears, material);
-	}
-
-	@Override
 	public int getSortingPriority(ItemStack stack, BlockState state) {
-		return 1000 + EnchantmentHelper.getItemEnchantmentLevel(Enchantments.BLOCK_EFFICIENCY, stack);
+		int efficiency = stack.getEnchantments().entrySet().stream()
+				.filter(entry -> entry.getKey().is(Enchantments.EFFICIENCY))
+				.mapToInt(entry -> entry.getIntValue())
+				.findFirst().orElse(0);
+		return 1000 + efficiency;
 	}
 }

@@ -23,9 +23,11 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 
+import org.jetbrains.annotations.Nullable;
+
 public abstract class SimpleInventoryBlockEntity extends BotaniaBlockEntity implements Clearable {
 
-	private final SimpleContainer itemHandler = new ChangeTrackedContainer(createItemHandler());
+	private @Nullable SimpleContainer itemHandler;
 
 	protected SimpleInventoryBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
 		super(type, pos, state);
@@ -157,13 +159,13 @@ public abstract class SimpleInventoryBlockEntity extends BotaniaBlockEntity impl
 				}
 			}
 		});
-		copyToInv(tmp, itemHandler);
+		copyToInv(tmp, getItemHandler());
 	}
 
 	@Override
 	public void writePacketNBT(CompoundTag tag) {
 		ListTag items = new ListTag();
-		NonNullList<ItemStack> inventory = copyFromInv(itemHandler);
+		NonNullList<ItemStack> inventory = copyFromInv(getItemHandler());
 		for (int slot = 0; slot < inventory.size(); slot++) {
 			ItemStack stack = inventory.get(slot);
 			if (!stack.isEmpty()) {
@@ -191,7 +193,10 @@ public abstract class SimpleInventoryBlockEntity extends BotaniaBlockEntity impl
 		getItemHandler().clearContent();
 	}
 
-	public final Container getItemHandler() {
+	public final synchronized Container getItemHandler() {
+		if (itemHandler == null) {
+			itemHandler = new ChangeTrackedContainer(createItemHandler());
+		}
 		return itemHandler;
 	}
 }

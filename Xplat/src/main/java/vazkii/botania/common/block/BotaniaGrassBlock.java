@@ -47,8 +47,8 @@ public class BotaniaGrassBlock extends BotaniaBlock {
 
 				BlockState spreadState = world.getBlockState(pos1);
 				BlockState aboveState = world.getBlockState(pos1up);
-				int lightBlock = LightEngine.getLightBlockInto(world, spreadState, pos1,
-						aboveState, pos1up, Direction.UP, aboveState.getLightBlock(world, pos1up));
+				int lightBlock = LightEngine.getLightBlockInto(spreadState, aboveState,
+						Direction.UP, aboveState.getLightDampening());
 				if (spreadState.is(Blocks.DIRT)
 						&& world.getMaxLocalRawBrightness(pos1up) >= 4 && lightBlock <= 2) {
 					world.setBlockAndUpdate(pos1, defaultBlockState());

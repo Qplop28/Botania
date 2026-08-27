@@ -174,7 +174,7 @@ public final class ItemNBTHelper {
 	@Nullable
 	@Contract("_, _, _, false -> !null")
 	public static ListTag getList(ItemStack stack, String tag, int objtype, boolean nullifyOnFail) {
-		return copyCustomData(stack).getList(tag).filter(list -> list.isEmpty() || list.getElementTypeId() == objtype)
+		return copyCustomData(stack).getList(tag).filter(list -> list.stream().allMatch(element -> element.getId() == objtype))
 				.orElseGet(() -> nullifyOnFail ? null : new ListTag());
 	}
 

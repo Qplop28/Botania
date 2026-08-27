@@ -8,12 +8,15 @@
  */
 package vazkii.botania.common.item.equipment.tool.bow;
 
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BowItem;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
+
+import org.jetbrains.annotations.Nullable;
 
 import vazkii.botania.api.mana.ManaItemHandler;
 import vazkii.botania.common.item.BotaniaItems;
@@ -26,7 +29,7 @@ public class LivingwoodBowItem extends BowItem implements CustomDamageItem {
 	public static final int MANA_PER_DAMAGE = 40;
 
 	public LivingwoodBowItem(Properties builder) {
-		super(builder);
+		super(builder.repairable(BotaniaItems.livingwoodTwig));
 	}
 
 	public float chargeVelocityMultiplier() {
@@ -34,15 +37,10 @@ public class LivingwoodBowItem extends BowItem implements CustomDamageItem {
 	}
 
 	@Override
-	public void inventoryTick(ItemStack stack, Level world, Entity entity, int slot, boolean selected) {
-		if (!world.isClientSide && entity instanceof Player player && stack.getDamageValue() > 0 && ManaItemHandler.instance().requestManaExactForTool(stack, player, MANA_PER_DAMAGE * 2, true)) {
+	public void inventoryTick(ItemStack stack, ServerLevel world, Entity entity, @Nullable EquipmentSlot slot) {
+		if (entity instanceof Player player && stack.getDamageValue() > 0 && ManaItemHandler.instance().requestManaExactForTool(stack, player, MANA_PER_DAMAGE * 2, true)) {
 			stack.setDamageValue(stack.getDamageValue() - 1);
 		}
-	}
-
-	@Override
-	public boolean isValidRepairItem(ItemStack bow, ItemStack material) {
-		return material.is(BotaniaItems.livingwoodTwig) || super.isValidRepairItem(bow, material);
 	}
 
 	@Override

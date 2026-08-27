@@ -8,6 +8,7 @@
  */
 package vazkii.botania.common.item.equipment.tool.elementium;
 
+import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -34,14 +35,16 @@ public class ElementiumAxeItem extends ManasteelAxeItem {
 	}
 
 	@SoftImplement("IForgeItem")
-	public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
-		if (isLooting(enchantment)) {
-			return true;
-		} else {
-			// Copy the default impl
-			return enchantment.category.canEnchant(this);
-		}
+	public boolean supportsEnchantment(ItemStack stack, Holder<Enchantment> enchantment) {
+		return enchantment.is(Enchantments.LOOTING) || enchantment.value().isSupportedItem(stack);
+	}
 
+	@SoftImplement("IForgeItem")
+	public boolean isPrimaryItemFor(ItemStack stack, Holder<Enchantment> enchantment) {
+		return enchantment.is(Enchantments.LOOTING)
+				|| enchantment.value().definition().primaryItems()
+						.map(items -> items.contains(stack.typeHolder()))
+						.orElseGet(() -> enchantment.value().isSupportedItem(stack));
 	}
 
 	public static boolean isLooting(Enchantment enchantment) {
@@ -50,10 +53,9 @@ public class ElementiumAxeItem extends ManasteelAxeItem {
 
 	// [VanillaCopy] modified from DiggerItem::hurtEnemy, actually same as SwordItem::hurtEnemy
 	@Override
-	public boolean hurtEnemy(ItemStack stack, @NotNull LivingEntity target, @NotNull LivingEntity attacker) {
+	public void hurtEnemy(ItemStack stack, @NotNull LivingEntity target, @NotNull LivingEntity attacker) {
 		// only do 1 durability damage, since this is primarily a weapon
-		stack.hurtAndBreak(1, attacker, living -> living.broadcastBreakEvent(EquipmentSlot.MAINHAND));
-		return true;
+		stack.hurtAndBreak(1, attacker, EquipmentSlot.MAINHAND);
 	}
 
 }

@@ -52,7 +52,7 @@ public class TerraBladeItem extends ManasteelSwordItem implements LensEffectItem
 	}
 
 	public static InteractionResult attackEntity(Player player, Level world, InteractionHand hand, Entity target, @Nullable EntityHitResult hit) {
-		if (!player.level().isClientSide) {
+		if (!player.level().isClientSide()) {
 			trySpawnBurst(player);
 		}
 		return InteractionResult.PASS;
@@ -69,7 +69,7 @@ public class TerraBladeItem extends ManasteelSwordItem implements LensEffectItem
 				&& attackStrength == 1) {
 			ManaBurstEntity burst = getBurst(player, player.getMainHandItem());
 			player.level().addFreshEntity(burst);
-			player.getMainHandItem().hurtAndBreak(1, player, p -> p.broadcastBreakEvent(InteractionHand.MAIN_HAND));
+			player.getMainHandItem().hurtAndBreak(1, player, InteractionHand.MAIN_HAND);
 			player.level().playSound(null, player.getX(), player.getY(), player.getZ(), BotaniaSounds.terraBlade, SoundSource.PLAYERS, 1F, 1F);
 		}
 	}
@@ -122,8 +122,8 @@ public class TerraBladeItem extends ManasteelSwordItem implements LensEffectItem
 				int mana = burst.getMana();
 				if (mana >= cost) {
 					burst.setMana(mana - cost);
-					float damage = 4F + BotaniaAPI.instance().getTerrasteelItemTier().getAttackDamageBonus();
-					if (!burst.isFake() && !entity.level().isClientSide) {
+					float damage = 4F + BotaniaAPI.instance().getTerrasteelItemTier().attackDamageBonus();
+					if (!burst.isFake() && !entity.level().isClientSide()) {
 						DamageSource source = living.damageSources().magic();
 						if (thrower instanceof Player player) {
 							source = player.damageSources().playerAttack(player);

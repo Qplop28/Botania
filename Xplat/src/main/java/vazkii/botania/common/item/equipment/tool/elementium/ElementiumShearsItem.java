@@ -18,6 +18,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemUtils;
 import net.minecraft.world.item.ItemUseAnimation;
 import net.minecraft.world.level.Level;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 
@@ -31,7 +32,7 @@ import java.util.List;
 public class ElementiumShearsItem extends ManasteelShearsItem {
 
 	public ElementiumShearsItem(Properties props) {
-		super(props);
+		super(props, BotaniaItems.manaSteel, BotaniaItems.elementium);
 	}
 
 	@NotNull
@@ -52,7 +53,7 @@ public class ElementiumShearsItem extends ManasteelShearsItem {
 
 	@Override
 	public void onUseTick(Level world, @NotNull LivingEntity living, @NotNull ItemStack stack, int count) {
-		if (world.isClientSide) {
+		if (world.isClientSide()) {
 			return;
 		}
 
@@ -62,18 +63,13 @@ public class ElementiumShearsItem extends ManasteelShearsItem {
 			if (shearables.size() > 0) {
 				for (Entity entity : shearables) {
 					if (entity instanceof Shearable shearable && shearable.readyForShearing()) {
-						shearable.shear(living.getSoundSource());
-						stack.hurtAndBreak(1, living, l -> l.broadcastBreakEvent(l.getUsedItemHand()));
+						shearable.shear((ServerLevel) world, living.getSoundSource(), stack);
+						stack.hurtAndBreak(1, living, living.getUsedItemHand());
 						break;
 					}
 				}
 			}
 		}
-	}
-
-	@Override
-	public boolean isValidRepairItem(ItemStack toRepair, @NotNull ItemStack repairBy) {
-		return repairBy.is(BotaniaItems.elementium) || super.isValidRepairItem(toRepair, repairBy);
 	}
 
 	@Override
